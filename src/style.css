@@ -1,0 +1,590 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Inscryption-themed fonts */
+@import url('https://fonts.googleapis.com/css2?family=Pirata+One&family=Creepster&family=Metal+Mania&family=Griffy&family=Nosifer&family=Eater&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+:root {
+  --inscryption-dark: #0a0604;
+  --inscryption-blood: #2d0f0f;
+  --inscryption-wood: #3d2914;
+  --inscryption-gold: #d4af37;
+  --inscryption-bone: #f4f1e8;
+  --inscryption-green: #1a4a3a;
+  --inscryption-fire: #ff4500;
+  --inscryption-shadow: #000000;
+  --inscryption-mist: rgba(255, 255, 255, 0.1);
+}
+
+@layer base {
+  body {
+    @apply bg-black text-white;
+    font-family: 'Griffy', cursive;
+    background: radial-gradient(circle at center, var(--inscryption-dark) 0%, var(--inscryption-shadow) 100%);
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(circle at 20% 80%, rgba(255, 69, 0, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(45, 15, 15, 0.2) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+    animation: mysteryShadows 10s ease-in-out infinite alternate;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  * {
+    cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M10 2L12 8L18 10L12 12L10 18L8 12L2 10L8 8Z" fill="%23d4af37"/></svg>'), auto;
+  }
+
+  a, button {
+    cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2L14 9L21 12L14 15L12 22L10 15L3 12L10 9Z" fill="%23ff4500"/></svg>'), pointer;
+  }
+}
+
+@layer components {
+  .inscryption-card {
+    background: linear-gradient(135deg, 
+      var(--inscryption-wood) 0%, 
+      var(--inscryption-blood) 50%, 
+      var(--inscryption-dark) 100%);
+    border: 3px solid var(--inscryption-gold);
+    border-radius: 8px;
+    box-shadow: 
+      0 0 20px rgba(212, 175, 55, 0.4),
+      inset 0 0 20px rgba(0, 0, 0, 0.5),
+      0 8px 32px rgba(0, 0, 0, 0.8);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .inscryption-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, 
+      rgba(212, 175, 55, 0.1) 25%, 
+      transparent 25%, 
+      transparent 75%, 
+      rgba(212, 175, 55, 0.1) 75%);
+    background-size: 20px 20px;
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  .inscryption-card::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, var(--inscryption-gold), var(--inscryption-fire), var(--inscryption-gold));
+    border-radius: 10px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .inscryption-card:hover::after {
+    opacity: 0.7;
+    animation: cardPulse 2s ease-in-out infinite;
+  }
+
+  .forest-text {
+    text-shadow: 
+      2px 2px 4px rgba(0, 0, 0, 0.9),
+      0 0 10px var(--inscryption-gold),
+      0 0 20px var(--inscryption-fire);
+    font-family: 'Metal Mania', cursive;
+  }
+
+  .horror-text {
+    font-family: 'Creepster', cursive;
+    text-shadow: 
+      3px 3px 0px var(--inscryption-blood),
+      0 0 10px var(--inscryption-fire);
+    animation: horrorGlow 3s ease-in-out infinite alternate;
+  }
+
+  .ancient-text {
+    font-family: 'Pirata One', cursive;
+    color: var(--inscryption-bone);
+    text-shadow: 2px 2px 4px var(--inscryption-shadow);
+  }
+
+  .neon-glow {
+    color: var(--inscryption-gold);
+    text-shadow: 
+      0 0 5px var(--inscryption-gold),
+      0 0 10px var(--inscryption-gold),
+      0 0 15px var(--inscryption-gold),
+      0 0 20px var(--inscryption-fire);
+    animation: inscription-glow 2s ease-in-out infinite alternate;
+  }
+
+  .ember-effect {
+    color: var(--inscryption-fire);
+    animation: ember 2s ease-in-out infinite;
+  }
+
+  .blood-effect {
+    color: var(--inscryption-blood);
+    text-shadow: 0 0 10px var(--inscryption-fire);
+    animation: bloodDrip 4s ease-in-out infinite;
+  }
+
+  .btn-inscryption {
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, 
+      var(--inscryption-wood) 0%, 
+      var(--inscryption-blood) 50%, 
+      var(--inscryption-dark) 100%);
+    color: var(--inscryption-bone);
+    font-weight: bold;
+    font-family: 'Metal Mania', cursive;
+    border-radius: 8px;
+    border: 2px solid var(--inscryption-gold);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .btn-inscryption::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(212, 175, 55, 0.4), 
+      transparent);
+    transition: left 0.5s;
+  }
+
+  .btn-inscryption:hover {
+    transform: scale(1.05) rotateX(5deg);
+    box-shadow: 
+      0 0 30px rgba(212, 175, 55, 0.6),
+      0 10px 30px rgba(0, 0, 0, 0.5);
+    border-color: var(--inscryption-fire);
+  }
+
+  .btn-inscryption:hover::before {
+    left: 100%;
+  }
+
+  .card-stack {
+    position: relative;
+    transform-style: preserve-3d;
+  }
+
+  .card-stack::before,
+  .card-stack::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: var(--inscryption-wood);
+    border: 1px solid var(--inscryption-gold);
+    border-radius: 8px;
+    transform-origin: center;
+  }
+
+  .card-stack::before {
+    transform: translateZ(-5px) rotate(2deg);
+    opacity: 0.7;
+  }
+
+  .card-stack::after {
+    transform: translateZ(-10px) rotate(-1deg);
+    opacity: 0.5;
+  }
+
+  /* Мистические эффекты */
+  .mystic-border {
+    border: 2px solid transparent;
+    background: linear-gradient(var(--inscryption-dark), var(--inscryption-dark)) padding-box,
+                linear-gradient(45deg, var(--inscryption-gold), var(--inscryption-fire), var(--inscryption-gold)) border-box;
+    animation: borderShift 4s ease-in-out infinite;
+  }
+
+  .candle-light {
+    background: radial-gradient(circle, 
+      var(--inscryption-fire) 0%, 
+      rgba(255, 69, 0, 0.6) 30%, 
+      rgba(255, 69, 0, 0.2) 60%, 
+      transparent 100%);
+    animation: candleFlicker 1.5s ease-in-out infinite alternate;
+  }
+
+  .shadow-text {
+    color: transparent;
+    background: linear-gradient(45deg, 
+      var(--inscryption-gold) 30%, 
+      var(--inscryption-fire) 50%, 
+      var(--inscryption-gold) 70%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    animation: textShimmer 3s ease-in-out infinite;
+  }
+
+  /* Эффекты частиц */
+  .particle-effect {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .particle-effect::before {
+    content: '✦ ✧ ◆ ◇ ▲ ▼';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    font-size: 12px;
+    color: var(--inscryption-gold);
+    opacity: 0.3;
+    animation: particles 15s linear infinite;
+    pointer-events: none;
+    letter-spacing: 30px;
+    line-height: 50px;
+  }
+}
+
+/* Анимации в стиле Inscryption */
+@keyframes inscription-glow {
+  0% { 
+    text-shadow: 
+      0 0 5px var(--inscryption-gold),
+      0 0 10px var(--inscryption-gold),
+      0 0 15px var(--inscryption-gold);
+  }
+  50% {
+    text-shadow: 
+      0 0 10px var(--inscryption-fire),
+      0 0 20px var(--inscryption-fire),
+      0 0 30px var(--inscryption-fire);
+  }
+  100% { 
+    text-shadow: 
+      0 0 5px var(--inscryption-gold),
+      0 0 10px var(--inscryption-gold),
+      0 0 15px var(--inscryption-gold);
+  }
+}
+
+@keyframes horrorGlow {
+  0% { 
+    text-shadow: 3px 3px 0px var(--inscryption-blood);
+  }
+  100% { 
+    text-shadow: 
+      3px 3px 0px var(--inscryption-blood),
+      0 0 20px var(--inscryption-fire),
+      0 0 30px var(--inscryption-fire);
+  }
+}
+
+@keyframes ember {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+  25% { 
+    opacity: 0.8; 
+    transform: scale(1.1);
+  }
+  50% { 
+    opacity: 1.2; 
+    transform: scale(0.95);
+  }
+  75% { 
+    opacity: 0.9; 
+    transform: scale(1.05);
+  }
+}
+
+@keyframes bloodDrip {
+  0% { 
+    opacity: 1;
+    transform: translateY(0px);
+  }
+  50% { 
+    opacity: 0.7;
+    transform: translateY(3px);
+  }
+  100% { 
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+
+@keyframes cardPulse {
+  0%, 100% { 
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes mysteryShadows {
+  0% { 
+    opacity: 0.3;
+    filter: hue-rotate(0deg);
+  }
+  33% { 
+    opacity: 0.5;
+    filter: hue-rotate(120deg);
+  }
+  66% { 
+    opacity: 0.4;
+    filter: hue-rotate(240deg);
+  }
+  100% { 
+    opacity: 0.3;
+    filter: hue-rotate(360deg);
+  }
+}
+
+@keyframes candleFlicker {
+  0% { 
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  25% { 
+    opacity: 0.8;
+    transform: scale(1.1) rotate(1deg);
+  }
+  50% { 
+    opacity: 1.2;
+    transform: scale(0.9) rotate(-1deg);
+  }
+  75% { 
+    opacity: 0.9;
+    transform: scale(1.05) rotate(0.5deg);
+  }
+  100% { 
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes borderShift {
+  0% { 
+    filter: hue-rotate(0deg);
+  }
+  50% { 
+    filter: hue-rotate(180deg);
+  }
+  100% { 
+    filter: hue-rotate(360deg);
+  }
+}
+
+@keyframes textShimmer {
+  0% { 
+    background-position: -200% center;
+  }
+  100% { 
+    background-position: 200% center;
+  }
+}
+
+@keyframes particles {
+  0% { 
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% { 
+    opacity: 0.3;
+  }
+  90% { 
+    opacity: 0.3;
+  }
+  100% { 
+    transform: translateY(-100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(30px) rotateX(10deg);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) rotateX(0deg);
+  }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(50px) scale(0.95);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% { 
+    transform: translateY(-8px) rotate(1deg);
+  }
+  66% { 
+    transform: translateY(-12px) rotate(-1deg);
+  }
+}
+
+/* Utility классы */
+.animate-fade-in {
+  animation: fadeIn 1.2s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 1s ease-out;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: inscription-glow 2s ease-in-out infinite alternate;
+}
+
+.animate-flicker {
+  animation: candleFlicker 2s ease-in-out infinite;
+}
+
+.animate-horror {
+  animation: horrorGlow 3s ease-in-out infinite alternate;
+}
+
+/* Скроллбар в стиле Inscryption */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--inscryption-dark);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, 
+    var(--inscryption-gold) 0%, 
+    var(--inscryption-wood) 50%, 
+    var(--inscryption-blood) 100%);
+  border-radius: 6px;
+  border: 1px solid var(--inscryption-shadow);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, 
+    var(--inscryption-fire) 0%, 
+    var(--inscryption-gold) 50%, 
+    var(--inscryption-fire) 100%);
+  box-shadow: 0 0 10px var(--inscryption-fire);
+}
+
+/* Специальные эффекты для секций */
+.hero-section {
+  background: 
+    radial-gradient(circle at 30% 70%, rgba(255, 69, 0, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 70% 30%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
+    linear-gradient(135deg, var(--inscryption-shadow) 0%, var(--inscryption-dark) 100%);
+}
+
+.section-divider {
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--inscryption-gold) 50%, 
+    transparent 100%);
+  margin: 2rem 0;
+  animation: borderShift 3s ease-in-out infinite;
+}
+
+/* Эффекты для карточек и кнопок */
+.mystical-hover:hover {
+  transform: translateY(-5px) rotateX(5deg);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.6),
+    0 0 20px var(--inscryption-gold);
+}
+
+.blood-border {
+  border: 2px solid var(--inscryption-blood);
+  box-shadow: 
+    inset 0 0 10px rgba(45, 15, 15, 0.5),
+    0 0 15px rgba(45, 15, 15, 0.3);
+}
+
+.gold-highlight {
+  background: linear-gradient(135deg, 
+    rgba(212, 175, 55, 0.1) 0%, 
+    rgba(212, 175, 55, 0.05) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+/* Тематические курсоры и интерактивность */
+.interactive-element {
+  transition: all 0.3s ease;
+  cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2L14 9L21 12L14 15L12 22L10 15L3 12L10 9Z" fill="%23ff4500"/></svg>'), pointer;
+}
+
+.interactive-element:hover {
+  filter: brightness(1.2) saturate(1.1);
+}
+
+/* Специальные текстовые эффекты */
+.carved-text {
+  color: var(--inscryption-bone);
+  text-shadow: 
+    1px 1px 0px var(--inscryption-shadow),
+    2px 2px 0px var(--inscryption-blood),
+    3px 3px 5px rgba(0, 0, 0, 0.8);
+  font-weight: bold;
+}
+
+.ritual-text {
+  font-family: 'Nosifer', cursive;
+  color: var(--inscryption-fire);
+  text-shadow: 
+    0 0 5px var(--inscryption-fire),
+    0 0 10px var(--inscryption-fire),
+    2px 2px 4px var(--inscryption-shadow);
+  animation: ember 2s ease-in-out infinite;
+}
