@@ -40,20 +40,21 @@
     <ContactsSection />
 
     <!-- Плавающие мистические эффекты -->
-    <div class="fixed bottom-10 right-10 z-50">
-      <div class="candle-light w-16 h-16 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform"
-           @click="toggleMysticalMode">
-        <i class="fas fa-fire text-2xl ember-effect"></i>
-      </div>
+    <div class="fixed bottom-8 right-8 z-50">
+      <button class="w-14 h-14 bg-gradient-to-br from-gold to-fire rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-all duration-300 shadow-lg"
+              @click="toggleMysticalMode"
+              :class="{ 'animate-glow': mysticalMode }">
+        <i class="fas fa-fire text-xl text-white"></i>
+      </button>
     </div>
 
     <!-- Мистический фон -->
-    <div class="fixed inset-0 pointer-events-none z-0 particle-effect opacity-20"></div>
+    <div class="fixed inset-0 pointer-events-none z-0 particle-effect opacity-10"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import HeroSection from './components/HeroSection.vue'
 import InfoSection from './components/InfoSection.vue'
 import ProgramSection from './components/ProgramSection.vue'
@@ -63,45 +64,55 @@ import ReviewsSection from './components/ReviewsSection.vue'
 import ContactsSection from './components/ContactsSection.vue'
 
 const mysticalMode = ref(false)
+const showMysticalBurst = ref(false)
 
 const toggleMysticalMode = () => {
   mysticalMode.value = !mysticalMode.value
   
   if (mysticalMode.value) {
-    document.body.style.filter = 'hue-rotate(30deg) saturate(1.2)'
-    console.log('🔥 Мистический режим активирован...')
+    document.body.style.filter = 'hue-rotate(20deg) saturate(1.1) brightness(1.05)'
+    console.log('🔥 Мистический режим активирован')
+    triggerMysticalBurst()
   } else {
     document.body.style.filter = 'none'
-    console.log('⚡ Обычный режим восстановлен.')
+    console.log('⚡ Обычный режим восстановлен')
   }
 }
 
+const triggerMysticalBurst = () => {
+  showMysticalBurst.value = true
+  setTimeout(() => {
+    showMysticalBurst.value = false
+  }, 1500)
+}
+
 onMounted(() => {
-  // Добавляем случайные мистические эффекты
+  // Мягкие мистические эффекты
   setInterval(() => {
-    if (Math.random() < 0.1) { // 10% шанс каждую секунду
+    if (Math.random() < 0.05) { // 5% шанс каждые 3 секунды
       const body = document.body
-      body.style.filter = 'brightness(1.1) saturate(1.1)'
+      const currentFilter = body.style.filter
+      body.style.filter = 'brightness(1.05) saturate(1.05)'
       setTimeout(() => {
-        body.style.filter = mysticalMode.value ? 'hue-rotate(30deg) saturate(1.2)' : 'none'
+        body.style.filter = currentFilter
       }, 200)
     }
-  }, 1000)
+  }, 3000)
 
-  // Консольное сообщение в стиле Inscryption
+  // Консольное сообщение в стиле Inscryption (упрощенное)
   console.log(`
   ═══════════════════════════════════════
     🎴 Добро пожаловать в TourFurr.camp 🎴
   ═══════════════════════════════════════
   
-  ▲ Карты ждут своего игрока...
-  ◆ Лес шепчет древние тайны...
-  ● Костёр готов согреть души...
-  
-  Готов ли ты к этому путешествию?
+  Готов к мистическому приключению?
   
   ═══════════════════════════════════════
   `)
+})
+
+onUnmounted(() => {
+  // Очистка при размонтировании
 })
 </script>
 
@@ -114,60 +125,37 @@ onMounted(() => {
   background-attachment: fixed;
 }
 
-/* Специальные эффекты при загрузке */
+/* Плавная загрузка приложения */
 @keyframes appLoad {
   0% {
     opacity: 0;
-    transform: scale(0.95);
-    filter: blur(5px);
+    transform: translateY(20px);
   }
   100% {
     opacity: 1;
-    transform: scale(1);
-    filter: blur(0px);
+    transform: translateY(0);
   }
 }
 
 #app {
-  animation: appLoad 1.5s ease-out;
-}
-
-/* Мистические курсоры для разных элементов */
-.mystical-cursor-fire {
-  cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2C8 2 4 8 4 12C4 16 8 20 12 20C16 20 20 16 20 12C20 8 16 2 12 2Z" fill="%23ff4500"/></svg>'), auto;
-}
-
-.mystical-cursor-skull {
-  cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2L14 8L20 6L16 12L22 14L16 16L20 18L14 16L12 22L10 16L4 18L8 16L2 14L8 12L4 6L10 8L12 2Z" fill="%23d4af37"/></svg>'), pointer;
+  animation: appLoad 1s ease-out;
 }
 
 /* Адаптивность для мобильных устройств */
 @media (max-width: 768px) {
   .particle-effect::before {
-    font-size: 8px;
-    letter-spacing: 20px;
-    line-height: 30px;
-  }
-  
-  .hero-section {
-    min-height: 100vh;
-  }
-  
-  .card-stack::before,
-  .card-stack::after {
-    transform: translateZ(-2px) rotate(1deg);
-  }
-}
-
-/* Темные темы для системных настроек */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --inscryption-bone: #f8f5f0;
+    font-size: 10px;
+    letter-spacing: 60px;
+    line-height: 60px;
   }
 }
 
 /* Сниженная анимация для пользователей с ограниченными возможностями */
 @media (prefers-reduced-motion: reduce) {
+  #app {
+    animation: none;
+  }
+  
   *,
   *::before,
   *::after {
