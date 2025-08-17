@@ -48,7 +48,7 @@
 
       <!-- Главный заголовок -->
       <h1 class="text-6xl md:text-8xl horror-text mb-8 animate-fade-in font-bold">
-        TourFurr<span class="text-4xl md:text-6xl opacity-80">.camp</span>
+        TourFurr<span class="text-4xl md:text-6xl opacity-80"></span>
       </h1>
 
       <!-- Подзаголовок с эффектами -->

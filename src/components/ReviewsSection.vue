@@ -25,9 +25,7 @@
               <div class="absolute inset-0 w-16 h-16 rounded-full animate-glow opacity-50"
                    :class="getMysticalGlow(review.id)"></div>
               <!-- Species symbol -->
-              <div class="absolute -top-1 -right-1 text-xs bg-gold text-dark rounded-full w-6 h-6 flex items-center justify-center carved-text">
-                {{ getSpeciesSymbol(review.furrySpecies) }}
-              </div>
+
             </div>
             
             <div class="flex-1">
@@ -57,12 +55,6 @@
             </div>
           </blockquote>
 
-          <!-- Mystical essence of review -->
-          <div class="text-xs text-center p-2 bg-gradient-to-r from-blood/20 to-dark/40 rounded border border-gold/30 mb-4">
-            <span class="text-gold ancient-text">Сущность отзыва: </span>
-            <span class="carved-text">{{ getReviewEssence(review.experienceType) }}</span>
-          </div>
-
           <!-- Experience indicators -->
           <div class="flex justify-center space-x-2 mb-4">
             <div v-for="experience in review.experiences" :key="experience"
@@ -70,61 +62,6 @@
                  :class="getExperienceStyle(experience)">
               <i :class="[getExperienceIcon(experience), 'mr-1']"></i>
               {{ experience }}
-            </div>
-          </div>
-
-          <!-- Mystical footer -->
-          <div class="text-center border-t border-gold/30 pt-3">
-            <div class="text-xs text-gray-500 ancient-text">
-              Записано {{ getRandomDate() }} при свете костра
-            </div>
-            <div class="mt-2 flex justify-center space-x-4 text-xs">
-              <span class="ember-effect cursor-pointer hover:animate-float" 
-                    @click="likeReview(review.id)">
-                <i class="fas fa-heart mr-1"></i>{{ review.likes || 0 }}
-              </span>
-              <span class="neon-glow cursor-pointer hover:animate-float">
-                <i class="fas fa-share mr-1"></i>Поделиться
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- CTA for reviews with enhanced mystical design -->
-      <div class="mt-12 text-center">
-        <div class="inscryption-card p-8 mystical-hover relative overflow-hidden">
-          <!-- Background mystical pattern -->
-          <div class="absolute inset-0 opacity-10">
-            <div class="w-full h-full bg-gradient-to-br from-fire/30 via-gold/20 to-blood/30"></div>
-          </div>
-          
-          <div class="relative z-10">
-            <div class="mb-6">
-              <i class="fas fa-feather-alt text-5xl neon-glow animate-glow"></i>
-              <i class="fas fa-scroll mx-4 text-5xl ember-effect animate-float"></i>
-              <i class="fas fa-quill-pen text-5xl carved-text animate-flicker"></i>
-            </div>
-            
-            <h3 class="text-2xl font-bold text-white mb-4 ancient-text">
-              Хочешь поделиться своим опытом выживания?
-            </h3>
-            
-            <p class="text-gray-300 mb-6 max-w-2xl mx-auto ancient-text">
-              Каждая история ценна для будущих игроков. Расскажи, как карты изменили твою судьбу, 
-              и какие тайны открыл тебе лес...
-            </p>
-            
-            <a href="https://t.me/tourfurr_chat" target="_blank" 
-               class="btn-inscryption text-xl px-8 py-4 interactive-element">
-              <i class="fab fa-telegram mr-3 animate-float"></i>
-              Написать свидетельство
-              <i class="fas fa-feather ml-3 ember-effect"></i>
-            </a>
-            
-            <div class="mt-6 text-sm text-gray-500 ancient-text">
-              <i class="fas fa-info-circle mr-2 ember-effect"></i>
-              Лучшие отзывы получат особые бонусы на следующем кемпинге
             </div>
           </div>
         </div>
