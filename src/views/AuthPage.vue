@@ -51,10 +51,10 @@
         </div>
 
         <!-- Forms -->
-        <Transition name="slide-fade" mode="out-in">
-          <LoginForm v-if="activeTab === 'login'" key="login" />
-          <RegisterForm v-else key="register" />
-        </Transition>
+        <div class="form-container">
+          <LoginForm v-if="activeTab === 'login'" />
+          <RegisterForm v-else />
+        </div>
       </div>
 
       <!-- Back to Home -->
@@ -312,23 +312,9 @@ function particleStyle(i: number) {
   transition: transform 0.3s ease;
 }
 
-/* Transitions */
-.slide-fade-enter-active {
-  transition: all 0.3s ease-out;
-}
-
-.slide-fade-leave-active {
-  transition: all 0.2s ease-in;
-}
-
-.slide-fade-enter-from {
-  transform: translateX(20px);
-  opacity: 0;
-}
-
-.slide-fade-leave-to {
-  transform: translateX(-20px);
-  opacity: 0;
+/* Form Container */
+.form-container {
+  min-height: 200px;
 }
 
 /* Responsive */
