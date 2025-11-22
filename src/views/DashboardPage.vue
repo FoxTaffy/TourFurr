@@ -364,20 +364,20 @@ function handleLogout() {
 .dashboard-content {
   position: relative;
   z-index: 10;
-  max-width: 1200px;
+  max-width: min(1200px, 95vw);
   margin: 0 auto;
-  padding: 2rem;
+  padding: clamp(1rem, 3vw, 2rem);
 }
 
 /* Welcome */
 .welcome-section {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: clamp(1.5rem, 3vw, 2rem);
 }
 
 .welcome-title {
   font-family: 'Playfair Display', serif;
-  font-size: 2.5rem;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
   color: var(--cream);
   margin-bottom: 0.5rem;
 }
@@ -388,7 +388,7 @@ function handleLogout() {
 
 .welcome-text {
   color: var(--sage);
-  font-size: 1.1rem;
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
 }
 
 /* Status Banner */
@@ -417,8 +417,8 @@ function handleLogout() {
 }
 
 .banner-icon-wrapper {
-  width: 48px;
-  height: 48px;
+  width: clamp(40px, 6vw, 48px);
+  height: clamp(40px, 6vw, 48px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -436,8 +436,8 @@ function handleLogout() {
 }
 
 .banner-icon {
-  width: 24px;
-  height: 24px;
+  width: clamp(20px, 3vw, 24px);
+  height: clamp(20px, 3vw, 24px);
   color: var(--fire-glow);
 }
 
@@ -450,14 +450,14 @@ function handleLogout() {
 }
 
 .banner-title {
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 1.8vw, 1rem);
   font-weight: 600;
   color: var(--cream);
   margin-bottom: 4px;
 }
 
 .banner-text {
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 1.5vw, 0.9rem);
   color: var(--sage);
 }
 
@@ -465,7 +465,12 @@ function handleLogout() {
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+/* Glass Card Override for Dashboard */
+.glass-card {
+  padding: clamp(1.5rem, 3vw, 3rem);
 }
 
 /* Profile Card */
@@ -474,7 +479,7 @@ function handleLogout() {
 }
 
 .card-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: clamp(1rem, 2vw, 1.5rem);
 }
 
 .card-title {
@@ -482,27 +487,27 @@ function handleLogout() {
   align-items: center;
   gap: 10px;
   font-family: 'Playfair Display', serif;
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 2vw, 1.25rem);
   color: var(--fire-glow);
 }
 
 .title-icon {
-  width: 24px;
-  height: 24px;
+  width: clamp(20px, 3vw, 24px);
+  height: clamp(20px, 3vw, 24px);
 }
 
 /* Avatar */
 .avatar-section {
   text-align: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
+  margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  padding-bottom: clamp(1rem, 2vw, 1.5rem);
   border-bottom: 1px solid var(--moss);
 }
 
 .avatar-wrapper {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: clamp(80px, 12vw, 100px);
+  height: clamp(80px, 12vw, 100px);
   margin: 0 auto 1rem;
 }
 
@@ -557,13 +562,13 @@ function handleLogout() {
 
 .profile-name {
   font-family: 'Playfair Display', serif;
-  font-size: 1.5rem;
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
   color: var(--cream);
   margin-bottom: 4px;
 }
 
 .profile-email {
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 1.5vw, 0.9rem);
   color: var(--sage);
 }
 
@@ -581,8 +586,8 @@ function handleLogout() {
 }
 
 .info-icon-wrapper {
-  width: 40px;
-  height: 40px;
+  width: clamp(32px, 5vw, 40px);
+  height: clamp(32px, 5vw, 40px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -751,7 +756,7 @@ function handleLogout() {
 
 .event-name {
   font-family: 'Playfair Display', serif;
-  font-size: 1.5rem;
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
   color: var(--cream);
   margin-bottom: 1rem;
 }
