@@ -502,3 +502,167 @@ function redirectToDashboard() {
   router.push('/dashboard')
 }
 </script>
+
+<style scoped>
+/* Progress Bar */
+.mb-8 {
+  margin-bottom: 1.5rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-gray-400 {
+  color: var(--sage);
+}
+
+/* Form Inputs Override */
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="tel"],
+textarea {
+  background: rgba(26, 17, 14, 0.6) !important;
+  border: 1px solid var(--moss) !important;
+  border-radius: 12px !important;
+  color: var(--cream) !important;
+  font-family: 'Lora', serif !important;
+  transition: all 0.3s ease !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--sage) !important;
+  opacity: 0.7 !important;
+}
+
+input:focus,
+textarea:focus {
+  outline: none !important;
+  border-color: var(--fire) !important;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1), 0 0 20px rgba(255, 107, 53, 0.1) !important;
+}
+
+/* Labels */
+label {
+  color: var(--cream) !important;
+  font-weight: 500 !important;
+}
+
+.text-red-400 {
+  color: var(--fire) !important;
+}
+
+/* Progress Steps */
+.bg-amber-500 {
+  background: linear-gradient(90deg, var(--fire), var(--fire-glow)) !important;
+}
+
+.bg-gray-700 {
+  background: var(--moss) !important;
+}
+
+/* Buttons */
+button[type="button"],
+button[type="submit"] {
+  font-family: 'Lora', serif !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
+}
+
+.bg-gradient-to-r {
+  background: linear-gradient(135deg, var(--fire), var(--fire-glow)) !important;
+}
+
+.bg-gradient-to-r:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4) !important;
+}
+
+.bg-gray-700 {
+  background: rgba(26, 17, 14, 0.8) !important;
+  border: 1px solid var(--moss) !important;
+}
+
+.bg-gray-700:hover {
+  background: rgba(42, 31, 26, 0.9) !important;
+}
+
+/* Checkboxes */
+input[type="checkbox"] {
+  accent-color: var(--fire) !important;
+}
+
+/* Error States */
+.border-red-500 {
+  border-color: #ef4444 !important;
+}
+
+.text-xs.text-red-400,
+.mt-1.text-xs.text-red-400 {
+  color: #fca5a5 !important;
+}
+
+/* Avatar Upload */
+.border-dashed {
+  border-color: var(--moss) !important;
+  background: rgba(26, 17, 14, 0.4) !important;
+  border-radius: 16px !important;
+  transition: all 0.3s ease !important;
+}
+
+.border-dashed:hover {
+  border-color: var(--fire) !important;
+  background: rgba(255, 107, 53, 0.05) !important;
+}
+
+.border-amber-500 {
+  border-color: var(--fire) !important;
+}
+
+/* Textarea */
+textarea {
+  resize: none !important;
+}
+
+/* Modal */
+.fixed.inset-0 {
+  backdrop-filter: blur(8px);
+}
+
+.bg-gray-900 {
+  background: linear-gradient(135deg, rgba(42, 31, 26, 0.95), rgba(26, 17, 14, 0.98)) !important;
+  border: 1px solid var(--moss) !important;
+}
+
+.bg-amber-500\/20 {
+  background: rgba(255, 107, 53, 0.2) !important;
+}
+
+.text-amber-500 {
+  color: var(--fire) !important;
+}
+
+/* Password Strength */
+.bg-red-500 { background: #ef4444 !important; }
+.bg-orange-500 { background: #f97316 !important; }
+.bg-yellow-500 { background: #eab308 !important; }
+.bg-green-500 { background: #22c55e !important; }
+
+/* Server Error */
+.bg-red-500\/10 {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Links */
+a {
+  color: var(--fire-glow) !important;
+  transition: color 0.3s ease !important;
+}
+
+a:hover {
+  color: var(--fire) !important;
+}
+</style>
