@@ -262,20 +262,41 @@
 
   <!-- Success Modal -->
   <Teleport to="body">
-    <div v-if="showSuccessModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div class="bg-gray-900 border border-amber-500/30 rounded-xl p-6 max-w-md w-full text-center">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-500/20 flex items-center justify-center">
-          <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div v-if="showSuccessModal" class="success-overlay">
+      <div class="success-modal">
+        <!-- Animated Background -->
+        <div class="modal-glow"></div>
+
+        <!-- Icon with animation -->
+        <div class="success-icon-wrapper">
+          <div class="success-icon-bg"></div>
+          <svg class="success-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
           </svg>
+          <div class="success-particles">
+            <span v-for="i in 8" :key="i" class="particle"></span>
+          </div>
         </div>
-        <h3 class="text-xl font-bold text-white mb-2">Регистрация успешна!</h3>
-        <p class="text-gray-400 mb-6">Ваша заявка на рассмотрении. Мы уведомим вас о решении.</p>
-        <button
-          @click="redirectToDashboard"
-          class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-semibold py-3 px-4 rounded-lg transition-all"
-        >
-          Перейти в личный кабинет
+
+        <!-- Content -->
+        <h3 class="success-title">Регистрация успешна!</h3>
+        <p class="success-text">Ваша заявка на рассмотрении.<br>Мы уведомим вас о решении.</p>
+
+        <!-- Status indicator -->
+        <div class="status-badge">
+          <span class="status-dot"></span>
+          Статус: На рассмотрении
+        </div>
+
+        <!-- Button -->
+        <button @click="redirectToDashboard" class="success-btn">
+          <span class="btn-glow"></span>
+          <span class="btn-content">
+            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            Перейти в личный кабинет
+          </span>
         </button>
       </div>
     </div>
@@ -664,5 +685,202 @@ a {
 
 a:hover {
   color: var(--fire) !important;
+}
+
+/* Success Modal */
+.success-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.success-modal {
+  position: relative;
+  background: linear-gradient(135deg, rgba(42, 31, 26, 0.95), rgba(26, 17, 14, 0.98));
+  border: 1px solid var(--moss);
+  border-radius: 24px;
+  padding: 2.5rem;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 100px rgba(255, 107, 53, 0.1);
+  overflow: hidden;
+}
+
+.modal-glow {
+  position: absolute;
+  top: -50%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.3), transparent 70%);
+  filter: blur(40px);
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+.success-icon-wrapper {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+}
+
+.success-icon-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--fire), var(--fire-glow));
+  border-radius: 50%;
+  animation: icon-pulse 2s ease-in-out infinite;
+}
+
+@keyframes icon-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.1); opacity: 0.5; }
+}
+
+.success-icon {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  color: white;
+  z-index: 1;
+  animation: check-draw 0.5s ease-out 0.3s both;
+}
+
+@keyframes check-draw {
+  0% { stroke-dashoffset: 100; opacity: 0; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+
+.success-particles {
+  position: absolute;
+  inset: 0;
+}
+
+.success-particles .particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--fire-glow);
+  border-radius: 50%;
+  animation: particle-burst 1s ease-out forwards;
+}
+
+.success-particles .particle:nth-child(1) { top: 50%; left: 50%; --angle: 0deg; }
+.success-particles .particle:nth-child(2) { top: 50%; left: 50%; --angle: 45deg; }
+.success-particles .particle:nth-child(3) { top: 50%; left: 50%; --angle: 90deg; }
+.success-particles .particle:nth-child(4) { top: 50%; left: 50%; --angle: 135deg; }
+.success-particles .particle:nth-child(5) { top: 50%; left: 50%; --angle: 180deg; }
+.success-particles .particle:nth-child(6) { top: 50%; left: 50%; --angle: 225deg; }
+.success-particles .particle:nth-child(7) { top: 50%; left: 50%; --angle: 270deg; }
+.success-particles .particle:nth-child(8) { top: 50%; left: 50%; --angle: 315deg; }
+
+@keyframes particle-burst {
+  0% { transform: translate(-50%, -50%) rotate(var(--angle)) translateY(0) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(var(--angle)) translateY(-50px) scale(0); opacity: 0; }
+}
+
+.success-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 0.75rem;
+}
+
+.success-text {
+  color: var(--sage);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 179, 71, 0.1);
+  border: 1px solid rgba(255, 179, 71, 0.3);
+  border-radius: 20px;
+  color: var(--fire-glow);
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--fire-glow);
+  border-radius: 50%;
+  animation: dot-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.success-btn {
+  position: relative;
+  width: 100%;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, var(--fire), var(--fire-glow));
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-family: 'Lora', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.success-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+}
+
+.success-btn .btn-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transform: translateX(-100%);
+}
+
+.success-btn:hover .btn-glow {
+  animation: shimmer 0.8s ease;
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+.success-btn .btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.success-btn .btn-icon {
+  width: 20px;
+  height: 20px;
 }
 </style>
