@@ -225,13 +225,6 @@ function particleStyle(i: number) {
 /* Auth Card */
 .auth-card {
   padding: 2rem;
-  background: linear-gradient(
-    135deg,
-    rgba(42, 31, 26, 0.4) 0%,
-    rgba(61, 45, 36, 0.3) 100%
-  );
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
 }
 
 /* Tabs */
