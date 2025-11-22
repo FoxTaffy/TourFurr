@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import api from '../services/api'
+
+// MOCK MODE - работает без бэкенда
+const MOCK_MODE = true
 
 export interface User {
   id: string
@@ -28,6 +30,28 @@ export interface RegisterData {
   emailSubscribed: boolean
 }
 
+interface StoredUser extends User {
+  password: string
+}
+
+// Mock storage helpers
+function getStoredUsers(): StoredUser[] {
+  const data = localStorage.getItem('mock_users')
+  return data ? JSON.parse(data) : []
+}
+
+function saveStoredUsers(users: StoredUser[]) {
+  localStorage.setItem('mock_users', JSON.stringify(users))
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.readAsDataURL(file)
+  })
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const token = ref<string | null>(localStorage.getItem('auth_token'))
@@ -37,89 +61,133 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value)
   const userStatus = computed(() => user.value?.status || null)
 
+  // Load user from localStorage on init
+  if (token.value && MOCK_MODE) {
+    const storedUser = localStorage.getItem('current_user')
+    if (storedUser) {
+      user.value = JSON.parse(storedUser)
+    }
+  }
+
   async function login(email: string, password: string) {
     isLoading.value = true
     error.value = null
 
-    try {
-      const response = await api.post('/auth/login', { email, password })
-      token.value = response.data.token
-      user.value = response.data.user
-      localStorage.setItem('auth_token', response.data.token)
-      return { success: true }
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Ошибка входа. Проверьте email и пароль.'
-      return { success: false, error: error.value }
-    } finally {
-      isLoading.value = false
+    // Simulate network delay
+    await new Promise(r => setTimeout(r, 500))
+
+    if (MOCK_MODE) {
+      const users = getStoredUsers()
+      const foundUser = users.find(u => u.email === email && u.password === password)
+
+      if (foundUser) {
+        const { password: _, ...userWithoutPassword } = foundUser
+        token.value = `mock_token_${Date.now()}`
+        user.value = userWithoutPassword
+        localStorage.setItem('auth_token', token.value)
+        localStorage.setItem('current_user', JSON.stringify(userWithoutPassword))
+        isLoading.value = false
+        return { success: true }
+      } else {
+        error.value = 'Неверный email или пароль'
+        isLoading.value = false
+        return { success: false, error: error.value }
+      }
     }
+
+    // Real API call would go here
+    isLoading.value = false
+    return { success: false, error: 'API не настроен' }
   }
 
   async function register(data: RegisterData) {
     isLoading.value = true
     error.value = null
 
-    try {
-      const formData = new FormData()
-      formData.append('email', data.email)
-      formData.append('password', data.password)
-      formData.append('nickname', data.nickname)
-      formData.append('phone', data.phone)
-      formData.append('telegram', data.telegram)
-      formData.append('agreeRules', String(data.agreeRules))
-      formData.append('agreePrivacy', String(data.agreePrivacy))
-      formData.append('emailSubscribed', String(data.emailSubscribed))
+    // Simulate network delay
+    await new Promise(r => setTimeout(r, 800))
 
+    if (MOCK_MODE) {
+      const users = getStoredUsers()
+
+      // Check if email exists
+      if (users.some(u => u.email === data.email)) {
+        error.value = 'Этот email уже зарегистрирован'
+        isLoading.value = false
+        return { success: false, error: error.value }
+      }
+
+      // Check if nickname exists
+      if (users.some(u => u.nickname === data.nickname)) {
+        error.value = 'Этот никнейм уже занят'
+        isLoading.value = false
+        return { success: false, error: error.value }
+      }
+
+      // Convert avatar to base64 if provided
+      let avatarBase64: string | undefined
       if (data.avatar) {
-        formData.append('avatar', data.avatar)
-      }
-      if (data.description) {
-        formData.append('description', data.description)
+        avatarBase64 = await fileToBase64(data.avatar)
       }
 
-      const response = await api.post('/auth/register', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
+      const newUser: StoredUser = {
+        id: `user_${Date.now()}`,
+        email: data.email,
+        password: data.password,
+        nickname: data.nickname,
+        phone: data.phone,
+        telegram: data.telegram,
+        avatar: avatarBase64,
+        description: data.description,
+        status: 'pending',
+        emailSubscribed: data.emailSubscribed,
+        createdAt: new Date().toISOString()
+      }
 
-      token.value = response.data.token
-      user.value = response.data.user
-      localStorage.setItem('auth_token', response.data.token)
+      users.push(newUser)
+      saveStoredUsers(users)
 
-      return { success: true }
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Ошибка регистрации. Попробуйте позже.'
-      return { success: false, error: error.value }
-    } finally {
+      const { password: _, ...userWithoutPassword } = newUser
+      token.value = `mock_token_${Date.now()}`
+      user.value = userWithoutPassword
+      localStorage.setItem('auth_token', token.value)
+      localStorage.setItem('current_user', JSON.stringify(userWithoutPassword))
+
       isLoading.value = false
+      return { success: true }
     }
+
+    isLoading.value = false
+    return { success: false, error: 'API не настроен' }
   }
 
   async function checkEmailUnique(email: string): Promise<boolean> {
-    try {
-      const response = await api.get(`/auth/check-email?email=${encodeURIComponent(email)}`)
-      return response.data.available
-    } catch {
-      return true // Assume available on error
+    if (MOCK_MODE) {
+      const users = getStoredUsers()
+      return !users.some(u => u.email === email)
     }
+    return true
   }
 
   async function checkNicknameUnique(nickname: string): Promise<boolean> {
-    try {
-      const response = await api.get(`/auth/check-nickname?nickname=${encodeURIComponent(nickname)}`)
-      return response.data.available
-    } catch {
-      return true // Assume available on error
+    if (MOCK_MODE) {
+      const users = getStoredUsers()
+      return !users.some(u => u.nickname === nickname)
     }
+    return true
   }
 
   async function fetchUser() {
     if (!token.value) return
 
-    try {
-      const response = await api.get('/auth/me')
-      user.value = response.data.user
-    } catch {
-      logout()
+    if (MOCK_MODE) {
+      const storedUser = localStorage.getItem('current_user')
+      if (storedUser) {
+        user.value = JSON.parse(storedUser)
+      } else {
+        logout()
+      }
+      return
     }
   }
 
@@ -127,6 +195,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     token.value = null
     localStorage.removeItem('auth_token')
+    localStorage.removeItem('current_user')
   }
 
   function clearError() {
