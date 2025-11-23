@@ -156,7 +156,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { supabase, isSupabaseConfigured } from '../services/supabase'
+import { supabase } from '../services/supabase'
 
 interface User {
   id: string
@@ -200,33 +200,13 @@ const rejectedCount = computed(() => users.value.filter(u => u.status === 'rejec
 async function loadUsers() {
   isLoading.value = true
 
-  if (isSupabaseConfigured) {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .order('created_at', { ascending: false })
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .order('created_at', { ascending: false })
 
-    if (!error && data) {
-      users.value = data
-    }
-  } else {
-    // Mock data - use same key as auth store
-    const stored = localStorage.getItem('mock_users')
-    if (stored) {
-      const mockUsers = JSON.parse(stored)
-      // Map to admin format
-      users.value = mockUsers.map((u: any) => ({
-        id: u.id,
-        email: u.email,
-        nickname: u.nickname,
-        phone: u.phone,
-        telegram: u.telegram,
-        avatar_url: u.avatar,
-        description: u.description,
-        status: u.status,
-        created_at: u.createdAt
-      }))
-    }
+  if (!error && data) {
+    users.value = data
   }
 
   isLoading.value = false
@@ -235,33 +215,14 @@ async function loadUsers() {
 async function updateStatus(userId: string, status: string) {
   isUpdating.value = userId
 
-  if (isSupabaseConfigured) {
-    const { error } = await supabase
-      .from('users')
-      .update({ status })
-      .eq('id', userId)
+  const { error } = await supabase
+    .from('users')
+    .update({ status })
+    .eq('id', userId)
 
-    if (!error) {
-      const user = users.value.find(u => u.id === userId)
-      if (user) user.status = status
-    }
-  } else {
-    // Mock update - sync with auth store's mock_users
+  if (!error) {
     const user = users.value.find(u => u.id === userId)
-    if (user) {
-      user.status = status
-
-      // Update mock_users in localStorage (same format as auth store)
-      const stored = localStorage.getItem('mock_users')
-      if (stored) {
-        const mockUsers = JSON.parse(stored)
-        const mockUser = mockUsers.find((u: any) => u.id === userId)
-        if (mockUser) {
-          mockUser.status = status
-          localStorage.setItem('mock_users', JSON.stringify(mockUsers))
-        }
-      }
-    }
+    if (user) user.status = status
   }
 
   isUpdating.value = null

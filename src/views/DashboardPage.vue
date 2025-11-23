@@ -200,19 +200,44 @@
 
           <div class="event-content">
             <div class="event-name">Лесной Кемп 2026</div>
-            <div class="event-details">
+
+            <!-- Basic info for all users -->
+            <div v-if="user?.status !== 'approved'" class="event-details">
               <div class="event-detail">
                 <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
-                <span>Лесная поляна</span>
+                <span>Локация после одобрения</span>
               </div>
-              <div class="event-detail">
-                <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <span>Скоро</span>
+            </div>
+
+            <!-- Full info for approved users -->
+            <div v-else class="approved-info">
+              <div class="info-block">
+                <h4 class="info-block-title">
+                  <svg class="block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                  Локация
+                </h4>
+                <p class="info-block-text">Московская область, Дмитровский район</p>
+                <p class="info-block-subtext">Точные координаты будут отправлены за неделю до мероприятия</p>
+              </div>
+
+              <div class="info-block payment">
+                <h4 class="info-block-title">
+                  <svg class="block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                  </svg>
+                  Оплата участия
+                </h4>
+                <p class="info-block-text">Стоимость: <strong>3500 ₽</strong></p>
+                <div class="payment-details">
+                  <p>Сбербанк: <span class="payment-value">2202 2061 7891 2345</span></p>
+                  <p>Получатель: <span class="payment-value">Иванов И.И.</span></p>
+                </div>
+                <p class="info-block-subtext">В комментарии укажите ваш никнейм</p>
               </div>
             </div>
           </div>
@@ -810,6 +835,84 @@ function handleLogout() {
   width: 18px;
   height: 18px;
   color: var(--fire);
+}
+
+/* Approved Info */
+.approved-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: left;
+}
+
+.info-block {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 10px;
+  padding: clamp(0.75rem, 1.5vw, 1rem);
+}
+
+.info-block.payment {
+  background: rgba(255, 179, 71, 0.1);
+  border-color: rgba(255, 179, 71, 0.3);
+}
+
+.info-block-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  color: var(--cream);
+  margin-bottom: 0.5rem;
+}
+
+.block-icon {
+  width: 18px;
+  height: 18px;
+  color: #22c55e;
+}
+
+.info-block.payment .block-icon {
+  color: var(--fire-glow);
+}
+
+.info-block-text {
+  font-size: clamp(0.9rem, 1.3vw, 1.05rem);
+  color: var(--cream);
+  margin-bottom: 0.25rem;
+}
+
+.info-block-text strong {
+  color: var(--fire-glow);
+}
+
+.info-block-subtext {
+  font-size: clamp(0.8rem, 1.1vw, 0.9rem);
+  color: var(--sage);
+  font-style: italic;
+}
+
+.payment-details {
+  background: rgba(26, 17, 14, 0.4);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  margin: 0.5rem 0;
+}
+
+.payment-details p {
+  font-size: clamp(0.85rem, 1.2vw, 0.95rem);
+  color: var(--sage);
+  margin-bottom: 0.25rem;
+}
+
+.payment-details p:last-child {
+  margin-bottom: 0;
+}
+
+.payment-value {
+  color: var(--cream);
+  font-family: monospace;
 }
 
 /* Responsive */

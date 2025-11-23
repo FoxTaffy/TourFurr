@@ -1,10 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase, isSupabaseConfigured } from '../services/supabase'
+import { supabase } from '../services/supabase'
 import bcrypt from 'bcryptjs'
-
-// Use Supabase if configured, otherwise mock mode
-const USE_SUPABASE = isSupabaseConfigured
 
 export interface User {
   id: string
@@ -30,28 +27,6 @@ export interface RegisterData {
   agreeRules: boolean
   agreePrivacy: boolean
   emailSubscribed: boolean
-}
-
-interface StoredUser extends User {
-  password: string
-}
-
-// Mock storage helpers
-function getStoredUsers(): StoredUser[] {
-  const data = localStorage.getItem('mock_users')
-  return data ? JSON.parse(data) : []
-}
-
-function saveStoredUsers(users: StoredUser[]) {
-  localStorage.setItem('mock_users', JSON.stringify(users))
-}
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.readAsDataURL(file)
-  })
 }
 
 // Map database row to User interface
@@ -92,51 +67,31 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      if (USE_SUPABASE) {
-        // Supabase login
-        const { data, error: dbError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('email', email)
-          .single()
+      const { data, error: dbError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single()
 
-        if (dbError || !data) {
-          error.value = 'Неверный email или пароль'
-          return { success: false, error: error.value }
-        }
-
-        // Verify password
-        const isValid = await bcrypt.compare(password, data.password_hash)
-        if (!isValid) {
-          error.value = 'Неверный email или пароль'
-          return { success: false, error: error.value }
-        }
-
-        const mappedUser = mapDbUserToUser(data)
-        token.value = `token_${Date.now()}_${data.id}`
-        user.value = mappedUser
-        localStorage.setItem('auth_token', token.value)
-        localStorage.setItem('current_user', JSON.stringify(mappedUser))
-
-        return { success: true }
-      } else {
-        // Mock mode
-        await new Promise(r => setTimeout(r, 500))
-        const users = getStoredUsers()
-        const foundUser = users.find(u => u.email === email && u.password === password)
-
-        if (foundUser) {
-          const { password: _, ...userWithoutPassword } = foundUser
-          token.value = `mock_token_${Date.now()}`
-          user.value = userWithoutPassword
-          localStorage.setItem('auth_token', token.value)
-          localStorage.setItem('current_user', JSON.stringify(userWithoutPassword))
-          return { success: true }
-        } else {
-          error.value = 'Неверный email или пароль'
-          return { success: false, error: error.value }
-        }
+      if (dbError || !data) {
+        error.value = 'Неверный email или пароль'
+        return { success: false, error: error.value }
       }
+
+      // Verify password
+      const isValid = await bcrypt.compare(password, data.password_hash)
+      if (!isValid) {
+        error.value = 'Неверный email или пароль'
+        return { success: false, error: error.value }
+      }
+
+      const mappedUser = mapDbUserToUser(data)
+      token.value = `token_${Date.now()}_${data.id}`
+      user.value = mappedUser
+      localStorage.setItem('auth_token', token.value)
+      localStorage.setItem('current_user', JSON.stringify(mappedUser))
+
+      return { success: true }
     } catch (err: any) {
       error.value = err.message || 'Ошибка входа'
       return { success: false, error: error.value }
@@ -150,114 +105,68 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      if (USE_SUPABASE) {
-        // Hash password
-        const passwordHash = await bcrypt.hash(data.password, 10)
+      // Hash password
+      const passwordHash = await bcrypt.hash(data.password, 10)
 
-        // Upload avatar if provided
-        let avatarUrl: string | null = null
-        if (data.avatar) {
-          const fileExt = data.avatar.name.split('.').pop()
-          const fileName = `${Date.now()}.${fileExt}`
+      // Upload avatar if provided
+      let avatarUrl: string | null = null
+      if (data.avatar) {
+        const fileExt = data.avatar.name.split('.').pop()
+        const fileName = `${Date.now()}.${fileExt}`
 
-          const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, data.avatar)
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
             .from('avatars')
-            .upload(fileName, data.avatar)
-
-          if (!uploadError) {
-            const { data: urlData } = supabase.storage
-              .from('avatars')
-              .getPublicUrl(fileName)
-            avatarUrl = urlData.publicUrl
-          }
+            .getPublicUrl(fileName)
+          avatarUrl = urlData.publicUrl
         }
+      }
 
-        // Insert user
-        const { data: newUser, error: dbError } = await supabase
-          .from('users')
-          .insert({
-            email: data.email,
-            password_hash: passwordHash,
-            nickname: data.nickname,
-            phone: data.phone,
-            telegram: data.telegram,
-            avatar_url: avatarUrl,
-            description: data.description || null,
-            status: 'pending',
-            email_subscribed: data.emailSubscribed,
-            agree_rules: data.agreeRules,
-            agree_privacy: data.agreePrivacy
-          })
-          .select()
-          .single()
-
-        if (dbError) {
-          if (dbError.code === '23505') {
-            if (dbError.message.includes('email')) {
-              error.value = 'Этот email уже зарегистрирован'
-            } else if (dbError.message.includes('nickname')) {
-              error.value = 'Этот никнейм уже занят'
-            } else {
-              error.value = 'Пользователь уже существует'
-            }
-          } else {
-            error.value = dbError.message
-          }
-          return { success: false, error: error.value }
-        }
-
-        const mappedUser = mapDbUserToUser(newUser)
-        token.value = `token_${Date.now()}_${newUser.id}`
-        user.value = mappedUser
-        localStorage.setItem('auth_token', token.value)
-        localStorage.setItem('current_user', JSON.stringify(mappedUser))
-
-        return { success: true }
-      } else {
-        // Mock mode
-        await new Promise(r => setTimeout(r, 800))
-        const users = getStoredUsers()
-
-        if (users.some(u => u.email === data.email)) {
-          error.value = 'Этот email уже зарегистрирован'
-          return { success: false, error: error.value }
-        }
-
-        if (users.some(u => u.nickname === data.nickname)) {
-          error.value = 'Этот никнейм уже занят'
-          return { success: false, error: error.value }
-        }
-
-        let avatarBase64: string | undefined
-        if (data.avatar) {
-          avatarBase64 = await fileToBase64(data.avatar)
-        }
-
-        const newUser: StoredUser = {
-          id: `user_${Date.now()}`,
+      // Insert user
+      const { data: newUser, error: dbError } = await supabase
+        .from('users')
+        .insert({
           email: data.email,
-          password: data.password,
+          password_hash: passwordHash,
           nickname: data.nickname,
           phone: data.phone,
           telegram: data.telegram,
-          avatar: avatarBase64,
-          description: data.description,
+          avatar_url: avatarUrl,
+          description: data.description || null,
           status: 'pending',
-          emailSubscribed: data.emailSubscribed,
-          createdAt: new Date().toISOString()
+          email_subscribed: data.emailSubscribed,
+          agree_rules: data.agreeRules,
+          agree_privacy: data.agreePrivacy
+        })
+        .select()
+        .single()
+
+      if (dbError) {
+        if (dbError.code === '23505') {
+          if (dbError.message.includes('email')) {
+            error.value = 'Этот email уже зарегистрирован'
+          } else if (dbError.message.includes('nickname')) {
+            error.value = 'Этот никнейм уже занят'
+          } else {
+            error.value = 'Пользователь уже существует'
+          }
+        } else {
+          error.value = dbError.message
         }
-
-        users.push(newUser)
-        saveStoredUsers(users)
-
-        const { password: _, ...userWithoutPassword } = newUser
-        token.value = `mock_token_${Date.now()}`
-        user.value = userWithoutPassword
-        localStorage.setItem('auth_token', token.value)
-        localStorage.setItem('current_user', JSON.stringify(userWithoutPassword))
-
-        return { success: true }
+        return { success: false, error: error.value }
       }
+
+      const mappedUser = mapDbUserToUser(newUser)
+      token.value = `token_${Date.now()}_${newUser.id}`
+      user.value = mappedUser
+      localStorage.setItem('auth_token', token.value)
+      localStorage.setItem('current_user', JSON.stringify(mappedUser))
+
+      return { success: true }
     } catch (err: any) {
       error.value = err.message || 'Ошибка регистрации'
       return { success: false, error: error.value }
@@ -267,31 +176,21 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function checkEmailUnique(email: string): Promise<boolean> {
-    if (USE_SUPABASE) {
-      const { data } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', email)
-        .single()
-      return !data
-    } else {
-      const users = getStoredUsers()
-      return !users.some(u => u.email === email)
-    }
+    const { data } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .single()
+    return !data
   }
 
   async function checkNicknameUnique(nickname: string): Promise<boolean> {
-    if (USE_SUPABASE) {
-      const { data } = await supabase
-        .from('users')
-        .select('id')
-        .eq('nickname', nickname)
-        .single()
-      return !data
-    } else {
-      const users = getStoredUsers()
-      return !users.some(u => u.nickname === nickname)
-    }
+    const { data } = await supabase
+      .from('users')
+      .select('id')
+      .eq('nickname', nickname)
+      .single()
+    return !data
   }
 
   async function fetchUser() {
@@ -307,32 +206,21 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = cachedUser
 
     // Fetch fresh data from database to get updated status
-    if (USE_SUPABASE) {
-      try {
-        const { data, error: dbError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', cachedUser.id)
-          .single()
+    try {
+      const { data, error: dbError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', cachedUser.id)
+        .single()
 
-        if (!dbError && data) {
-          const freshUser = mapDbUserToUser(data)
-          user.value = freshUser
-          localStorage.setItem('current_user', JSON.stringify(freshUser))
-        }
-      } catch (err) {
-        // Keep cached user if fetch fails
-        console.error('Failed to fetch fresh user data:', err)
+      if (!dbError && data) {
+        const freshUser = mapDbUserToUser(data)
+        user.value = freshUser
+        localStorage.setItem('current_user', JSON.stringify(freshUser))
       }
-    } else {
-      // Mock mode - check localStorage for updated status
-      const users = getStoredUsers()
-      const freshUser = users.find(u => u.id === cachedUser.id)
-      if (freshUser) {
-        const { password: _, ...userWithoutPassword } = freshUser
-        user.value = userWithoutPassword
-        localStorage.setItem('current_user', JSON.stringify(userWithoutPassword))
-      }
+    } catch (err) {
+      // Keep cached user if fetch fails
+      console.error('Failed to fetch fresh user data:', err)
     }
   }
 
