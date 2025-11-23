@@ -385,9 +385,9 @@ function handleLogout() {
 
 .welcome-title {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-size: clamp(1.2rem, 3vw, 2rem);
   color: var(--cream);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .welcome-title .highlight {
@@ -396,17 +396,17 @@ function handleLogout() {
 
 .welcome-text {
   color: var(--sage);
-  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  font-size: clamp(0.75rem, 1.5vw, 0.9rem);
 }
 
 /* Status Banner */
 .status-banner {
   display: flex;
   align-items: center;
-  gap: clamp(0.5rem, 1vw, 1rem);
-  padding: clamp(0.75rem, 1.5vw, 1.25rem) clamp(1rem, 2vw, 1.5rem);
-  border-radius: 16px;
-  margin-bottom: clamp(0.5rem, 1.5vw, 1rem);
+  gap: clamp(0.5rem, 1vw, 0.75rem);
+  padding: clamp(0.5rem, 1vw, 0.75rem) clamp(0.75rem, 1.5vw, 1rem);
+  border-radius: 12px;
+  margin-bottom: clamp(0.5rem, 1vw, 0.75rem);
   flex-shrink: 0;
 }
 
@@ -426,13 +426,13 @@ function handleLogout() {
 }
 
 .banner-icon-wrapper {
-  width: clamp(40px, 6vw, 48px);
-  height: clamp(40px, 6vw, 48px);
+  width: clamp(32px, 4vw, 40px);
+  height: clamp(32px, 4vw, 40px);
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 179, 71, 0.2);
-  border-radius: 12px;
+  border-radius: 10px;
   flex-shrink: 0;
 }
 
@@ -445,8 +445,8 @@ function handleLogout() {
 }
 
 .banner-icon {
-  width: clamp(20px, 3vw, 24px);
-  height: clamp(20px, 3vw, 24px);
+  width: clamp(16px, 2vw, 20px);
+  height: clamp(16px, 2vw, 20px);
   color: var(--fire-glow);
 }
 
@@ -459,14 +459,14 @@ function handleLogout() {
 }
 
 .banner-title {
-  font-size: clamp(0.9rem, 1.8vw, 1rem);
+  font-size: clamp(0.75rem, 1.5vw, 0.9rem);
   font-weight: 600;
   color: var(--cream);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .banner-text {
-  font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+  font-size: clamp(0.7rem, 1.2vw, 0.8rem);
   color: var(--sage);
 }
 
@@ -504,15 +504,15 @@ function handleLogout() {
 .card-title {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   font-family: 'Playfair Display', serif;
-  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-size: clamp(0.85rem, 1.5vw, 1rem);
   color: var(--fire-glow);
 }
 
 .title-icon {
-  width: clamp(20px, 3vw, 24px);
-  height: clamp(20px, 3vw, 24px);
+  width: clamp(16px, 2vw, 20px);
+  height: clamp(16px, 2vw, 20px);
 }
 
 /* Avatar */
@@ -525,9 +525,9 @@ function handleLogout() {
 
 .avatar-wrapper {
   position: relative;
-  width: clamp(50px, 8vw, 80px);
-  height: clamp(50px, 8vw, 80px);
-  margin: 0 auto clamp(0.5rem, 1vw, 1rem);
+  width: clamp(40px, 6vw, 60px);
+  height: clamp(40px, 6vw, 60px);
+  margin: 0 auto clamp(0.25rem, 0.5vw, 0.5rem);
 }
 
 .avatar-glow {
@@ -563,7 +563,7 @@ function handleLogout() {
 
 .avatar-letter {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  font-size: clamp(1rem, 2vw, 1.5rem);
   color: var(--fire-glow);
 }
 
@@ -581,13 +581,13 @@ function handleLogout() {
 
 .profile-name {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
   color: var(--cream);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .profile-email {
-  font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+  font-size: clamp(0.7rem, 1.2vw, 0.8rem);
   color: var(--sage);
 }
 
@@ -601,17 +601,17 @@ function handleLogout() {
 .info-item {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 8px;
 }
 
 .info-icon-wrapper {
-  width: clamp(32px, 5vw, 40px);
-  height: clamp(32px, 5vw, 40px);
+  width: clamp(28px, 4vw, 32px);
+  height: clamp(28px, 4vw, 32px);
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 107, 53, 0.1);
-  border-radius: 10px;
+  border-radius: 8px;
   flex-shrink: 0;
 }
 
@@ -620,8 +620,8 @@ function handleLogout() {
 }
 
 .info-icon {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
   color: var(--fire);
 }
 
@@ -635,14 +635,14 @@ function handleLogout() {
 
 .info-label {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.65rem;
   color: var(--sage);
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .info-value {
   color: var(--cream);
-  font-size: 0.95rem;
+  font-size: 0.8rem;
 }
 
 .info-link {
@@ -775,28 +775,28 @@ function handleLogout() {
 
 .event-name {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
   color: var(--cream);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .event-details {
   display: flex;
   justify-content: center;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .event-detail {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   color: var(--sage);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .detail-icon {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
   color: var(--fire);
 }
 
