@@ -239,7 +239,8 @@ async function fetchApprovedInfo() {
     const { data, error } = await supabase
       .from('event_info')
       .select('*')
-      .single()
+      .limit(1)
+      .maybeSingle()
 
     console.log('Event info fetch result:', { data, error })
 
@@ -253,7 +254,7 @@ async function fetchApprovedInfo() {
       approvedInfo.value = data
       infoError.value = null
     } else {
-      infoError.value = 'Данные о мероприятии не найдены'
+      infoError.value = 'Таблица event_info пустая. Добавьте данные через SQL Editor в Supabase.'
     }
   } catch (err: any) {
     console.error('Failed to fetch approved info:', err)
