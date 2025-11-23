@@ -23,112 +23,167 @@
     <main class="dashboard-main">
       <div class="dashboard-container">
 
-        <!-- Profile Section -->
-        <section class="profile-section glass-card">
-          <div class="profile-header">
-            <div class="avatar-container">
-              <div class="avatar">
-                <img v-if="user?.avatar" :src="user.avatar" alt="Avatar" />
-                <span v-else class="avatar-letter">{{ user?.nickname?.[0]?.toUpperCase() }}</span>
+        <!-- Hero Section with Profile -->
+        <section class="hero-section">
+          <div class="hero-glow"></div>
+          <div class="hero-content">
+            <div class="avatar-wrapper">
+              <div class="avatar-ring">
+                <div class="avatar">
+                  <img v-if="user?.avatar" :src="user.avatar" alt="Avatar" />
+                  <span v-else class="avatar-letter">{{ user?.nickname?.[0]?.toUpperCase() }}</span>
+                </div>
               </div>
+              <div class="status-indicator" :class="user?.status"></div>
             </div>
-            <div class="profile-info">
-              <h1 class="profile-name">{{ user?.nickname }}</h1>
-              <p class="profile-email">{{ user?.email }}</p>
-              <div class="status-badge" :class="user?.status">
-                {{ statusLabels[user?.status || 'pending'] }}
-              </div>
-            </div>
-          </div>
 
-          <div class="profile-details">
-            <div class="detail-item">
-              <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-              </svg>
-              <span>{{ user?.phone }}</span>
-            </div>
-            <div class="detail-item">
-              <svg class="detail-icon telegram" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.327.015.095.034.312.019.482z"/>
-              </svg>
-              <a :href="'https://' + user?.telegram" target="_blank">{{ user?.telegram }}</a>
-            </div>
-            <div v-if="user?.description" class="detail-item description">
-              <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
-              </svg>
-              <span>{{ user?.description }}</span>
+            <div class="hero-info">
+              <h1 class="hero-name">{{ user?.nickname }}</h1>
+              <p class="hero-email">{{ user?.email }}</p>
+
+              <div class="hero-meta">
+                <div class="meta-item">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                  </svg>
+                  <span>{{ user?.phone }}</span>
+                </div>
+                <div class="meta-item telegram">
+                  <svg fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.327.015.095.034.312.019.482z"/>
+                  </svg>
+                  <a :href="'https://' + user?.telegram" target="_blank">{{ user?.telegram }}</a>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <!-- Event Info -->
-        <section class="event-section glass-card">
-          <h2 class="section-title">Лесной Кемп 2026</h2>
+        <!-- Status Card -->
+        <section class="status-section">
+          <div class="status-card" :class="user?.status">
+            <div class="status-header">
+              <div class="status-icon-wrapper" :class="user?.status">
+                <svg v-if="user?.status === 'pending'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <svg v-else-if="user?.status === 'approved'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <div class="status-text">
+                <h2>Лесной Кемп 2026</h2>
+                <span class="status-label">{{ statusLabels[user?.status || 'pending'] }}</span>
+              </div>
+            </div>
 
-          <div class="event-status">
-            <div class="timeline">
-              <div class="timeline-step" :class="{ active: true }">
-                <div class="step-dot"></div>
-                <span>Регистрация</span>
+            <div class="progress-bar">
+              <div class="progress-track">
+                <div class="progress-fill" :class="user?.status"></div>
               </div>
-              <div class="timeline-line" :class="{ active: user?.status !== 'pending' }"></div>
-              <div class="timeline-step" :class="{ active: user?.status !== 'pending' }">
-                <div class="step-dot"></div>
-                <span>Проверка</span>
+              <div class="progress-steps">
+                <div class="step" :class="{ active: true }">
+                  <div class="step-marker"></div>
+                  <span>Заявка</span>
+                </div>
+                <div class="step" :class="{ active: user?.status !== 'pending' }">
+                  <div class="step-marker"></div>
+                  <span>Проверка</span>
+                </div>
+                <div class="step" :class="{ active: user?.status === 'approved' }">
+                  <div class="step-marker"></div>
+                  <span>Участие</span>
+                </div>
               </div>
-              <div class="timeline-line" :class="{ active: user?.status === 'approved' }"></div>
-              <div class="timeline-step" :class="{ active: user?.status === 'approved' }">
-                <div class="step-dot"></div>
-                <span>Участие</span>
+            </div>
+
+            <p class="status-description">{{ statusDescriptions[user?.status || 'pending'] }}</p>
+          </div>
+        </section>
+
+        <!-- Approved Info Section -->
+        <section v-if="user?.status === 'approved' && approvedInfo" class="info-section">
+          <h2 class="info-title">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            Информация для участника
+          </h2>
+
+          <div class="info-grid">
+            <!-- Location Card -->
+            <div class="info-card location">
+              <div class="info-card-header">
+                <div class="info-card-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                </div>
+                <h3>Локация мероприятия</h3>
+              </div>
+
+              <div class="info-card-content">
+                <p class="location-name">{{ approvedInfo.location }}</p>
+                <p class="location-note">{{ approvedInfo.location_note }}</p>
+
+                <div v-if="approvedInfo.coordinates" class="map-container">
+                  <iframe
+                    :src="`https://yandex.ru/map-widget/v1/?pt=${approvedInfo.coordinates}&z=12&l=map`"
+                    width="100%"
+                    height="200"
+                    frameborder="0"
+                  ></iframe>
+                </div>
+              </div>
+            </div>
+
+            <!-- Payment Card -->
+            <div class="info-card payment">
+              <div class="info-card-header">
+                <div class="info-card-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                  </svg>
+                </div>
+                <h3>Оплата участия</h3>
+              </div>
+
+              <div class="info-card-content">
+                <div class="price-display">
+                  <span class="price-amount">{{ approvedInfo.price }}</span>
+                  <span class="price-currency">₽</span>
+                </div>
+
+                <div class="payment-details">
+                  <div class="payment-row">
+                    <span class="payment-label">Банк</span>
+                    <span class="payment-value">{{ approvedInfo.bank }}</span>
+                  </div>
+                  <div class="payment-row">
+                    <span class="payment-label">Номер карты</span>
+                    <span class="payment-value card-number">{{ approvedInfo.card_number }}</span>
+                  </div>
+                  <div class="payment-row">
+                    <span class="payment-label">Получатель</span>
+                    <span class="payment-value">{{ approvedInfo.recipient }}</span>
+                  </div>
+                </div>
+
+                <p class="payment-note">{{ approvedInfo.payment_note }}</p>
               </div>
             </div>
           </div>
-
-          <p class="status-message">{{ statusDescriptions[user?.status || 'pending'] }}</p>
         </section>
 
-        <!-- Approved Info (only for approved users) -->
-        <section v-if="user?.status === 'approved' && approvedInfo" class="approved-section">
-          <div class="approved-cards">
-            <!-- Location -->
-            <div class="glass-card approved-card location">
-              <div class="card-icon">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-              </div>
-              <h3>Локация</h3>
-              <p class="card-text">{{ approvedInfo.location }}</p>
-              <p class="card-note">{{ approvedInfo.location_note }}</p>
-
-              <div v-if="approvedInfo.coordinates" class="map-wrapper">
-                <iframe
-                  :src="`https://yandex.ru/map-widget/v1/?pt=${approvedInfo.coordinates}&z=12&l=map`"
-                  width="100%"
-                  height="180"
-                  frameborder="0"
-                ></iframe>
-              </div>
-            </div>
-
-            <!-- Payment -->
-            <div class="glass-card approved-card payment">
-              <div class="card-icon">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                </svg>
-              </div>
-              <h3>Оплата</h3>
-              <p class="price">{{ approvedInfo.price }} ₽</p>
-              <div class="payment-info">
-                <p><strong>{{ approvedInfo.bank }}:</strong> {{ approvedInfo.card_number }}</p>
-                <p><strong>Получатель:</strong> {{ approvedInfo.recipient }}</p>
-              </div>
-              <p class="card-note">{{ approvedInfo.payment_note }}</p>
-            </div>
+        <!-- Description (if exists) -->
+        <section v-if="user?.description" class="description-section">
+          <div class="description-card">
+            <h3>О себе</h3>
+            <p>{{ user.description }}</p>
           </div>
         </section>
 
@@ -181,13 +236,14 @@ async function fetchApprovedInfo() {
   }
 }
 
+// Watch for status changes
 watch(() => user.value?.status, (newStatus) => {
   if (newStatus === 'approved') {
     fetchApprovedInfo()
   } else {
     approvedInfo.value = null
   }
-})
+}, { immediate: true })
 
 const statusLabels: Record<string, string> = {
   pending: 'На рассмотрении',
@@ -196,14 +252,14 @@ const statusLabels: Record<string, string> = {
 }
 
 const statusDescriptions: Record<string, string> = {
-  pending: 'Ваша заявка находится на рассмотрении. Обычно это занимает 1-2 рабочих дня.',
-  approved: 'Поздравляем! Ваша заявка одобрена. Ниже информация для участия.',
-  rejected: 'К сожалению, ваша заявка была отклонена. Свяжитесь с нами для уточнения.'
+  pending: 'Ваша заявка находится на рассмотрении. Обычно это занимает 1-2 рабочих дня. Мы свяжемся с вами после проверки.',
+  approved: 'Поздравляем! Ваша заявка одобрена. Ознакомьтесь с информацией ниже для участия в мероприятии.',
+  rejected: 'К сожалению, ваша заявка была отклонена. Свяжитесь с нами в Telegram для уточнения причин.'
 }
 
 onMounted(async () => {
   await authStore.fetchUser()
-  fetchApprovedInfo()
+  // fetchApprovedInfo will be called by the watcher when user status is updated
 })
 
 function handleLogout() {
@@ -223,13 +279,13 @@ function handleLogout() {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(26, 17, 14, 0.9);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--moss);
+  background: rgba(26, 17, 14, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(139, 111, 71, 0.3);
 }
 
 .header-content {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 1rem 2rem;
   display: flex;
@@ -239,7 +295,7 @@ function handleLogout() {
 
 .logo {
   font-family: 'Playfair Display', serif;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 900;
   text-decoration: none;
 }
@@ -252,9 +308,9 @@ function handleLogout() {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: rgba(255, 107, 53, 0.1);
-  border: 1px solid rgba(255, 107, 53, 0.3);
-  border-radius: 8px;
+  background: rgba(255, 107, 53, 0.15);
+  border: 1px solid rgba(255, 107, 53, 0.4);
+  border-radius: 12px;
   color: var(--fire-glow);
   font-family: 'Lora', serif;
   font-size: 1rem;
@@ -263,7 +319,8 @@ function handleLogout() {
 }
 
 .logout-btn:hover {
-  background: rgba(255, 107, 53, 0.2);
+  background: rgba(255, 107, 53, 0.25);
+  transform: translateY(-2px);
 }
 
 .logout-icon {
@@ -279,49 +336,67 @@ function handleLogout() {
 }
 
 .dashboard-container {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
-/* Glass Card Override */
-.glass-card {
-  padding: 2rem;
-  background: rgba(42, 31, 26, 0.6);
+/* Hero Section */
+.hero-section {
+  position: relative;
+  background: linear-gradient(135deg, rgba(42, 31, 26, 0.8) 0%, rgba(61, 45, 36, 0.6) 100%);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(139, 111, 71, 0.3);
-  border-radius: 16px;
+  border: 1px solid rgba(139, 111, 71, 0.4);
+  border-radius: 24px;
+  padding: 3rem;
+  overflow: hidden;
 }
 
-/* Profile Section */
-.profile-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.hero-glow {
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.15) 0%, transparent 70%);
+  pointer-events: none;
 }
 
-.profile-header {
+.hero-content {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2.5rem;
 }
 
-.avatar-container {
+.avatar-wrapper {
+  position: relative;
   flex-shrink: 0;
 }
 
+.avatar-ring {
+  padding: 4px;
+  background: linear-gradient(135deg, var(--fire), var(--fire-glow), var(--amber));
+  border-radius: 50%;
+  animation: ringPulse 3s ease-in-out infinite;
+}
+
+@keyframes ringPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.4); }
+  50% { box-shadow: 0 0 20px 5px rgba(255, 107, 53, 0.2); }
+}
+
 .avatar {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   overflow: hidden;
   background: var(--forest-mid);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3px solid var(--fire);
 }
 
 .avatar img {
@@ -332,59 +407,48 @@ function handleLogout() {
 
 .avatar-letter {
   font-family: 'Playfair Display', serif;
-  font-size: 2rem;
+  font-size: 3rem;
   color: var(--fire-glow);
 }
 
-.profile-info {
+.status-indicator {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid var(--forest-dark);
+}
+
+.status-indicator.pending { background: var(--fire-glow); }
+.status-indicator.approved { background: #22c55e; }
+.status-indicator.rejected { background: #ef4444; }
+
+.hero-info {
   flex: 1;
 }
 
-.profile-name {
+.hero-name {
   font-family: 'Playfair Display', serif;
-  font-size: 1.75rem;
+  font-size: 2.5rem;
   color: var(--cream);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
-.profile-email {
+.hero-email {
   color: var(--sage);
-  font-size: 1rem;
-  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
 }
 
-.status-badge {
-  display: inline-block;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.status-badge.pending {
-  background: rgba(255, 179, 71, 0.2);
-  color: var(--fire-glow);
-}
-
-.status-badge.approved {
-  background: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
-}
-
-.status-badge.rejected {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-}
-
-.profile-details {
+.hero-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--moss);
 }
 
-.detail-item {
+.meta-item {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -392,198 +456,366 @@ function handleLogout() {
   font-size: 1.1rem;
 }
 
-.detail-item.description {
-  width: 100%;
-}
-
-.detail-icon {
+.meta-item svg {
   width: 20px;
   height: 20px;
   color: var(--fire);
-  flex-shrink: 0;
 }
 
-.detail-icon.telegram {
+.meta-item.telegram svg {
   color: #0088cc;
 }
 
-.detail-item a {
+.meta-item a {
   color: var(--fire-glow);
   text-decoration: none;
+  transition: color 0.3s;
 }
 
-.detail-item a:hover {
+.meta-item a:hover {
+  color: var(--amber);
   text-decoration: underline;
 }
 
-/* Event Section */
-.event-section {
-  text-align: center;
+/* Status Section */
+.status-section {
+  padding: 0;
 }
 
-.section-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.5rem;
-  color: var(--fire-glow);
-  margin-bottom: 1.5rem;
+.status-card {
+  background: rgba(42, 31, 26, 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 111, 71, 0.3);
+  border-radius: 20px;
+  padding: 2rem;
 }
 
-.timeline {
+.status-card.approved {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: linear-gradient(135deg, rgba(42, 31, 26, 0.7) 0%, rgba(34, 197, 94, 0.1) 100%);
+}
+
+.status-card.rejected {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: linear-gradient(135deg, rgba(42, 31, 26, 0.7) 0%, rgba(239, 68, 68, 0.1) 100%);
+}
+
+.status-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.status-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  background: rgba(255, 179, 71, 0.2);
+}
+
+.status-icon-wrapper.approved {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.status-icon-wrapper.rejected {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.status-icon-wrapper svg {
+  width: 32px;
+  height: 32px;
+}
+
+.status-icon-wrapper.pending svg { color: var(--fire-glow); }
+.status-icon-wrapper.approved svg { color: #22c55e; }
+.status-icon-wrapper.rejected svg { color: #ef4444; }
+
+.status-text h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.75rem;
+  color: var(--cream);
+  margin-bottom: 0.25rem;
+}
+
+.status-label {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.status-card.pending .status-label { color: var(--fire-glow); }
+.status-card.approved .status-label { color: #22c55e; }
+.status-card.rejected .status-label { color: #ef4444; }
+
+/* Progress Bar */
+.progress-bar {
   margin-bottom: 1.5rem;
 }
 
-.timeline-step {
+.progress-track {
+  height: 4px;
+  background: var(--moss);
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.progress-fill.pending {
+  width: 33%;
+  background: var(--fire-glow);
+}
+
+.progress-fill.approved {
+  width: 100%;
+  background: linear-gradient(90deg, var(--fire-glow), #22c55e);
+}
+
+.progress-fill.rejected {
+  width: 66%;
+  background: #ef4444;
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+}
+
+.step {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
 }
 
-.step-dot {
-  width: 16px;
-  height: 16px;
+.step-marker {
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: var(--moss);
   border: 2px solid var(--moss);
 }
 
-.timeline-step.active .step-dot {
+.step.active .step-marker {
   background: var(--fire);
   border-color: var(--fire-glow);
 }
 
-.timeline-step span {
-  font-size: 0.9rem;
+.step span {
+  font-size: 0.85rem;
   color: var(--sage);
 }
 
-.timeline-step.active span {
-  color: var(--fire-glow);
+.step.active span {
+  color: var(--cream);
 }
 
-.timeline-line {
-  width: 60px;
-  height: 2px;
-  background: var(--moss);
-  margin: 0 10px;
-  margin-bottom: 24px;
-}
-
-.timeline-line.active {
-  background: var(--fire);
-}
-
-.status-message {
+.status-description {
   color: var(--sage);
   font-size: 1rem;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
-/* Approved Section */
-.approved-section {
-  margin-top: 0.5rem;
+/* Info Section */
+.info-section {
+  margin-top: 1rem;
 }
 
-.approved-cards {
+.info-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  color: var(--fire-glow);
+  margin-bottom: 1.5rem;
+}
+
+.info-title svg {
+  width: 28px;
+  height: 28px;
+}
+
+.info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
 }
 
-.approved-card {
-  text-align: center;
+.info-card {
+  background: rgba(42, 31, 26, 0.8);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(139, 111, 71, 0.3);
 }
 
-.approved-card.location {
+.info-card.location {
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.info-card.payment {
+  border-color: rgba(255, 179, 71, 0.4);
+}
+
+.info-card-header {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(139, 111, 71, 0.2);
+}
+
+.info-card.location .info-card-header {
   background: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.3);
 }
 
-.approved-card.payment {
+.info-card.payment .info-card-header {
   background: rgba(255, 179, 71, 0.1);
-  border-color: rgba(255, 179, 71, 0.3);
 }
 
-.card-icon {
+.info-card-icon {
   width: 48px;
   height: 48px;
-  margin: 0 auto 1rem;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
 }
 
-.card-icon svg {
-  width: 28px;
-  height: 28px;
+.info-card-icon svg {
+  width: 26px;
+  height: 26px;
 }
 
-.approved-card.location .card-icon svg {
-  color: #22c55e;
-}
+.info-card.location .info-card-icon svg { color: #22c55e; }
+.info-card.payment .info-card-icon svg { color: var(--fire-glow); }
 
-.approved-card.payment .card-icon svg {
-  color: var(--fire-glow);
-}
-
-.approved-card h3 {
+.info-card-header h3 {
   font-family: 'Playfair Display', serif;
   font-size: 1.25rem;
   color: var(--cream);
+}
+
+.info-card-content {
+  padding: 1.5rem;
+}
+
+/* Location Card */
+.location-name {
+  font-size: 1.15rem;
+  color: var(--cream);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.location-note {
+  font-size: 0.95rem;
+  color: var(--sage);
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
+.map-container {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(139, 111, 71, 0.3);
+}
+
+/* Payment Card */
+.price-display {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.price-amount {
+  font-family: 'Playfair Display', serif;
+  font-size: 3rem;
+  color: var(--fire-glow);
+}
+
+.price-currency {
+  font-size: 1.5rem;
+  color: var(--sage);
+  margin-left: 4px;
+}
+
+.payment-details {
+  background: rgba(26, 17, 14, 0.6);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.payment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(139, 111, 71, 0.2);
+}
+
+.payment-row:last-child {
+  border-bottom: none;
+}
+
+.payment-label {
+  font-size: 0.9rem;
+  color: var(--sage);
+}
+
+.payment-value {
+  font-size: 1rem;
+  color: var(--cream);
+  font-weight: 500;
+}
+
+.payment-value.card-number {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+}
+
+.payment-note {
+  font-size: 0.9rem;
+  color: var(--sage);
+  font-style: italic;
+  text-align: center;
+}
+
+/* Description Section */
+.description-section {
+  margin-top: 0;
+}
+
+.description-card {
+  background: rgba(42, 31, 26, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 111, 71, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.description-card h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  color: var(--fire-glow);
   margin-bottom: 0.75rem;
 }
 
-.card-text {
+.description-card p {
   color: var(--cream);
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
-}
-
-.card-note {
-  color: var(--sage);
-  font-size: 0.9rem;
-  font-style: italic;
-}
-
-.price {
-  font-family: 'Playfair Display', serif;
-  font-size: 2rem;
-  color: var(--fire-glow);
-  margin-bottom: 1rem;
-}
-
-.payment-info {
-  background: rgba(26, 17, 14, 0.5);
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  text-align: left;
-}
-
-.payment-info p {
-  color: var(--cream);
-  font-size: 0.95rem;
-  margin-bottom: 0.5rem;
-}
-
-.payment-info p:last-child {
-  margin-bottom: 0;
-}
-
-.payment-info strong {
-  color: var(--sage);
-}
-
-.map-wrapper {
-  margin-top: 1rem;
-  border-radius: 8px;
-  overflow: hidden;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 /* Responsive */
@@ -592,22 +824,47 @@ function handleLogout() {
     padding: 1rem;
   }
 
-  .profile-header {
+  .hero-section {
+    padding: 2rem;
+  }
+
+  .hero-content {
     flex-direction: column;
     text-align: center;
   }
 
-  .profile-details {
-    flex-direction: column;
-    align-items: center;
+  .hero-name {
+    font-size: 2rem;
   }
 
-  .approved-cards {
+  .hero-meta {
+    justify-content: center;
+  }
+
+  .info-grid {
     grid-template-columns: 1fr;
   }
 
-  .timeline {
-    transform: scale(0.9);
+  .avatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .avatar-letter {
+    font-size: 2.5rem;
+  }
+
+  .status-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .progress-steps {
+    gap: 0.5rem;
+  }
+
+  .step span {
+    font-size: 0.75rem;
   }
 }
 </style>
