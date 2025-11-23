@@ -298,7 +298,7 @@ onMounted(() => {
 
 .header-title {
   font-family: 'Playfair Display', serif;
-  font-size: 1.25rem;
+  font-size: clamp(1.3rem, 2.5vw, 1.8rem);
   color: var(--fire-glow);
 }
 
@@ -372,7 +372,7 @@ onMounted(() => {
 .stat-value {
   display: block;
   font-family: 'Playfair Display', serif;
-  font-size: clamp(1.2rem, 2.5vw, 1.75rem);
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
   font-weight: 700;
   color: var(--cream);
 }
@@ -382,7 +382,7 @@ onMounted(() => {
 .stat-card.rejected .stat-value { color: #ef4444; }
 
 .stat-label {
-  font-size: clamp(0.65rem, 1vw, 0.8rem);
+  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
   color: var(--sage);
 }
 
@@ -395,13 +395,13 @@ onMounted(() => {
 }
 
 .filter-btn {
-  padding: clamp(6px, 1vw, 10px) clamp(12px, 2vw, 20px);
+  padding: clamp(10px, 1.5vw, 14px) clamp(16px, 2.5vw, 24px);
   background: rgba(42, 31, 26, 0.6);
   border: 1px solid var(--moss);
   border-radius: 8px;
   color: var(--sage);
   font-family: 'Lora', serif;
-  font-size: clamp(0.75rem, 1.2vw, 0.9rem);
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -472,8 +472,8 @@ onMounted(() => {
 }
 
 .user-avatar {
-  width: clamp(40px, 5vw, 50px);
-  height: clamp(40px, 5vw, 50px);
+  width: clamp(50px, 6vw, 65px);
+  height: clamp(50px, 6vw, 65px);
   border-radius: 50%;
   overflow: hidden;
   background: var(--forest-mid);
@@ -491,7 +491,7 @@ onMounted(() => {
 
 .avatar-letter {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-size: clamp(1.4rem, 2.5vw, 1.8rem);
   color: var(--fire-glow);
 }
 
@@ -501,20 +501,20 @@ onMounted(() => {
 
 .user-nickname {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
   color: var(--cream);
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .user-email {
-  font-size: clamp(0.7rem, 1vw, 0.8rem);
+  font-size: clamp(0.95rem, 1.4vw, 1.1rem);
   color: var(--sage);
 }
 
 .user-status {
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.8rem;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: clamp(0.9rem, 1.3vw, 1.05rem);
   font-weight: 600;
 }
 
@@ -543,14 +543,14 @@ onMounted(() => {
 .detail-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   color: var(--cream);
-  font-size: clamp(0.75rem, 1.2vw, 0.85rem);
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
 }
 
 .detail-icon {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   color: var(--fire);
 }
 
@@ -576,9 +576,9 @@ onMounted(() => {
 }
 
 .user-description p {
-  font-size: clamp(0.75rem, 1.2vw, 0.85rem);
+  font-size: clamp(1rem, 1.4vw, 1.15rem);
   color: var(--cream);
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 /* Actions */
@@ -591,12 +591,12 @@ onMounted(() => {
 .action-btn {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: clamp(6px, 1vw, 8px) clamp(10px, 1.5vw, 14px);
+  gap: 6px;
+  padding: clamp(10px, 1.3vw, 12px) clamp(14px, 2vw, 18px);
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-family: 'Lora', serif;
-  font-size: clamp(0.7rem, 1vw, 0.8rem);
+  font-size: clamp(0.95rem, 1.3vw, 1.1rem);
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -637,13 +637,13 @@ onMounted(() => {
 }
 
 .action-icon {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
 }
 
 /* Date */
 .user-date {
-  font-size: clamp(0.65rem, 1vw, 0.75rem);
+  font-size: clamp(0.85rem, 1.2vw, 1rem);
   color: var(--sage);
 }
 

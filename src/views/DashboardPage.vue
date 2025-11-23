@@ -385,9 +385,9 @@ function handleLogout() {
 
 .welcome-title {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(1.2rem, 3vw, 2rem);
+  font-size: clamp(1.5rem, 3.5vw, 2.5rem);
   color: var(--cream);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .welcome-title .highlight {
@@ -396,7 +396,7 @@ function handleLogout() {
 
 .welcome-text {
   color: var(--sage);
-  font-size: clamp(0.75rem, 1.5vw, 0.9rem);
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
 }
 
 /* Status Banner */
@@ -459,14 +459,14 @@ function handleLogout() {
 }
 
 .banner-title {
-  font-size: clamp(0.75rem, 1.5vw, 0.9rem);
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
   font-weight: 600;
   color: var(--cream);
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .banner-text {
-  font-size: clamp(0.7rem, 1.2vw, 0.8rem);
+  font-size: clamp(0.8rem, 1.5vw, 0.95rem);
   color: var(--sage);
 }
 
@@ -508,15 +508,15 @@ function handleLogout() {
 .card-title {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   font-family: 'Playfair Display', serif;
-  font-size: clamp(0.75rem, 1.2vw, 0.9rem);
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
   color: var(--fire-glow);
 }
 
 .title-icon {
-  width: clamp(14px, 1.5vw, 18px);
-  height: clamp(14px, 1.5vw, 18px);
+  width: clamp(20px, 2.5vw, 28px);
+  height: clamp(20px, 2.5vw, 28px);
 }
 
 /* Profile Content */
@@ -536,9 +536,9 @@ function handleLogout() {
 
 .avatar-wrapper {
   position: relative;
-  width: clamp(35px, 5vw, 50px);
-  height: clamp(35px, 5vw, 50px);
-  margin: 0 auto clamp(0.2rem, 0.4vw, 0.4rem);
+  width: clamp(60px, 8vw, 90px);
+  height: clamp(60px, 8vw, 90px);
+  margin: 0 auto clamp(0.5rem, 1vw, 1rem);
 }
 
 .avatar-glow {
@@ -574,7 +574,7 @@ function handleLogout() {
 
 .avatar-letter {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
   color: var(--fire-glow);
 }
 
@@ -592,13 +592,13 @@ function handleLogout() {
 
 .profile-name {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
   color: var(--cream);
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .profile-email {
-  font-size: clamp(0.7rem, 1.2vw, 0.8rem);
+  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
   color: var(--sage);
 }
 
@@ -616,13 +616,13 @@ function handleLogout() {
 }
 
 .info-icon-wrapper {
-  width: clamp(24px, 3vw, 28px);
-  height: clamp(24px, 3vw, 28px);
+  width: clamp(36px, 4vw, 44px);
+  height: clamp(36px, 4vw, 44px);
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 107, 53, 0.1);
-  border-radius: 6px;
+  border-radius: 8px;
   flex-shrink: 0;
 }
 
@@ -631,8 +631,8 @@ function handleLogout() {
 }
 
 .info-icon {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   color: var(--fire);
 }
 
@@ -646,23 +646,23 @@ function handleLogout() {
 
 .info-label {
   display: block;
-  font-size: 0.6rem;
+  font-size: clamp(0.8rem, 1.2vw, 0.95rem);
   color: var(--sage);
-  margin-bottom: 1px;
+  margin-bottom: 2px;
 }
 
 .info-value {
   color: var(--cream);
-  font-size: 0.7rem;
+  font-size: clamp(0.95rem, 1.5vw, 1.1rem);
 }
 
 .info-link {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   color: var(--fire-glow);
   text-decoration: none;
-  font-size: 0.95rem;
+  font-size: clamp(0.95rem, 1.5vw, 1.1rem);
   transition: color 0.3s ease;
 }
 
@@ -736,10 +736,11 @@ function handleLogout() {
 .status-text {
   font-weight: 600;
   color: var(--cream);
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
 }
 
 .status-description {
-  font-size: 0.9rem;
+  font-size: clamp(0.95rem, 1.4vw, 1.1rem);
   color: var(--sage);
   line-height: 1.5;
 }
@@ -758,7 +759,7 @@ function handleLogout() {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  font-size: 0.8rem;
+  font-size: clamp(0.9rem, 1.3vw, 1.05rem);
   color: var(--sage);
 }
 
@@ -786,9 +787,9 @@ function handleLogout() {
 
 .event-name {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
   color: var(--cream);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .event-details {
@@ -800,14 +801,14 @@ function handleLogout() {
 .event-detail {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   color: var(--sage);
-  font-size: 0.75rem;
+  font-size: clamp(0.95rem, 1.4vw, 1.1rem);
 }
 
 .detail-icon {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   color: var(--fire);
 }
 
