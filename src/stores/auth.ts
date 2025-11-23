@@ -3,6 +3,42 @@ import { ref, computed } from 'vue'
 import { supabase } from '../services/supabase'
 import bcrypt from 'bcryptjs'
 
+// Security: Allowed file types for avatar
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+
+// Security: Sanitize user input
+function sanitizeInput(input: string): string {
+  return input.trim().slice(0, 500)
+}
+
+// Security: Validate file
+function validateFile(file: File): { valid: boolean; error?: string } {
+  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    return { valid: false, error: 'Недопустимый тип файла' }
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    return { valid: false, error: 'Файл слишком большой (макс. 5MB)' }
+  }
+  return { valid: true }
+}
+
+// Security: Generate secure file name
+function generateSecureFileName(file: File): string {
+  const ext = file.type === 'image/jpeg' ? 'jpg' : file.type === 'image/png' ? 'png' : 'webp'
+  return `${crypto.randomUUID()}.${ext}`
+}
+
+// Security: Safe JSON parse
+function safeJsonParse<T>(json: string | null, fallback: T): T {
+  if (!json) return fallback
+  try {
+    return JSON.parse(json) as T
+  } catch {
+    return fallback
+  }
+}
+
 export interface User {
   id: string
   email: string
@@ -57,9 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Load user from localStorage on init
   if (token.value) {
     const storedUser = localStorage.getItem('current_user')
-    if (storedUser) {
-      user.value = JSON.parse(storedUser)
-    }
+    user.value = safeJsonParse<User | null>(storedUser, null)
   }
 
   async function login(email: string, password: string) {
@@ -67,10 +101,13 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
+      // Security: Sanitize email input
+      const sanitizedEmail = sanitizeInput(email).toLowerCase()
+
       const { data, error: dbError } = await supabase
         .from('users')
         .select('*')
-        .eq('email', email)
+        .eq('email', sanitizedEmail)
         .single()
 
       if (dbError || !data) {
@@ -86,7 +123,8 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       const mappedUser = mapDbUserToUser(data)
-      token.value = `token_${Date.now()}_${data.id}`
+      // Security: Use cryptographically secure token
+      token.value = crypto.randomUUID()
       user.value = mappedUser
       localStorage.setItem('auth_token', token.value)
       localStorage.setItem('current_user', JSON.stringify(mappedUser))
@@ -106,17 +144,27 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       // Hash password
-      const passwordHash = await bcrypt.hash(data.password, 10)
+      const passwordHash = await bcrypt.hash(data.password, 12)
 
       // Upload avatar if provided
       let avatarUrl: string | null = null
       if (data.avatar) {
-        const fileExt = data.avatar.name.split('.').pop()
-        const fileName = `${Date.now()}.${fileExt}`
+        // Security: Validate file type and size
+        const fileValidation = validateFile(data.avatar)
+        if (!fileValidation.valid) {
+          error.value = fileValidation.error!
+          return { success: false, error: error.value }
+        }
+
+        // Security: Generate secure filename based on MIME type
+        const fileName = generateSecureFileName(data.avatar)
 
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(fileName, data.avatar)
+          .upload(fileName, data.avatar, {
+            contentType: data.avatar.type,
+            upsert: false
+          })
 
         if (!uploadError) {
           const { data: urlData } = supabase.storage
@@ -126,17 +174,17 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      // Insert user
+      // Insert user with sanitized inputs
       const { data: newUser, error: dbError } = await supabase
         .from('users')
         .insert({
-          email: data.email,
+          email: sanitizeInput(data.email).toLowerCase(),
           password_hash: passwordHash,
-          nickname: data.nickname,
-          phone: data.phone,
-          telegram: data.telegram,
+          nickname: sanitizeInput(data.nickname),
+          phone: sanitizeInput(data.phone),
+          telegram: sanitizeInput(data.telegram),
           avatar_url: avatarUrl,
-          description: data.description || null,
+          description: data.description ? sanitizeInput(data.description) : null,
           status: 'pending',
           email_subscribed: data.emailSubscribed,
           agree_rules: data.agreeRules,
@@ -161,7 +209,8 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       const mappedUser = mapDbUserToUser(newUser)
-      token.value = `token_${Date.now()}_${newUser.id}`
+      // Security: Use cryptographically secure token
+      token.value = crypto.randomUUID()
       user.value = mappedUser
       localStorage.setItem('auth_token', token.value)
       localStorage.setItem('current_user', JSON.stringify(mappedUser))
@@ -176,19 +225,23 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function checkEmailUnique(email: string): Promise<boolean> {
+    // Security: Sanitize input
+    const sanitizedEmail = sanitizeInput(email).toLowerCase()
     const { data } = await supabase
       .from('users')
       .select('id')
-      .eq('email', email)
+      .eq('email', sanitizedEmail)
       .single()
     return !data
   }
 
   async function checkNicknameUnique(nickname: string): Promise<boolean> {
+    // Security: Sanitize input
+    const sanitizedNickname = sanitizeInput(nickname)
     const { data } = await supabase
       .from('users')
       .select('id')
-      .eq('nickname', nickname)
+      .eq('nickname', sanitizedNickname)
       .single()
     return !data
   }
@@ -197,12 +250,13 @@ export const useAuthStore = defineStore('auth', () => {
     if (!token.value) return
 
     const storedUser = localStorage.getItem('current_user')
-    if (!storedUser) {
+    const cachedUser = safeJsonParse<User | null>(storedUser, null)
+
+    if (!cachedUser) {
       logout()
       return
     }
 
-    const cachedUser = JSON.parse(storedUser)
     user.value = cachedUser
 
     // Fetch fresh data from database to get updated status
@@ -250,28 +304,46 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const updateData: any = {}
 
-      if (updates.nickname) updateData.nickname = updates.nickname
-      if (updates.phone) updateData.phone = updates.phone
-      if (updates.telegram) updateData.telegram = updates.telegram
-      if (updates.description !== undefined) updateData.description = updates.description || null
+      // Security: Sanitize all inputs
+      if (updates.nickname) updateData.nickname = sanitizeInput(updates.nickname)
+      if (updates.phone) updateData.phone = sanitizeInput(updates.phone)
+      if (updates.telegram) updateData.telegram = sanitizeInput(updates.telegram)
+      if (updates.description !== undefined) {
+        updateData.description = updates.description ? sanitizeInput(updates.description) : null
+      }
 
       // Handle avatar upload
       if (updates.avatar) {
+        // Security: Validate file type and size
+        const fileValidation = validateFile(updates.avatar)
+        if (!fileValidation.valid) {
+          error.value = fileValidation.error!
+          return { success: false, error: error.value }
+        }
+
         // Delete old avatar if exists
         if (user.value.avatar) {
-          const oldFileName = user.value.avatar.split('/').pop()
-          if (oldFileName) {
-            await supabase.storage.from('avatars').remove([oldFileName])
+          // Security: Extract filename safely using URL parsing
+          try {
+            const url = new URL(user.value.avatar)
+            const oldFileName = url.pathname.split('/').pop()
+            if (oldFileName && /^[a-f0-9-]+\.(jpg|png|webp)$/i.test(oldFileName)) {
+              await supabase.storage.from('avatars').remove([oldFileName])
+            }
+          } catch {
+            // Invalid URL, skip deletion
           }
         }
 
-        // Upload new avatar
-        const fileExt = updates.avatar.name.split('.').pop()
-        const fileName = `${Date.now()}.${fileExt}`
+        // Security: Generate secure filename based on MIME type
+        const fileName = generateSecureFileName(updates.avatar)
 
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(fileName, updates.avatar)
+          .upload(fileName, updates.avatar, {
+            contentType: updates.avatar.type,
+            upsert: false
+          })
 
         if (!uploadError) {
           const { data: urlData } = supabase.storage
@@ -319,9 +391,15 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       // Delete avatar from storage if exists
       if (user.value.avatar) {
-        const fileName = user.value.avatar.split('/').pop()
-        if (fileName) {
-          await supabase.storage.from('avatars').remove([fileName])
+        // Security: Extract filename safely using URL parsing
+        try {
+          const url = new URL(user.value.avatar)
+          const fileName = url.pathname.split('/').pop()
+          if (fileName && /^[a-f0-9-]+\.(jpg|png|webp)$/i.test(fileName)) {
+            await supabase.storage.from('avatars').remove([fileName])
+          }
+        } catch {
+          // Invalid URL, skip deletion
         }
       }
 
