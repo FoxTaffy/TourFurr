@@ -30,7 +30,6 @@ body {
   background: var(--forest-deep);
   overflow-x: hidden;
   line-height: 1.7;
-  padding-top: 80px;
 }
 
 /* Animated forest background */
@@ -222,10 +221,6 @@ section {
 
 /* Responsive */
 @media (max-width: 768px) {
-  body {
-      padding-top: 70px;
-  }
-
   .glass-card {
       padding: 2rem 1.5rem;
   }
