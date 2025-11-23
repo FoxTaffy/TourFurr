@@ -265,8 +265,11 @@ function handleLogout() {
 
 <style scoped>
 .dashboard-page {
-  min-height: 100vh;
+  height: 100vh;
   position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Particles */
@@ -366,13 +369,18 @@ function handleLogout() {
   z-index: 10;
   max-width: min(1200px, 95vw);
   margin: 0 auto;
-  padding: clamp(1rem, 3vw, 2rem);
+  padding: clamp(0.5rem, 2vw, 2rem);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* Welcome */
 .welcome-section {
   text-align: center;
-  margin-bottom: clamp(1.5rem, 3vw, 2rem);
+  margin-bottom: clamp(0.5rem, 1.5vw, 1rem);
+  flex-shrink: 0;
 }
 
 .welcome-title {
@@ -395,10 +403,11 @@ function handleLogout() {
 .status-banner {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.25rem 1.5rem;
+  gap: clamp(0.5rem, 1vw, 1rem);
+  padding: clamp(0.75rem, 1.5vw, 1.25rem) clamp(1rem, 2vw, 1.5rem);
   border-radius: 16px;
-  margin-bottom: 2rem;
+  margin-bottom: clamp(0.5rem, 1.5vw, 1rem);
+  flex-shrink: 0;
 }
 
 .status-banner.pending {
@@ -465,12 +474,14 @@ function handleLogout() {
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: clamp(1rem, 2vw, 1.5rem);
+  gap: clamp(0.5rem, 1.5vw, 1rem);
+  flex: 1;
+  min-height: 0;
 }
 
 /* Glass Card Override for Dashboard */
 .glass-card {
-  padding: clamp(1.5rem, 3vw, 3rem);
+  padding: clamp(0.75rem, 1.5vw, 1.5rem);
   background: linear-gradient(
     135deg,
     rgba(42, 31, 26, 0.4) 0%,
@@ -478,6 +489,7 @@ function handleLogout() {
   );
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  overflow: auto;
 }
 
 /* Profile Card */
@@ -486,7 +498,7 @@ function handleLogout() {
 }
 
 .card-header {
-  margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  margin-bottom: clamp(0.5rem, 1vw, 1rem);
 }
 
 .card-title {
@@ -506,16 +518,16 @@ function handleLogout() {
 /* Avatar */
 .avatar-section {
   text-align: center;
-  margin-bottom: clamp(1rem, 2vw, 1.5rem);
-  padding-bottom: clamp(1rem, 2vw, 1.5rem);
+  margin-bottom: clamp(0.5rem, 1vw, 1rem);
+  padding-bottom: clamp(0.5rem, 1vw, 1rem);
   border-bottom: 1px solid var(--moss);
 }
 
 .avatar-wrapper {
   position: relative;
-  width: clamp(80px, 12vw, 100px);
-  height: clamp(80px, 12vw, 100px);
-  margin: 0 auto 1rem;
+  width: clamp(50px, 8vw, 80px);
+  height: clamp(50px, 8vw, 80px);
+  margin: 0 auto clamp(0.5rem, 1vw, 1rem);
 }
 
 .avatar-glow {
@@ -551,7 +563,7 @@ function handleLogout() {
 
 .avatar-letter {
   font-family: 'Playfair Display', serif;
-  font-size: 2.5rem;
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
   color: var(--fire-glow);
 }
 
@@ -583,7 +595,7 @@ function handleLogout() {
 .info-section {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: clamp(0.5rem, 1vw, 1rem);
 }
 
 .info-item {
