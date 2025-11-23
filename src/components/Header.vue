@@ -2,7 +2,7 @@
     <header>
       <nav>
         <a href="#" class="logo">
-          <img src="@/assets/logo.png" alt="TourFurr" class="logo-img" />
+          <img :src="logoImg" alt="TourFurr" class="logo-img" />
           <span class="logo-text">TourFurr</span>
         </a>
         <ul class="nav-links">
@@ -17,8 +17,15 @@
   </template>
   
   <script>
+  import logoImg from '../assets/logo.png'
+
   export default {
     name: 'Header',
+    data() {
+      return {
+        logoImg
+      }
+    },
     methods: {
       scrollTo(id) {
         const element = document.getElementById(id)

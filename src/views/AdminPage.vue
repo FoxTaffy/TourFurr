@@ -8,7 +8,7 @@
     <header class="admin-header">
       <div class="header-content">
         <router-link to="/" class="logo">
-          <img src="@/assets/logo.png" alt="TourFurr" class="logo-img" />
+          <img :src="logoImg" alt="TourFurr" class="logo-img" />
           <span class="logo-text">TourFurr</span>
         </router-link>
         <h2 class="header-title">Панель администратора</h2>
@@ -158,6 +158,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '../services/supabase'
+import logoImg from '../assets/logo.png'
 
 interface User {
   id: string

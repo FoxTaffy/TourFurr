@@ -8,7 +8,7 @@
     <header class="dashboard-header">
       <div class="header-content">
         <router-link to="/" class="logo">
-          <img src="@/assets/logo.png" alt="TourFurr" class="logo-img" />
+          <img :src="logoImg" alt="TourFurr" class="logo-img" />
           <span class="logo-text">TourFurr</span>
         </router-link>
         <button @click="handleLogout" class="logout-btn">
@@ -229,6 +229,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
+import logoImg from '../assets/logo.png'
 
 const router = useRouter()
 const authStore = useAuthStore()
