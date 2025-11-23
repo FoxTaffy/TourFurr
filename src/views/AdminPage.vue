@@ -210,10 +210,22 @@ async function loadUsers() {
       users.value = data
     }
   } else {
-    // Mock data for testing
-    const stored = localStorage.getItem('mockUsers')
+    // Mock data - use same key as auth store
+    const stored = localStorage.getItem('mock_users')
     if (stored) {
-      users.value = JSON.parse(stored)
+      const mockUsers = JSON.parse(stored)
+      // Map to admin format
+      users.value = mockUsers.map((u: any) => ({
+        id: u.id,
+        email: u.email,
+        nickname: u.nickname,
+        phone: u.phone,
+        telegram: u.telegram,
+        avatar_url: u.avatar,
+        description: u.description,
+        status: u.status,
+        created_at: u.createdAt
+      }))
     }
   }
 
@@ -234,11 +246,21 @@ async function updateStatus(userId: string, status: string) {
       if (user) user.status = status
     }
   } else {
-    // Mock update
+    // Mock update - sync with auth store's mock_users
     const user = users.value.find(u => u.id === userId)
     if (user) {
       user.status = status
-      localStorage.setItem('mockUsers', JSON.stringify(users.value))
+
+      // Update mock_users in localStorage (same format as auth store)
+      const stored = localStorage.getItem('mock_users')
+      if (stored) {
+        const mockUsers = JSON.parse(stored)
+        const mockUser = mockUsers.find((u: any) => u.id === userId)
+        if (mockUser) {
+          mockUser.status = status
+          localStorage.setItem('mock_users', JSON.stringify(mockUsers))
+        }
+      }
     }
   }
 

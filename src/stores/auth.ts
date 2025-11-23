@@ -298,10 +298,41 @@ export const useAuthStore = defineStore('auth', () => {
     if (!token.value) return
 
     const storedUser = localStorage.getItem('current_user')
-    if (storedUser) {
-      user.value = JSON.parse(storedUser)
-    } else {
+    if (!storedUser) {
       logout()
+      return
+    }
+
+    const cachedUser = JSON.parse(storedUser)
+    user.value = cachedUser
+
+    // Fetch fresh data from database to get updated status
+    if (USE_SUPABASE) {
+      try {
+        const { data, error: dbError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', cachedUser.id)
+          .single()
+
+        if (!dbError && data) {
+          const freshUser = mapDbUserToUser(data)
+          user.value = freshUser
+          localStorage.setItem('current_user', JSON.stringify(freshUser))
+        }
+      } catch (err) {
+        // Keep cached user if fetch fails
+        console.error('Failed to fetch fresh user data:', err)
+      }
+    } else {
+      // Mock mode - check localStorage for updated status
+      const users = getStoredUsers()
+      const freshUser = users.find(u => u.id === cachedUser.id)
+      if (freshUser) {
+        const { password: _, ...userWithoutPassword } = freshUser
+        user.value = userWithoutPassword
+        localStorage.setItem('current_user', JSON.stringify(userWithoutPassword))
+      }
     }
   }
 
