@@ -224,9 +224,10 @@
         </div>
       </div>
 
-      <!-- Approved User Info Section (horizontal, full width) -->
+      <!-- Approved User Info Section (below cards) -->
       <div v-if="user?.status === 'approved' && approvedInfo" class="approved-section">
         <div class="approved-grid">
+          <!-- Location with Map -->
           <div class="glass-card info-block location">
             <h4 class="info-block-title">
               <svg class="block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,8 +238,20 @@
             </h4>
             <p class="info-block-text">{{ approvedInfo.location }}</p>
             <p class="info-block-subtext">{{ approvedInfo.location_note }}</p>
+
+            <!-- Yandex Map -->
+            <div v-if="approvedInfo.coordinates" class="map-container">
+              <iframe
+                :src="`https://yandex.ru/map-widget/v1/?pt=${approvedInfo.coordinates}&z=12&l=map`"
+                width="100%"
+                height="200"
+                frameborder="0"
+                allowfullscreen
+              ></iframe>
+            </div>
           </div>
 
+          <!-- Payment Info -->
           <div class="glass-card info-block payment">
             <h4 class="info-block-title">
               <svg class="block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -273,6 +286,7 @@ const user = computed(() => authStore.user)
 interface ApprovedInfo {
   location: string
   location_note: string
+  coordinates: string | null
   price: number
   bank: string
   card_number: string
@@ -983,6 +997,18 @@ function handleLogout() {
 .payment-value {
   color: var(--cream);
   font-family: monospace;
+}
+
+/* Map Container */
+.map-container {
+  margin-top: 0.75rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.map-container iframe {
+  display: block;
 }
 
 /* Responsive */
