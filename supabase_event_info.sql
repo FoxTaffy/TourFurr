@@ -14,29 +14,22 @@ CREATE TABLE IF NOT EXISTS event_info (
 -- Enable Row Level Security
 ALTER TABLE event_info ENABLE ROW LEVEL SECURITY;
 
--- Policy: Only approved users can read event_info
-CREATE POLICY "Approved users can read event info"
+-- Policy: Allow read for all authenticated users (we check status in app)
+CREATE POLICY "Allow read event info"
   ON event_info
   FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM users
-      WHERE users.id = auth.uid()
-      AND users.status = 'approved'
-    )
-  );
-
--- Alternative policy if not using Supabase Auth (checks via API)
--- This allows read if request comes from authenticated context
-CREATE POLICY "Allow read for API calls"
-  ON event_info
-  FOR SELECT
-  TO authenticated
   USING (true);
 
--- Insert initial event info (run once)
-INSERT INTO event_info (location, location_note, price, bank, card_number, recipient, payment_note)
-VALUES (
+-- Insert initial event info
+INSERT INTO event_info (
+  location,
+  location_note,
+  price,
+  bank,
+  card_number,
+  recipient,
+  payment_note
+) VALUES (
   'Московская область, Дмитровский район',
   'Точные координаты будут отправлены за неделю до мероприятия',
   3500,
