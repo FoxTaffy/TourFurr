@@ -235,6 +235,119 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
   }
 
+  async function updateProfile(updates: {
+    nickname?: string
+    phone?: string
+    telegram?: string
+    description?: string
+    avatar?: File
+  }) {
+    if (!user.value) return { success: false, error: 'Не авторизован' }
+
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const updateData: any = {}
+
+      if (updates.nickname) updateData.nickname = updates.nickname
+      if (updates.phone) updateData.phone = updates.phone
+      if (updates.telegram) updateData.telegram = updates.telegram
+      if (updates.description !== undefined) updateData.description = updates.description || null
+
+      // Handle avatar upload
+      if (updates.avatar) {
+        // Delete old avatar if exists
+        if (user.value.avatar) {
+          const oldFileName = user.value.avatar.split('/').pop()
+          if (oldFileName) {
+            await supabase.storage.from('avatars').remove([oldFileName])
+          }
+        }
+
+        // Upload new avatar
+        const fileExt = updates.avatar.name.split('.').pop()
+        const fileName = `${Date.now()}.${fileExt}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, updates.avatar)
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(fileName)
+          updateData.avatar_url = urlData.publicUrl
+        }
+      }
+
+      const { data, error: dbError } = await supabase
+        .from('users')
+        .update(updateData)
+        .eq('id', user.value.id)
+        .select()
+        .single()
+
+      if (dbError) {
+        if (dbError.code === '23505' && dbError.message.includes('nickname')) {
+          error.value = 'Этот никнейм уже занят'
+        } else {
+          error.value = dbError.message
+        }
+        return { success: false, error: error.value }
+      }
+
+      const updatedUser = mapDbUserToUser(data)
+      user.value = updatedUser
+      localStorage.setItem('current_user', JSON.stringify(updatedUser))
+
+      return { success: true }
+    } catch (err: any) {
+      error.value = err.message || 'Ошибка обновления'
+      return { success: false, error: error.value }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function deleteAccount() {
+    if (!user.value) return { success: false, error: 'Не авторизован' }
+
+    isLoading.value = true
+    error.value = null
+
+    try {
+      // Delete avatar from storage if exists
+      if (user.value.avatar) {
+        const fileName = user.value.avatar.split('/').pop()
+        if (fileName) {
+          await supabase.storage.from('avatars').remove([fileName])
+        }
+      }
+
+      // Delete user from database
+      const { error: dbError } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', user.value.id)
+
+      if (dbError) {
+        error.value = dbError.message
+        return { success: false, error: error.value }
+      }
+
+      // Logout
+      logout()
+
+      return { success: true }
+    } catch (err: any) {
+      error.value = err.message || 'Ошибка удаления'
+      return { success: false, error: error.value }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     user,
     token,
@@ -248,6 +361,8 @@ export const useAuthStore = defineStore('auth', () => {
     checkNicknameUnique,
     fetchUser,
     logout,
-    clearError
+    clearError,
+    updateProfile,
+    deleteAccount
   }
 })

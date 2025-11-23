@@ -160,6 +160,7 @@
             {{ avatarPreview ? 'Нажмите чтобы заменить' : 'Перетащите файл или нажмите' }}
           </p>
           <p class="upload-hint">JPG, PNG, WebP до 5MB</p>
+          <p class="upload-hint badge-hint">Аватарка будет использована для бейджика</p>
         </div>
         <p v-if="errors.avatar" class="error-text">{{ errors.avatar }}</p>
       </div>
@@ -700,6 +701,12 @@ function redirectToDashboard() {
   color: var(--sage);
   opacity: 0.7;
   margin-top: 0.25rem;
+}
+
+.badge-hint {
+  color: var(--fire-glow);
+  opacity: 1;
+  font-style: italic;
 }
 
 .char-count {

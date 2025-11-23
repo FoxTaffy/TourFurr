@@ -26,38 +26,96 @@
         <!-- Left Column - Profile Card -->
         <div class="profile-card">
           <div class="avatar-section">
-            <div class="avatar">
-              <img v-if="user?.avatar" :src="user.avatar" alt="Avatar" />
+            <div class="avatar" @click="isEditing && triggerAvatarUpload()">
+              <img v-if="avatarPreview || user?.avatar" :src="avatarPreview || user?.avatar" alt="Avatar" />
               <span v-else class="avatar-letter">{{ user?.nickname?.[0]?.toUpperCase() }}</span>
+              <div v-if="isEditing" class="avatar-overlay">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </div>
             </div>
+            <input
+              ref="avatarInput"
+              type="file"
+              accept="image/*"
+              style="display: none"
+              @change="handleAvatarChange"
+            />
+            <p v-if="isEditing" class="avatar-hint">Нажмите для изменения</p>
           </div>
 
-          <h2 class="profile-name">{{ user?.nickname }}</h2>
+          <template v-if="!isEditing">
+            <h2 class="profile-name">{{ user?.nickname }}</h2>
 
-          <div class="status-badge" :class="user?.status">
-            {{ statusLabels[user?.status || 'pending'] }}
-          </div>
+            <div class="status-badge" :class="user?.status">
+              {{ statusLabels[user?.status || 'pending'] }}
+            </div>
 
-          <div class="contact-info">
-            <div class="contact-item">
+            <div class="contact-info">
+              <div class="contact-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                <span>{{ user?.email }}</span>
+              </div>
+              <div class="contact-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                </svg>
+                <span>{{ user?.phone }}</span>
+              </div>
+              <div class="contact-item telegram">
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.327.015.095.034.312.019.482z"/>
+                </svg>
+                <a :href="'https://' + user?.telegram" target="_blank">{{ user?.telegram }}</a>
+              </div>
+            </div>
+
+            <button class="edit-btn" @click="startEditing">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
               </svg>
-              <span>{{ user?.email }}</span>
+              Редактировать
+            </button>
+          </template>
+
+          <template v-else>
+            <div class="edit-form">
+              <div class="form-group">
+                <label>Никнейм</label>
+                <input v-model="editForm.nickname" type="text" />
+              </div>
+              <div class="form-group">
+                <label>Телефон</label>
+                <input v-model="editForm.phone" type="tel" />
+              </div>
+              <div class="form-group">
+                <label>Telegram</label>
+                <input v-model="editForm.telegram" type="text" />
+              </div>
+              <div class="form-group">
+                <label>О себе</label>
+                <textarea v-model="editForm.description" rows="3"></textarea>
+              </div>
+
+              <div class="edit-actions">
+                <button class="save-btn" @click="saveProfile" :disabled="isSaving">
+                  {{ isSaving ? 'Сохранение...' : 'Сохранить' }}
+                </button>
+                <button class="cancel-btn" @click="cancelEditing">Отмена</button>
+              </div>
+
+              <button class="delete-btn" @click="confirmDelete">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Удалить аккаунт
+              </button>
             </div>
-            <div class="contact-item">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-              </svg>
-              <span>{{ user?.phone }}</span>
-            </div>
-            <div class="contact-item telegram">
-              <svg fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.327.015.095.034.312.019.482z"/>
-              </svg>
-              <a :href="'https://' + user?.telegram" target="_blank">{{ user?.telegram }}</a>
-            </div>
-          </div>
+          </template>
         </div>
 
         <!-- Middle Column - Event Details -->
@@ -189,6 +247,93 @@ interface ApprovedInfo {
 
 const approvedInfo = ref<ApprovedInfo | null>(null)
 const infoError = ref<string | null>(null)
+
+// Edit mode
+const isEditing = ref(false)
+const isSaving = ref(false)
+const avatarInput = ref<HTMLInputElement | null>(null)
+const avatarPreview = ref<string | null>(null)
+const newAvatarFile = ref<File | null>(null)
+
+const editForm = ref({
+  nickname: '',
+  phone: '',
+  telegram: '',
+  description: ''
+})
+
+function startEditing() {
+  if (user.value) {
+    editForm.value = {
+      nickname: user.value.nickname,
+      phone: user.value.phone,
+      telegram: user.value.telegram,
+      description: user.value.description || ''
+    }
+    avatarPreview.value = null
+    newAvatarFile.value = null
+    isEditing.value = true
+  }
+}
+
+function cancelEditing() {
+  isEditing.value = false
+  avatarPreview.value = null
+  newAvatarFile.value = null
+}
+
+function triggerAvatarUpload() {
+  avatarInput.value?.click()
+}
+
+function handleAvatarChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (input.files && input.files[0]) {
+    const file = input.files[0]
+    newAvatarFile.value = file
+    avatarPreview.value = URL.createObjectURL(file)
+  }
+}
+
+async function saveProfile() {
+  isSaving.value = true
+
+  const updates: any = {
+    nickname: editForm.value.nickname,
+    phone: editForm.value.phone,
+    telegram: editForm.value.telegram,
+    description: editForm.value.description
+  }
+
+  if (newAvatarFile.value) {
+    updates.avatar = newAvatarFile.value
+  }
+
+  const result = await authStore.updateProfile(updates)
+
+  if (result.success) {
+    isEditing.value = false
+    avatarPreview.value = null
+    newAvatarFile.value = null
+  } else {
+    alert(result.error)
+  }
+
+  isSaving.value = false
+}
+
+async function confirmDelete() {
+  if (confirm('Вы уверены, что хотите удалить аккаунт? Это действие необратимо!')) {
+    if (confirm('Точно удалить? Все данные будут потеряны.')) {
+      const result = await authStore.deleteAccount()
+      if (result.success) {
+        router.push('/auth')
+      } else {
+        alert(result.error)
+      }
+    }
+  }
+}
 
 async function fetchApprovedInfo() {
   if (user.value?.status !== 'approved') {
@@ -665,5 +810,177 @@ function handleLogout() {
   .error-card {
     grid-column: auto;
   }
+}
+
+/* Edit Mode Styles */
+.avatar {
+  position: relative;
+  cursor: default;
+}
+
+.profile-card .avatar-section .avatar {
+  cursor: pointer;
+}
+
+.avatar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.avatar:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.avatar-overlay svg {
+  width: 32px;
+  height: 32px;
+  color: white;
+}
+
+.avatar-hint {
+  font-size: 0.75rem;
+  color: var(--sage);
+  margin-top: 0.5rem;
+}
+
+.edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  margin-top: 1.5rem;
+  background: rgba(255, 107, 53, 0.15);
+  border: 1px solid rgba(255, 107, 53, 0.4);
+  border-radius: 12px;
+  color: var(--fire-glow);
+  font-family: 'Lora', serif;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-btn:hover {
+  background: rgba(255, 107, 53, 0.25);
+}
+
+.edit-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.edit-form {
+  text-align: left;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--sage);
+  margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(26, 17, 14, 0.6);
+  border: 1px solid rgba(139, 111, 71, 0.4);
+  border-radius: 10px;
+  color: var(--cream);
+  font-family: 'Lora', serif;
+  font-size: 0.9rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--fire);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.save-btn,
+.cancel-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  font-family: 'Lora', serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.save-btn {
+  background: var(--fire);
+  border: none;
+  color: white;
+}
+
+.save-btn:hover:not(:disabled) {
+  background: var(--fire-glow);
+}
+
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background: transparent;
+  border: 1px solid rgba(139, 111, 71, 0.4);
+  color: var(--cream);
+}
+
+.cancel-btn:hover {
+  background: rgba(139, 111, 71, 0.2);
+}
+
+.delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  margin-top: 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 10px;
+  color: #ef4444;
+  font-family: 'Lora', serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.delete-btn svg {
+  width: 16px;
+  height: 16px;
 }
 </style>
