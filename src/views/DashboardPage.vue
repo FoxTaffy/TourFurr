@@ -471,6 +471,13 @@ function handleLogout() {
 /* Glass Card Override for Dashboard */
 .glass-card {
   padding: clamp(1.5rem, 3vw, 3rem);
+  background: linear-gradient(
+    135deg,
+    rgba(42, 31, 26, 0.4) 0%,
+    rgba(61, 45, 36, 0.3) 100%
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 /* Profile Card */
