@@ -301,6 +301,53 @@ function handleLogout() {
   position: relative;
 }
 
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.hero-section {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.status-section {
+  animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+
+.info-section {
+  animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+.description-section {
+  animation: fadeInUp 0.6s ease-out 0.3s both;
+}
+
+.error-section {
+  animation: fadeIn 0.4s ease-out;
+}
+
 /* Header */
 .dashboard-header {
   position: sticky;
@@ -373,12 +420,25 @@ function handleLogout() {
 /* Hero Section */
 .hero-section {
   position: relative;
-  background: linear-gradient(135deg, rgba(42, 31, 26, 0.8) 0%, rgba(61, 45, 36, 0.6) 100%);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(139, 111, 71, 0.4);
-  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(42, 31, 26, 0.85) 0%, rgba(61, 45, 36, 0.7) 50%, rgba(42, 31, 26, 0.85) 100%);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(139, 111, 71, 0.5);
+  border-radius: 28px;
   padding: 3rem;
   overflow: hidden;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.4),
+    0 0 100px rgba(255, 107, 53, 0.08),
+    inset 0 1px 0 rgba(255, 239, 213, 0.1);
+  transition: all 0.4s ease;
+}
+
+.hero-section:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.5),
+    0 0 120px rgba(255, 107, 53, 0.12),
+    inset 0 1px 0 rgba(255, 239, 213, 0.15);
 }
 
 .hero-glow {
@@ -510,21 +570,39 @@ function handleLogout() {
 }
 
 .status-card {
-  background: rgba(42, 31, 26, 0.7);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(139, 111, 71, 0.3);
-  border-radius: 20px;
-  padding: 2rem;
+  background: rgba(42, 31, 26, 0.8);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(139, 111, 71, 0.4);
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow:
+    0 15px 50px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 239, 213, 0.08);
+  transition: all 0.4s ease;
+}
+
+.status-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 239, 213, 0.1);
 }
 
 .status-card.approved {
-  border-color: rgba(34, 197, 94, 0.4);
-  background: linear-gradient(135deg, rgba(42, 31, 26, 0.7) 0%, rgba(34, 197, 94, 0.1) 100%);
+  border-color: rgba(34, 197, 94, 0.5);
+  background: linear-gradient(135deg, rgba(42, 31, 26, 0.8) 0%, rgba(34, 197, 94, 0.15) 100%);
+  box-shadow:
+    0 15px 50px rgba(0, 0, 0, 0.3),
+    0 0 60px rgba(34, 197, 94, 0.08),
+    inset 0 1px 0 rgba(34, 197, 94, 0.2);
 }
 
 .status-card.rejected {
-  border-color: rgba(239, 68, 68, 0.4);
-  background: linear-gradient(135deg, rgba(42, 31, 26, 0.7) 0%, rgba(239, 68, 68, 0.1) 100%);
+  border-color: rgba(239, 68, 68, 0.5);
+  background: linear-gradient(135deg, rgba(42, 31, 26, 0.8) 0%, rgba(239, 68, 68, 0.15) 100%);
+  box-shadow:
+    0 15px 50px rgba(0, 0, 0, 0.3),
+    0 0 60px rgba(239, 68, 68, 0.08);
 }
 
 .status-header {
@@ -604,6 +682,13 @@ function handleLogout() {
 .progress-fill.approved {
   width: 100%;
   background: linear-gradient(90deg, var(--fire-glow), #22c55e);
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+  animation: shimmerProgress 2s linear infinite;
+}
+
+@keyframes shimmerProgress {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .progress-fill.rejected {
@@ -709,19 +794,52 @@ function handleLogout() {
 }
 
 .info-card {
-  background: rgba(42, 31, 26, 0.8);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
+  background: rgba(42, 31, 26, 0.85);
+  backdrop-filter: blur(24px);
+  border-radius: 24px;
   overflow: hidden;
-  border: 1px solid rgba(139, 111, 71, 0.3);
+  border: 1px solid rgba(139, 111, 71, 0.4);
+  box-shadow:
+    0 15px 50px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 239, 213, 0.08);
+  transition: all 0.4s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 239, 213, 0.12);
 }
 
 .info-card.location {
-  border-color: rgba(34, 197, 94, 0.4);
+  border-color: rgba(34, 197, 94, 0.5);
+  box-shadow:
+    0 15px 50px rgba(0, 0, 0, 0.3),
+    0 0 50px rgba(34, 197, 94, 0.06),
+    inset 0 1px 0 rgba(34, 197, 94, 0.15);
+}
+
+.info-card.location:hover {
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.4),
+    0 0 80px rgba(34, 197, 94, 0.1),
+    inset 0 1px 0 rgba(34, 197, 94, 0.2);
 }
 
 .info-card.payment {
-  border-color: rgba(255, 179, 71, 0.4);
+  border-color: rgba(255, 179, 71, 0.5);
+  box-shadow:
+    0 15px 50px rgba(0, 0, 0, 0.3),
+    0 0 50px rgba(255, 179, 71, 0.06),
+    inset 0 1px 0 rgba(255, 179, 71, 0.15);
+}
+
+.info-card.payment:hover {
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.4),
+    0 0 80px rgba(255, 179, 71, 0.1),
+    inset 0 1px 0 rgba(255, 179, 71, 0.2);
 }
 
 .info-card-header {
@@ -794,17 +912,25 @@ function handleLogout() {
 .price-display {
   text-align: center;
   margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(255, 179, 71, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 179, 71, 0.2);
 }
 
 .price-amount {
   font-family: 'Playfair Display', serif;
-  font-size: 3rem;
-  color: var(--fire-glow);
+  font-size: 3.5rem;
+  background: linear-gradient(135deg, var(--fire-glow), var(--amber));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 40px rgba(255, 179, 71, 0.3);
 }
 
 .price-currency {
   font-size: 1.5rem;
-  color: var(--sage);
+  color: var(--fire-glow);
   margin-left: 4px;
 }
 
