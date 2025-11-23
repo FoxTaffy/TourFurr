@@ -8,7 +8,8 @@
     <header class="dashboard-header">
       <div class="header-content">
         <router-link to="/" class="logo">
-          <span class="logo-tour">Tour</span><span class="logo-furr">Furr</span>
+          <img src="@/assets/logo.png" alt="TourFurr" class="logo-img" />
+          <span class="logo-text">TourFurr</span>
         </router-link>
         <button @click="handleLogout" class="logout-btn">
           <svg class="logout-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -431,14 +432,36 @@ function handleLogout() {
 }
 
 .logo {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.75rem;
-  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   text-decoration: none;
+  transition: all 0.3s ease;
 }
 
-.logo-tour { color: var(--cream); }
-.logo-furr { color: var(--fire); }
+.logo-img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--fire-glow);
+  transition: all 0.3s ease;
+}
+
+.logo:hover .logo-text {
+  color: var(--amber);
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.logo:hover .logo-img {
+  transform: scale(1.05);
+}
 
 .logout-btn {
   display: flex;
