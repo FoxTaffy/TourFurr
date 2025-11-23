@@ -104,6 +104,17 @@
           </div>
         </section>
 
+        <!-- Error Message -->
+        <section v-if="user?.status === 'approved' && infoError" class="error-section">
+          <div class="error-card">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <p>{{ infoError }}</p>
+            <small>Проверьте что таблица event_info создана в Supabase и содержит данные</small>
+          </div>
+        </section>
+
         <!-- Approved Info Section -->
         <section v-if="user?.status === 'approved' && approvedInfo" class="info-section">
           <h2 class="info-title">
@@ -215,10 +226,12 @@ interface ApprovedInfo {
 }
 
 const approvedInfo = ref<ApprovedInfo | null>(null)
+const infoError = ref<string | null>(null)
 
 async function fetchApprovedInfo() {
   if (user.value?.status !== 'approved') {
     approvedInfo.value = null
+    infoError.value = null
     return
   }
 
@@ -228,11 +241,23 @@ async function fetchApprovedInfo() {
       .select('*')
       .single()
 
-    if (!error && data) {
-      approvedInfo.value = data
+    console.log('Event info fetch result:', { data, error })
+
+    if (error) {
+      console.error('Supabase error:', error)
+      infoError.value = `Ошибка загрузки: ${error.message}`
+      return
     }
-  } catch (err) {
+
+    if (data) {
+      approvedInfo.value = data
+      infoError.value = null
+    } else {
+      infoError.value = 'Данные о мероприятии не найдены'
+    }
+  } catch (err: any) {
     console.error('Failed to fetch approved info:', err)
+    infoError.value = err.message || 'Неизвестная ошибка'
   }
 }
 
@@ -623,6 +648,37 @@ function handleLogout() {
   color: var(--sage);
   font-size: 1rem;
   line-height: 1.7;
+}
+
+/* Error Section */
+.error-section {
+  margin-top: 1rem;
+}
+
+.error-card {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.error-card svg {
+  width: 48px;
+  height: 48px;
+  color: #ef4444;
+  margin-bottom: 1rem;
+}
+
+.error-card p {
+  color: #ef4444;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.error-card small {
+  color: var(--sage);
+  font-size: 0.9rem;
 }
 
 /* Info Section */
