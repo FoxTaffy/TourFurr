@@ -2,8 +2,8 @@
     <header>
       <nav>
         <a href="#" class="logo">
-          <i class="fas fa-campground"></i>
-          TourFurr
+          <img src="@/assets/logo.png" alt="TourFurr" class="logo-img" />
+          <span class="logo-text">TourFurr</span>
         </a>
         <ul class="nav-links">
           <li><a href="#event" @click.prevent="scrollTo('event')">О событии</a></li>
@@ -61,27 +61,32 @@
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      text-decoration: none;
+      transition: all 0.3s ease;
+  }
+
+  .logo-img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+      transition: transform 0.3s ease;
+  }
+
+  .logo-text {
       font-family: 'Playfair Display', serif;
       font-size: 1.8rem;
       font-weight: 700;
       color: var(--fire-glow);
-      text-decoration: none;
       transition: all 0.3s ease;
   }
-  
-  .logo i {
-      font-size: 2rem;
-      animation: pulse 2s ease-in-out infinite;
-  }
-  
-  @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-  }
-  
-  .logo:hover {
+
+  .logo:hover .logo-text {
       color: var(--amber);
       text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+
+  .logo:hover .logo-img {
+      transform: scale(1.05);
   }
   
   .nav-links {
