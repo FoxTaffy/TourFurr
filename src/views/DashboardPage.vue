@@ -201,7 +201,7 @@
           <div class="event-content">
             <div class="event-name">Лесной Кемп 2026</div>
 
-            <!-- Basic info for all users -->
+            <!-- Basic info for non-approved users -->
             <div v-if="user?.status !== 'approved'" class="event-details">
               <div class="event-detail">
                 <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,35 +211,47 @@
               </div>
             </div>
 
-            <!-- Full info for approved users -->
-            <div v-else class="approved-info">
-              <div class="info-block">
-                <h4 class="info-block-title">
-                  <svg class="block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  </svg>
-                  Локация
-                </h4>
-                <p class="info-block-text">Московская область, Дмитровский район</p>
-                <p class="info-block-subtext">Точные координаты будут отправлены за неделю до мероприятия</p>
-              </div>
-
-              <div class="info-block payment">
-                <h4 class="info-block-title">
-                  <svg class="block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                  </svg>
-                  Оплата участия
-                </h4>
-                <p class="info-block-text">Стоимость: <strong>3500 ₽</strong></p>
-                <div class="payment-details">
-                  <p>Сбербанк: <span class="payment-value">2202 2061 7891 2345</span></p>
-                  <p>Получатель: <span class="payment-value">Иванов И.И.</span></p>
-                </div>
-                <p class="info-block-subtext">В комментарии укажите ваш никнейм</p>
+            <!-- Approved status message -->
+            <div v-else class="event-details">
+              <div class="event-detail approved">
+                <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>Информация ниже</span>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Approved User Info Section (horizontal, full width) -->
+      <div v-if="user?.status === 'approved' && approvedInfo" class="approved-section">
+        <div class="approved-grid">
+          <div class="glass-card info-block location">
+            <h4 class="info-block-title">
+              <svg class="block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              Локация
+            </h4>
+            <p class="info-block-text">{{ approvedInfo.location }}</p>
+            <p class="info-block-subtext">{{ approvedInfo.location_note }}</p>
+          </div>
+
+          <div class="glass-card info-block payment">
+            <h4 class="info-block-title">
+              <svg class="block-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+              </svg>
+              Оплата участия
+            </h4>
+            <p class="info-block-text">Стоимость: <strong>{{ approvedInfo.price }} ₽</strong></p>
+            <div class="payment-details">
+              <p>{{ approvedInfo.bank }}: <span class="payment-value">{{ approvedInfo.card_number }}</span></p>
+              <p>Получатель: <span class="payment-value">{{ approvedInfo.recipient }}</span></p>
+            </div>
+            <p class="info-block-subtext">{{ approvedInfo.payment_note }}</p>
           </div>
         </div>
       </div>
@@ -248,14 +260,57 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { supabase } from '../services/supabase'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 const user = computed(() => authStore.user)
+
+interface ApprovedInfo {
+  location: string
+  location_note: string
+  price: number
+  bank: string
+  card_number: string
+  recipient: string
+  payment_note: string
+}
+
+const approvedInfo = ref<ApprovedInfo | null>(null)
+
+// Fetch secret info only for approved users
+async function fetchApprovedInfo() {
+  if (user.value?.status !== 'approved') {
+    approvedInfo.value = null
+    return
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('event_info')
+      .select('*')
+      .single()
+
+    if (!error && data) {
+      approvedInfo.value = data
+    }
+  } catch (err) {
+    console.error('Failed to fetch approved info:', err)
+  }
+}
+
+// Watch for status changes
+watch(() => user.value?.status, (newStatus) => {
+  if (newStatus === 'approved') {
+    fetchApprovedInfo()
+  } else {
+    approvedInfo.value = null
+  }
+})
 
 const statusLabels: Record<string, string> = {
   pending: 'На рассмотрении',
@@ -278,8 +333,9 @@ function particleStyle(i: number) {
   }
 }
 
-onMounted(() => {
-  authStore.fetchUser()
+onMounted(async () => {
+  await authStore.fetchUser()
+  fetchApprovedInfo()
 })
 
 function handleLogout() {
@@ -837,24 +893,38 @@ function handleLogout() {
   color: var(--fire);
 }
 
-/* Approved Info */
-.approved-info {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  text-align: left;
+/* Approved Section */
+.approved-section {
+  margin-top: clamp(0.5rem, 1vw, 1rem);
+  flex-shrink: 0;
+}
+
+.approved-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(0.5rem, 1vw, 1rem);
 }
 
 .info-block {
+  padding: clamp(0.75rem, 1.5vw, 1.25rem);
+}
+
+.info-block.location {
   background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  border-radius: 10px;
-  padding: clamp(0.75rem, 1.5vw, 1rem);
+  border-color: rgba(34, 197, 94, 0.3);
 }
 
 .info-block.payment {
   background: rgba(255, 179, 71, 0.1);
   border-color: rgba(255, 179, 71, 0.3);
+}
+
+.event-detail.approved {
+  color: #22c55e;
+}
+
+.event-detail.approved .detail-icon {
+  color: #22c55e;
 }
 
 .info-block-title {
@@ -923,6 +993,10 @@ function handleLogout() {
 
   .profile-card {
     grid-row: auto;
+  }
+
+  .approved-grid {
+    grid-template-columns: 1fr;
   }
 
   .welcome-title {
