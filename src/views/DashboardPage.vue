@@ -259,7 +259,8 @@ const statusDescriptions: Record<string, string> = {
 
 onMounted(async () => {
   await authStore.fetchUser()
-  // fetchApprovedInfo will be called by the watcher when user status is updated
+  // Explicitly fetch approved info after user is loaded
+  await fetchApprovedInfo()
 })
 
 function handleLogout() {
