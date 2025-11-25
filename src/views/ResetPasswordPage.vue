@@ -51,9 +51,12 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
             </svg>
           </div>
-          <h3 class="text-lg font-semibold text-white mb-2">Письмо отправлено!</h3>
-          <p class="text-sm text-gray-400">
-            Проверьте почту {{ email }} и перейдите по ссылке для сброса пароля.
+          <h3 class="text-lg font-semibold text-white mb-2">Email подтвержден!</h3>
+          <p class="text-sm text-gray-400 mb-3">
+            Пользователь с email {{ email }} найден.
+          </p>
+          <p class="text-xs text-amber-400">
+            Функция отправки письма для сброса пароля будет реализована позже. Обратитесь к администратору для сброса пароля.
           </p>
         </div>
       </div>
@@ -76,7 +79,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import api from '../services/api'
+import { supabase } from '../services/supabase'
 
 const email = ref('')
 const error = ref('')
@@ -99,10 +102,23 @@ async function handleSubmit() {
   isLoading.value = true
 
   try {
-    await api.post('/auth/reset-password', { email: email.value })
+    // Check if user exists
+    const { data: user, error: dbError } = await supabase
+      .from('users')
+      .select('id, email')
+      .eq('email', email.value.trim().toLowerCase())
+      .single()
+
+    if (dbError || !user) {
+      error.value = 'Пользователь с таким email не найден'
+      return
+    }
+
+    // For now, just show success message
+    // TODO: Implement actual password reset with email sending
     submitted.value = true
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Ошибка отправки. Попробуйте позже.'
+    error.value = 'Ошибка отправки. Попробуйте позже.'
   } finally {
     isLoading.value = false
   }

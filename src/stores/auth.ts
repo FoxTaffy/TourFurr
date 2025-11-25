@@ -50,6 +50,7 @@ export interface User {
   status: 'pending' | 'approved' | 'rejected'
   emailSubscribed: boolean
   createdAt: string
+  isAdmin: boolean
 }
 
 export interface RegisterData {
@@ -77,7 +78,8 @@ function mapDbUserToUser(dbUser: any): User {
     description: dbUser.description,
     status: dbUser.status,
     emailSubscribed: dbUser.email_subscribed,
-    createdAt: dbUser.created_at
+    createdAt: dbUser.created_at,
+    isAdmin: dbUser.is_admin || false
   }
 }
 
@@ -103,25 +105,36 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       // Security: Sanitize email input
       const sanitizedEmail = sanitizeInput(email).toLowerCase()
+      console.log('Attempting login with email:', sanitizedEmail)
 
       const { data, error: dbError } = await supabase
         .from('users')
         .select('*')
         .eq('email', sanitizedEmail)
-        .single()
+        .maybeSingle()
 
-      if (dbError || !data) {
+      if (dbError) {
+        console.error('Database error:', dbError)
+        error.value = 'Ошибка базы данных'
+        return { success: false, error: error.value }
+      }
+
+      if (!data) {
+        console.log('User not found with email:', sanitizedEmail)
         error.value = 'Неверный email или пароль'
         return { success: false, error: error.value }
       }
 
+      console.log('User found, verifying password...')
       // Verify password
       const isValid = await bcrypt.compare(password, data.password_hash)
       if (!isValid) {
+        console.log('Password verification failed')
         error.value = 'Неверный email или пароль'
         return { success: false, error: error.value }
       }
 
+      console.log('Login successful')
       const mappedUser = mapDbUserToUser(data)
       // Security: Use cryptographically secure token
       token.value = crypto.randomUUID()
@@ -131,6 +144,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       return { success: true }
     } catch (err: any) {
+      console.error('Login error:', err)
       error.value = err.message || 'Ошибка входа'
       return { success: false, error: error.value }
     } finally {

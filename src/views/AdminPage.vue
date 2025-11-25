@@ -157,8 +157,23 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { supabase } from '../services/supabase'
+import { useAuthStore } from '../stores/auth'
 import logoImg from '../assets/logo.png'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+// Check if user is admin on mount
+async function checkAdminAndLoad() {
+  if (!authStore.user?.isAdmin) {
+    alert('У вас нет прав доступа к админ-панели')
+    router.push('/dashboard')
+    return
+  }
+  await loadUsers()
+}
 
 interface User {
   id: string
@@ -240,7 +255,7 @@ function formatDate(dateStr: string) {
 }
 
 onMounted(() => {
-  loadUsers()
+  checkAdminAndLoad()
 })
 </script>
 

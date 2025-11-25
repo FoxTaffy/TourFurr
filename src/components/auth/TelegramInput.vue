@@ -1,12 +1,12 @@
 <template>
-  <div class="telegram-input">
-    <label v-if="label" :for="inputId" class="block text-sm font-medium text-gray-300 mb-2">
+  <div class="form-group">
+    <label v-if="label" :for="inputId" class="form-label">
       {{ label }}
-      <span v-if="required" class="text-red-400">*</span>
+      <span v-if="required" class="required">*</span>
     </label>
-    <div class="relative">
-      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+    <div class="telegram-input-wrapper">
+      <span class="telegram-icon">
+        <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.327.015.095.034.312.019.482z"/>
         </svg>
       </span>
@@ -15,16 +15,16 @@
         v-model="inputValue"
         type="text"
         :placeholder="placeholder"
-        class="w-full bg-gray-800/50 border border-gray-600 rounded-lg py-3 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all"
-        :class="{ 'border-red-500': hasError }"
+        class="form-input telegram-input"
+        :class="{ error: hasError }"
         @input="handleInput"
         @blur="handleBlur"
       />
     </div>
-    <p v-if="convertedValue && showConverted" class="mt-1 text-xs text-gray-400">
-      Будет сохранено как: <span class="text-amber-400">{{ convertedValue }}</span>
+    <p v-if="convertedValue && showConverted" class="converted-hint">
+      Будет сохранено как: <span class="converted-value">{{ convertedValue }}</span>
     </p>
-    <p v-if="errorMessage" class="mt-1 text-xs text-red-400">{{ errorMessage }}</p>
+    <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
   </div>
 </template>
 
@@ -92,3 +92,83 @@ watch(() => props.modelValue, (newVal) => {
   inputValue.value = newVal
 })
 </script>
+
+<style scoped>
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--cream);
+}
+
+.required {
+  color: var(--fire);
+}
+
+.telegram-input-wrapper {
+  position: relative;
+}
+
+.telegram-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #0088cc;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.telegram-icon .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(26, 17, 14, 0.6);
+  border: 1px solid var(--moss);
+  border-radius: 12px;
+  color: var(--cream);
+  font-family: 'Lora', serif;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.telegram-input {
+  padding-left: 3rem;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--fire);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.form-input.error {
+  border-color: var(--fire);
+}
+
+.converted-hint {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--sage);
+}
+
+.converted-value {
+  color: var(--fire-glow);
+  font-weight: 500;
+}
+
+.error-text {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--fire);
+}
+</style>
