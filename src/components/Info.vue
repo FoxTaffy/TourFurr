@@ -145,11 +145,12 @@
   }
   
   .info-value {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Courier New', Courier, monospace;
       font-size: 2.5rem;
       font-weight: 700;
       color: var(--fire-glow);
       margin-bottom: 0.5rem;
+      letter-spacing: 0.05em;
   }
   
   .info-detail {
