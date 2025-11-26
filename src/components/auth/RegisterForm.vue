@@ -183,6 +183,42 @@
         <p class="char-count">{{ form.description.length }}/500</p>
       </div>
 
+      <!-- Allergies -->
+      <div class="form-group">
+        <label class="checkbox-label special">
+          <input v-model="form.hasAllergies" type="checkbox" class="checkbox" />
+          <span>У меня есть аллергия</span>
+        </label>
+        <div v-if="form.hasAllergies" class="conditional-field">
+          <textarea
+            v-model="form.allergiesDescription"
+            rows="2"
+            maxlength="300"
+            placeholder="Опишите вашу аллергию..."
+            class="form-input form-textarea"
+          />
+          <p class="char-count">{{ form.allergiesDescription.length }}/300</p>
+        </div>
+      </div>
+
+      <!-- Pet -->
+      <div class="form-group">
+        <label class="checkbox-label special">
+          <input v-model="form.bringingPet" type="checkbox" class="checkbox" />
+          <span>Хочу взять животное на КОН</span>
+        </label>
+        <div v-if="form.bringingPet" class="conditional-field">
+          <textarea
+            v-model="form.petDescription"
+            rows="2"
+            maxlength="300"
+            placeholder="Опишите животное (вид, порода, кличка, особенности)..."
+            class="form-input form-textarea"
+          />
+          <p class="char-count">{{ form.petDescription.length }}/300</p>
+        </div>
+      </div>
+
       <!-- Checkboxes -->
       <div class="checkbox-group">
         <label class="checkbox-label">
@@ -308,6 +344,10 @@ const form = reactive({
   telegramConverted: '',
   avatar: null as File | null,
   description: '',
+  hasAllergies: false,
+  allergiesDescription: '',
+  bringingPet: false,
+  petDescription: '',
   agreeRules: false,
   agreePrivacy: false,
   emailSubscribed: false
@@ -477,6 +517,10 @@ async function handleSubmit() {
     telegram: form.telegramConverted || form.telegram,
     avatar: form.avatar || undefined,
     description: form.description,
+    hasAllergies: form.hasAllergies,
+    allergiesDescription: form.allergiesDescription,
+    bringingPet: form.bringingPet,
+    petDescription: form.petDescription,
     agreeRules: form.agreeRules,
     agreePrivacy: form.agreePrivacy,
     emailSubscribed: form.emailSubscribed
@@ -779,6 +823,32 @@ function redirectToDashboard() {
 
 .checkbox-error {
   margin-left: 1.75rem;
+}
+
+.checkbox-label.special {
+  font-weight: 600;
+  color: var(--cream);
+  margin-bottom: 0.75rem;
+}
+
+.conditional-field {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  background: rgba(61, 45, 36, 0.3);
+  border-radius: 10px;
+  border-left: 3px solid var(--fire-glow);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Server Error */

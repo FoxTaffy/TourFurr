@@ -97,6 +97,32 @@
                 <textarea v-model="editForm.description" rows="3"></textarea>
               </div>
 
+              <div class="form-group">
+                <label class="checkbox-label-edit">
+                  <input v-model="editForm.hasAllergies" type="checkbox" />
+                  <span>У меня есть аллергия</span>
+                </label>
+                <textarea
+                  v-if="editForm.hasAllergies"
+                  v-model="editForm.allergiesDescription"
+                  rows="2"
+                  placeholder="Опишите вашу аллергию..."
+                ></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="checkbox-label-edit">
+                  <input v-model="editForm.bringingPet" type="checkbox" />
+                  <span>Хочу взять животное на КОН</span>
+                </label>
+                <textarea
+                  v-if="editForm.bringingPet"
+                  v-model="editForm.petDescription"
+                  rows="2"
+                  placeholder="Опишите животное..."
+                ></textarea>
+              </div>
+
               <div class="edit-actions">
                 <button class="save-btn" @click="saveProfile" :disabled="isSaving">
                   {{ isSaving ? 'Сохранение...' : 'Сохранить' }}
@@ -256,7 +282,11 @@ const editForm = ref({
   nickname: '',
   phone: '',
   telegram: '',
-  description: ''
+  description: '',
+  hasAllergies: false,
+  allergiesDescription: '',
+  bringingPet: false,
+  petDescription: ''
 })
 
 function startEditing() {
@@ -265,7 +295,11 @@ function startEditing() {
       nickname: user.value.nickname,
       phone: user.value.phone,
       telegram: user.value.telegram,
-      description: user.value.description || ''
+      description: user.value.description || '',
+      hasAllergies: user.value.hasAllergies,
+      allergiesDescription: user.value.allergiesDescription || '',
+      bringingPet: user.value.bringingPet,
+      petDescription: user.value.petDescription || ''
     }
     avatarPreview.value = null
     newAvatarFile.value = null
@@ -299,7 +333,11 @@ async function saveProfile() {
     nickname: editForm.value.nickname,
     phone: editForm.value.phone,
     telegram: editForm.value.telegram,
-    description: editForm.value.description
+    description: editForm.value.description,
+    hasAllergies: editForm.value.hasAllergies,
+    allergiesDescription: editForm.value.allergiesDescription,
+    bringingPet: editForm.value.bringingPet,
+    petDescription: editForm.value.petDescription
   }
 
   if (newAvatarFile.value) {
@@ -997,5 +1035,26 @@ function handleLogout() {
 .delete-btn svg {
   width: 16px;
   height: 16px;
+}
+
+.checkbox-label-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--cream);
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+.checkbox-label-edit input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--fire);
+}
+
+.checkbox-label-edit:hover {
+  color: var(--fire-glow);
 }
 </style>

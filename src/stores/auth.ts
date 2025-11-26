@@ -51,6 +51,10 @@ export interface User {
   emailSubscribed: boolean
   createdAt: string
   isAdmin: boolean
+  hasAllergies: boolean
+  allergiesDescription?: string
+  bringingPet: boolean
+  petDescription?: string
 }
 
 export interface RegisterData {
@@ -64,6 +68,10 @@ export interface RegisterData {
   agreeRules: boolean
   agreePrivacy: boolean
   emailSubscribed: boolean
+  hasAllergies: boolean
+  allergiesDescription?: string
+  bringingPet: boolean
+  petDescription?: string
 }
 
 // Map database row to User interface
@@ -79,7 +87,11 @@ function mapDbUserToUser(dbUser: any): User {
     status: dbUser.status,
     emailSubscribed: dbUser.email_subscribed,
     createdAt: dbUser.created_at,
-    isAdmin: dbUser.is_admin || false
+    isAdmin: dbUser.is_admin || false,
+    hasAllergies: dbUser.has_allergies || false,
+    allergiesDescription: dbUser.allergies_description,
+    bringingPet: dbUser.bringing_pet || false,
+    petDescription: dbUser.pet_description
   }
 }
 
@@ -202,7 +214,11 @@ export const useAuthStore = defineStore('auth', () => {
           status: 'pending',
           email_subscribed: data.emailSubscribed,
           agree_rules: data.agreeRules,
-          agree_privacy: data.agreePrivacy
+          agree_privacy: data.agreePrivacy,
+          has_allergies: data.hasAllergies,
+          allergies_description: data.allergiesDescription ? sanitizeInput(data.allergiesDescription) : null,
+          bringing_pet: data.bringingPet,
+          pet_description: data.petDescription ? sanitizeInput(data.petDescription) : null
         })
         .select()
         .single()
@@ -309,6 +325,10 @@ export const useAuthStore = defineStore('auth', () => {
     telegram?: string
     description?: string
     avatar?: File
+    hasAllergies?: boolean
+    allergiesDescription?: string
+    bringingPet?: boolean
+    petDescription?: string
   }) {
     if (!user.value) return { success: false, error: 'Не авторизован' }
 
@@ -324,6 +344,18 @@ export const useAuthStore = defineStore('auth', () => {
       if (updates.telegram) updateData.telegram = sanitizeInput(updates.telegram)
       if (updates.description !== undefined) {
         updateData.description = updates.description ? sanitizeInput(updates.description) : null
+      }
+      if (updates.hasAllergies !== undefined) {
+        updateData.has_allergies = updates.hasAllergies
+      }
+      if (updates.allergiesDescription !== undefined) {
+        updateData.allergies_description = updates.allergiesDescription ? sanitizeInput(updates.allergiesDescription) : null
+      }
+      if (updates.bringingPet !== undefined) {
+        updateData.bringing_pet = updates.bringingPet
+      }
+      if (updates.petDescription !== undefined) {
+        updateData.pet_description = updates.petDescription ? sanitizeInput(updates.petDescription) : null
       }
 
       // Handle avatar upload
