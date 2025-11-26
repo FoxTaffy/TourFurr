@@ -943,7 +943,7 @@ function redirectToDashboard() {
 }
 
 .success-title {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Merriweather', serif;
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--cream);

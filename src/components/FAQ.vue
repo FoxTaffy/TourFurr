@@ -94,7 +94,7 @@
   
   .faq-question {
       padding: 1.5rem;
-      font-family: 'Playfair Display', serif;
+      font-family: 'Merriweather', serif;
       font-size: 1.3rem;
       color: var(--fire-glow);
       cursor: pointer;

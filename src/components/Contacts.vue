@@ -7,16 +7,39 @@
             <p class="contacts-text">
               Есть вопросы? Хочешь узнать больше? Напиши нам!
             </p>
-            <div class="socials">
-              <a 
-                v-for="social in socials" 
-                :key="social.id" 
-                :href="social.link" 
-                class="social-link"
-              >
-                <i :class="social.icon"></i>
-                <span>{{ social.name }}</span>
+
+            <!-- Telegram Channel -->
+            <div class="telegram-channel">
+              <a :href="telegramChannel.link" target="_blank" rel="noopener noreferrer" class="channel-link">
+                <i :class="telegramChannel.icon"></i>
+                <div class="channel-info">
+                  <div class="channel-name">{{ telegramChannel.name }}</div>
+                  <div class="channel-desc">{{ telegramChannel.description }}</div>
+                </div>
               </a>
+            </div>
+
+            <!-- Organizers -->
+            <div class="organizers-section">
+              <h3 class="organizers-title">Организаторы</h3>
+              <div class="organizers-grid">
+                <a
+                  v-for="organizer in organizers"
+                  :key="organizer.id"
+                  :href="organizer.link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="organizer-card"
+                >
+                  <div class="organizer-avatar">
+                    <img :src="organizer.avatar" :alt="organizer.name" />
+                  </div>
+                  <div class="organizer-info">
+                    <div class="organizer-name">{{ organizer.name }}</div>
+                    <div class="organizer-role">{{ organizer.role }}</div>
+                  </div>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -29,24 +52,26 @@
     name: 'Contacts',
     data() {
       return {
-        socials: [
+        telegramChannel: {
+          name: 'TourFurr Official',
+          description: 'Официальный канал события',
+          icon: 'fab fa-telegram',
+          link: 'https://t.me/tourfurr'
+        },
+        organizers: [
           {
             id: 1,
-            name: 'Telegram',
-            icon: 'fab fa-telegram',
-            link: '#'
+            name: 'FoxTaffy',
+            role: 'Главный организатор',
+            avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=FoxTaffy&backgroundColor=ff6b35',
+            link: 'https://t.me/foxtaffy'
           },
           {
             id: 2,
-            name: 'Discord',
-            icon: 'fab fa-discord',
-            link: '#'
-          },
-          {
-            id: 3,
-            name: 'Email',
-            icon: 'fas fa-envelope',
-            link: '#'
+            name: 'ForestWolf',
+            role: 'Координатор мероприятий',
+            avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=ForestWolf&backgroundColor=ffb347',
+            link: 'https://t.me/forestwolf'
           }
         ]
       }
@@ -57,65 +82,164 @@
   <style scoped>
   .contacts-content {
       text-align: center;
-      max-width: 600px;
+      max-width: 800px;
       margin: 0 auto;
   }
-  
+
   .contacts-text {
       color: var(--sage);
       font-size: 1.1rem;
       margin-bottom: 2.5rem;
   }
-  
-  .socials {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      flex-wrap: wrap;
+
+  /* Telegram Channel */
+  .telegram-channel {
+      margin-bottom: 3rem;
   }
-  
-  .social-link {
-      display: flex;
+
+  .channel-link {
+      display: inline-flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 1rem 2rem;
-      background: linear-gradient(
-          135deg,
-          rgba(61, 45, 36, 0.4) 0%,
-          rgba(42, 31, 26, 0.3) 100%
-      );
-      border-radius: 50px;
-      text-decoration: none;
-      color: var(--sage);
-      font-weight: 500;
-      transition: all 0.3s ease;
-      border: 1px solid rgba(139, 111, 71, 0.3);
-  }
-  
-  .social-link i {
-      font-size: 1.5rem;
-  }
-  
-  .social-link:hover {
+      gap: 1.5rem;
+      padding: 1.5rem 3rem;
       background: linear-gradient(
           135deg,
           rgba(61, 45, 36, 0.6) 0%,
           rgba(42, 31, 26, 0.5) 100%
       );
+      border-radius: 20px;
+      text-decoration: none;
+      border: 1px solid rgba(139, 111, 71, 0.4);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  .channel-link i {
+      font-size: 3rem;
+      color: var(--fire-glow);
+      filter: drop-shadow(0 0 10px rgba(255, 179, 71, 0.5));
+  }
+
+  .channel-info {
+      text-align: left;
+  }
+
+  .channel-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--fire-glow);
+      margin-bottom: 0.25rem;
+  }
+
+  .channel-desc {
+      color: var(--sage);
+      font-size: 1rem;
+  }
+
+  .channel-link:hover {
       transform: translateY(-4px);
       border-color: var(--fire);
-      color: var(--fire-glow);
-      box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
+      box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
   }
-  
+
+  /* Organizers */
+  .organizers-section {
+      margin-top: 3rem;
+  }
+
+  .organizers-title {
+      font-family: 'Merriweather', serif;
+      font-size: 1.8rem;
+      color: var(--fire-glow);
+      margin-bottom: 2rem;
+  }
+
+  .organizers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      max-width: 600px;
+      margin: 0 auto;
+  }
+
+  .organizer-card {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      background: linear-gradient(
+          135deg,
+          rgba(61, 45, 36, 0.5) 0%,
+          rgba(42, 31, 26, 0.4) 100%
+      );
+      border-radius: 20px;
+      text-decoration: none;
+      border: 1px solid rgba(139, 111, 71, 0.3);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .organizer-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid var(--fire-glow);
+      box-shadow: 0 0 20px rgba(255, 179, 71, 0.3);
+      flex-shrink: 0;
+  }
+
+  .organizer-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+  }
+
+  .organizer-info {
+      text-align: left;
+      flex: 1;
+  }
+
+  .organizer-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--fire-glow);
+      margin-bottom: 0.25rem;
+  }
+
+  .organizer-role {
+      color: var(--sage);
+      font-size: 0.95rem;
+  }
+
+  .organizer-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--fire);
+      box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+  }
+
   @media (max-width: 768px) {
-      .socials {
+      .channel-link {
           flex-direction: column;
-          align-items: stretch;
+          text-align: center;
+          padding: 2rem;
       }
-  
-      .social-link {
-          justify-content: center;
+
+      .channel-info {
+          text-align: center;
+      }
+
+      .organizers-grid {
+          grid-template-columns: 1fr;
+      }
+
+      .organizer-card {
+          flex-direction: column;
+          text-align: center;
+      }
+
+      .organizer-info {
+          text-align: center;
       }
   }
   </style>
