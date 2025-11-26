@@ -2,7 +2,7 @@
     <footer>
       <div class="container">
         <p class="copyright">
-          © 2025 TourFurr | Сайт сделан при поддержке <a href="https://foxtaffy.fun" target="_blank" rel="noopener noreferrer" class="taffy-link">FoxTaffy.fun</a>
+          © 2026 TourFurr | Сайт сделан при поддержке <a href="https://foxtaffy.fun" target="_blank" rel="noopener noreferrer" class="taffy-link">FoxTaffy.fun</a>
         </p>
       </div>
     </footer>

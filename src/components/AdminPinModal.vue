@@ -69,11 +69,12 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 120px;
   z-index: 2000;
   animation: fadeIn 0.3s ease;
 }
@@ -86,22 +87,22 @@ export default {
 .modal-content {
   background: linear-gradient(
     135deg,
-    rgba(42, 31, 26, 0.95) 0%,
-    rgba(61, 45, 36, 0.95) 100%
+    rgba(42, 31, 26, 0.98) 0%,
+    rgba(61, 45, 36, 0.98) 100%
   );
   border: 1px solid rgba(139, 111, 71, 0.5);
-  border-radius: 24px;
-  padding: 2.5rem;
-  max-width: 400px;
+  border-radius: 16px;
+  padding: 1.5rem;
+  max-width: 320px;
   width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-  animation: slideUp 0.4s ease;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+  animation: slideDown 0.3s ease;
 }
 
-@keyframes slideUp {
+@keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(-20px);
   }
   to {
     opacity: 1;
@@ -111,7 +112,7 @@ export default {
 
 h3 {
   font-family: 'Playfair Display', serif;
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: var(--fire-glow);
   margin-bottom: 0.5rem;
   text-align: center;
@@ -119,19 +120,19 @@ h3 {
 
 .modal-subtitle {
   color: var(--sage);
-  font-size: 0.95rem;
-  margin-bottom: 2rem;
+  font-size: 0.85rem;
+  margin-bottom: 1.25rem;
   text-align: center;
 }
 
 .pin-input {
   width: 100%;
-  padding: 1rem;
+  padding: 0.75rem;
   background: rgba(26, 17, 14, 0.6);
   border: 1px solid rgba(139, 111, 71, 0.4);
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--cream);
-  font-size: 1.1rem;
+  font-size: 1rem;
   text-align: center;
   letter-spacing: 0.3em;
   transition: all 0.3s ease;
@@ -164,17 +165,17 @@ h3 {
 
 .modal-buttons {
   display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
 }
 
 .btn-primary,
 .btn-secondary {
   flex: 1;
-  padding: 0.875rem 1.5rem;
+  padding: 0.625rem 1rem;
   border: none;
-  border-radius: 12px;
-  font-size: 1rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;

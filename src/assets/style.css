@@ -44,7 +44,7 @@ body {
           rgba(26, 17, 14, 0.5) 50%,
           rgba(18, 12, 10, 0.7) 100%
       ),
-      url('/images/gallery/forest-1.jpg') center center / cover no-repeat;
+      url('./fon.png') center center / cover no-repeat;
   z-index: -2;
 }
 
