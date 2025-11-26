@@ -1,48 +1,52 @@
 <template>
-    <header>
-      <nav>
-        <a href="#" class="logo">
-          <img :src="logoImg" alt="TourFurr" class="logo-img" />
-          <span class="logo-text">TourFurr</span>
-        </a>
-        <ul class="nav-links">
-          <li><a href="#event" @click.prevent="scrollTo('event')">О событии</a></li>
-          <li><a href="#info" @click.prevent="scrollTo('info')">Информация</a></li>
-          <li><a href="#rules" @click.prevent="scrollTo('rules')">Правила</a></li>
-          <li><a href="#faq" @click.prevent="scrollTo('faq')">FAQ</a></li>
-          <li><a href="#contacts" @click.prevent="scrollTo('contacts')">Контакты</a></li>
-          <li v-if="showAuthButtons">
-            <a href="/auth" class="auth-button">Войти</a>
-          </li>
-          <li v-if="showAuthButtons">
-            <a href="/auth?tab=register" class="auth-button register">Регистрация</a>
-          </li>
-          <li v-if="!showAuthButtons && !isRegistrationOpen">
-            <a href="#" @click.prevent="showPinModal = true" class="auth-button">Разблокировать</a>
-          </li>
-        </ul>
-      </nav>
+    <div>
+      <header>
+        <nav>
+          <a href="#" class="logo">
+            <img :src="logoImg" alt="TourFurr" class="logo-img" />
+            <span class="logo-text">TourFurr</span>
+          </a>
+          <ul class="nav-links">
+            <li><a href="#event" @click.prevent="scrollTo('event')">О событии</a></li>
+            <li><a href="#info" @click.prevent="scrollTo('info')">Информация</a></li>
+            <li><a href="#rules" @click.prevent="scrollTo('rules')">Правила</a></li>
+            <li><a href="#faq" @click.prevent="scrollTo('faq')">FAQ</a></li>
+            <li><a href="#contacts" @click.prevent="scrollTo('contacts')">Контакты</a></li>
+            <li v-if="showAuthButtons">
+              <a href="/auth" class="auth-button">Войти</a>
+            </li>
+            <li v-if="showAuthButtons">
+              <a href="/auth?tab=register" class="auth-button register">Регистрация</a>
+            </li>
+            <li v-if="!showAuthButtons && !isRegistrationOpen">
+              <a href="#" @click.prevent="showPinModal = true" class="auth-button">Разблокировать</a>
+            </li>
+          </ul>
+        </nav>
+      </header>
 
-      <!-- Pin Code Modal -->
-      <div v-if="showPinModal" class="modal-overlay" @click="showPinModal = false">
-        <div class="modal-content" @click.stop>
-          <h3>Введите пин-код</h3>
-          <p>Регистрация откроется 1 марта 2026 года</p>
-          <input
-            v-model="pinCode"
-            type="text"
-            placeholder="Введите пин-код"
-            @keyup.enter="checkPinCode"
-            class="pin-input"
-          />
-          <div class="modal-buttons">
-            <button @click="checkPinCode" class="btn-submit">Подтвердить</button>
-            <button @click="showPinModal = false" class="btn-cancel">Отмена</button>
+      <!-- Pin Code Modal (outside header for full screen) -->
+      <Teleport to="body">
+        <div v-if="showPinModal" class="modal-overlay" @click="showPinModal = false">
+          <div class="modal-content" @click.stop>
+            <h3>Введите пин-код</h3>
+            <p>Регистрация откроется 1 марта 2026 года</p>
+            <input
+              v-model="pinCode"
+              type="text"
+              placeholder="Введите пин-код"
+              @keyup.enter="checkPinCode"
+              class="pin-input"
+            />
+            <div class="modal-buttons">
+              <button @click="checkPinCode" class="btn-submit">Подтвердить</button>
+              <button @click="showPinModal = false" class="btn-cancel">Отмена</button>
+            </div>
+            <p v-if="pinError" class="error-message">{{ pinError }}</p>
           </div>
-          <p v-if="pinError" class="error-message">{{ pinError }}</p>
         </div>
-      </div>
-    </header>
+      </Teleport>
+    </div>
   </template>
   
   <script>
@@ -240,12 +244,15 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 2000;
-      backdrop-filter: blur(5px);
+      z-index: 9999;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
   }
 
   .modal-content {

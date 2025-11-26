@@ -53,10 +53,10 @@
     data() {
       return {
         telegramChannel: {
-          name: 'TourFurr Official',
+          name: 'TourFurr News',
           description: 'Официальный канал события',
           icon: 'fab fa-telegram',
-          link: 'https://t.me/tourfurr'
+          link: '#'
         },
         organizers: [
           {
