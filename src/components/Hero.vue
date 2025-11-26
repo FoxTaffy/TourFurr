@@ -3,7 +3,7 @@
       <div class="hero-content">
         <h1>TourFurr</h1>
         <p class="subtitle">Лесной кемп в сердце природы</p>
-        <p class="dates">6–9 августа 2026</p>
+        <p class="dates">с 6 по 9 августа 2026</p>
         <a href="#registration" @click.prevent="scrollTo('registration')" class="cta-button">
           Зарегистрироваться
         </a>
