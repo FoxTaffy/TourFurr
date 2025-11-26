@@ -12,11 +12,17 @@
             <li><a href="#rules" @click.prevent="scrollTo('rules')">Правила</a></li>
             <li><a href="#faq" @click.prevent="scrollTo('faq')">FAQ</a></li>
             <li><a href="#contacts" @click.prevent="scrollTo('contacts')">Контакты</a></li>
-            <li v-if="showAuthButtons">
+            <li v-if="showAuthButtons && !isAuthenticated">
               <a href="/auth" class="auth-button">Войти</a>
             </li>
-            <li v-if="showAuthButtons">
-              <a href="/auth?tab=register" class="auth-button register">Регистрация</a>
+            <li v-if="showAuthButtons && isAuthenticated">
+              <div class="user-mini-card">
+                <img :src="currentUser.avatar || defaultAvatar" :alt="currentUser.nickname" class="user-avatar" />
+                <div class="user-info">
+                  <div class="user-name">{{ currentUser.nickname }}</div>
+                  <div class="user-status" :class="`status-${currentUser.status}`">{{ statusText }}</div>
+                </div>
+              </div>
             </li>
             <li v-if="!showAuthButtons && !isRegistrationOpen">
               <a href="#" @click.prevent="showPinModal = true" class="auth-button">Разблокировать</a>
@@ -51,19 +57,30 @@
   
   <script>
   import logoImg from '../assets/logo.png'
+  import { useAuthStore } from '../stores/auth'
+  import { computed } from 'vue'
 
   const REGISTRATION_OPEN_DATE = new Date('2026-03-01T00:00:00')
   const ADMIN_PIN = 'tourfurr2026'
 
   export default {
     name: 'Header',
+    setup() {
+      const authStore = useAuthStore()
+      return {
+        authStore,
+        isAuthenticated: computed(() => authStore.isAuthenticated),
+        currentUser: computed(() => authStore.user)
+      }
+    },
     data() {
       return {
         logoImg,
         showPinModal: false,
         pinCode: '',
         pinError: '',
-        isPinUnlocked: false
+        isPinUnlocked: false,
+        defaultAvatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=default&backgroundColor=ff6b35'
       }
     },
     computed: {
@@ -72,6 +89,15 @@
       },
       showAuthButtons() {
         return this.isRegistrationOpen || this.isPinUnlocked
+      },
+      statusText() {
+        if (!this.currentUser) return ''
+        const statusMap = {
+          pending: 'На рассмотрении',
+          approved: 'Одобрено',
+          rejected: 'Отклонено'
+        }
+        return statusMap[this.currentUser.status] || this.currentUser.status
       }
     },
     mounted() {
@@ -343,5 +369,66 @@
       color: var(--fire);
       margin-top: 1rem;
       font-size: 0.9rem;
+  }
+
+  /* User Mini Card */
+  .user-mini-card {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 1rem;
+      background: linear-gradient(
+          135deg,
+          rgba(61, 45, 36, 0.6) 0%,
+          rgba(42, 31, 26, 0.5) 100%
+      );
+      border-radius: 25px;
+      border: 1px solid rgba(139, 111, 71, 0.4);
+      transition: all 0.3s ease;
+      cursor: pointer;
+  }
+
+  .user-mini-card:hover {
+      border-color: var(--fire-glow);
+      box-shadow: 0 4px 15px rgba(255, 179, 71, 0.3);
+  }
+
+  .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--fire-glow);
+  }
+
+  .user-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+  }
+
+  .user-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--cream);
+      line-height: 1.2;
+  }
+
+  .user-status {
+      font-size: 0.75rem;
+      font-weight: 500;
+      line-height: 1.2;
+  }
+
+  .user-status.status-pending {
+      color: var(--amber);
+  }
+
+  .user-status.status-approved {
+      color: #22c55e;
+  }
+
+  .user-status.status-rejected {
+      color: #ef4444;
   }
   </style>
