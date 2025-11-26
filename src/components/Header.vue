@@ -2,11 +2,13 @@
     <div>
       <header>
         <nav>
-          <a href="#" class="logo">
+          <a :href="isDashboard ? '/' : '#'" class="logo">
             <img :src="logoImg" alt="TourFurr" class="logo-img" />
             <span class="logo-text">TourFurr</span>
           </a>
-          <ul class="nav-links">
+
+          <!-- Navigation Links (for home page) -->
+          <ul v-if="!isDashboard" class="nav-links">
             <li><a href="#event" @click.prevent="scrollTo('event')">О событии</a></li>
             <li><a href="#info" @click.prevent="scrollTo('info')">Информация</a></li>
             <li><a href="#rules" @click.prevent="scrollTo('rules')">Правила</a></li>
@@ -16,18 +18,30 @@
               <a href="/auth" class="auth-button">Войти</a>
             </li>
             <li v-if="showAuthButtons && isAuthenticated">
-              <div class="user-mini-card">
-                <img :src="currentUser.avatar || defaultAvatar" :alt="currentUser.nickname" class="user-avatar" />
-                <div class="user-info">
-                  <div class="user-name">{{ currentUser.nickname }}</div>
-                  <div class="user-status" :class="`status-${currentUser.status}`">{{ statusText }}</div>
+              <a href="/dashboard" class="user-mini-card-link">
+                <div class="user-mini-card">
+                  <img :src="currentUser.avatar || defaultAvatar" :alt="currentUser.nickname" class="user-avatar" />
+                  <div class="user-info">
+                    <div class="user-name">{{ currentUser.nickname }}</div>
+                    <div class="user-status" :class="`status-${currentUser.status}`">{{ statusText }}</div>
+                  </div>
                 </div>
-              </div>
+              </a>
             </li>
             <li v-if="!showAuthButtons && !isRegistrationOpen">
               <a href="#" @click.prevent="showPinModal = true" class="auth-button">Разблокировать</a>
             </li>
           </ul>
+
+          <!-- Dashboard Actions -->
+          <div v-else class="dashboard-actions">
+            <button @click="handleLogout" class="logout-btn">
+              <svg class="logout-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+              </svg>
+              Выйти
+            </button>
+          </div>
         </nav>
       </header>
 
@@ -65,6 +79,12 @@
 
   export default {
     name: 'Header',
+    props: {
+      isDashboard: {
+        type: Boolean,
+        default: false
+      }
+    },
     setup() {
       const authStore = useAuthStore()
       return {
@@ -124,6 +144,10 @@
         } else {
           this.pinError = 'Неверный пин-код'
         }
+      },
+      handleLogout() {
+        this.authStore.logout()
+        window.location.href = '/auth'
       }
     }
   }
@@ -372,6 +396,15 @@
   }
 
   /* User Mini Card */
+  .user-mini-card-link {
+      text-decoration: none;
+      display: block;
+  }
+
+  .user-mini-card-link::after {
+      display: none;
+  }
+
   .user-mini-card {
       display: flex;
       align-items: center;
@@ -388,9 +421,10 @@
       cursor: pointer;
   }
 
-  .user-mini-card:hover {
+  .user-mini-card-link:hover .user-mini-card {
       border-color: var(--fire-glow);
       box-shadow: 0 4px 15px rgba(255, 179, 71, 0.3);
+      transform: translateY(-2px);
   }
 
   .user-avatar {
@@ -430,5 +464,37 @@
 
   .user-status.status-rejected {
       color: #ef4444;
+  }
+
+  /* Dashboard Actions */
+  .dashboard-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+  }
+
+  .logout-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: rgba(255, 107, 53, 0.15);
+      border: 1px solid rgba(255, 107, 53, 0.4);
+      border-radius: 12px;
+      color: var(--fire-glow);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+  }
+
+  .logout-btn:hover {
+      background: rgba(255, 107, 53, 0.25);
+      transform: translateY(-2px);
+  }
+
+  .logout-icon {
+      width: 18px;
+      height: 18px;
   }
   </style>
