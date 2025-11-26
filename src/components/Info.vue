@@ -57,22 +57,22 @@
             id: 1,
             icon: 'fas fa-calendar-days',
             label: 'Даты события',
-            value: '6–9 августа',
+            value: 'c 6 по 9 августа',
             detail: '2026 года'
           },
           {
             id: 2,
             icon: 'fas fa-ruble-sign',
             label: 'Стоимость участия',
-            value: '8-9к ₽',
+            value: '9000',
             detail: 'Полная оплата до события'
           },
           {
             id: 3,
             icon: 'fas fa-users',
             label: 'Количество мест',
-            value: '~150',
-            detail: 'Включая организаторов'
+            value: '150',
+            detail: 'Участников'
           }
         ],
         includedItems: [
