@@ -413,6 +413,7 @@ function handleLogout() {
   position: relative;
   z-index: 10;
   padding: 2rem;
+  padding-top: 6rem;
 }
 
 .dashboard-grid {
@@ -452,6 +453,7 @@ function handleLogout() {
 .avatar-badge-warning {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   margin-bottom: 1.25rem;
   padding: 0.75rem 1rem;
@@ -459,10 +461,12 @@ function handleLogout() {
   border: 1.5px solid var(--fire-glow);
   border-radius: 12px;
   color: var(--fire-glow);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.5;
   text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .avatar-badge-warning .warning-icon {
@@ -766,16 +770,60 @@ function handleLogout() {
 @media (max-width: 768px) {
   .dashboard-main {
     padding: 1rem;
+    padding-top: 5.5rem;
   }
 
   .dashboard-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .profile-card,
   .location-card,
   .error-card {
     grid-column: auto;
+  }
+
+  .avatar-badge-warning {
+    font-size: 0.7rem;
+    padding: 0.6rem 0.75rem;
+    gap: 0.4rem;
+  }
+
+  .avatar-badge-warning .warning-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .avatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .profile-name {
+    font-size: 1.25rem;
+  }
+
+  .card-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .detail-value {
+    text-align: left;
+  }
+
+  .visual-card {
+    padding: 1.25rem;
+  }
+
+  .card-number {
+    font-size: 1rem;
   }
 }
 

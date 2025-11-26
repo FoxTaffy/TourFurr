@@ -216,6 +216,14 @@
       display: flex;
       gap: 2.5rem;
       list-style: none;
+      align-items: center;
+      margin: 0;
+      padding: 0;
+  }
+
+  .nav-links li {
+      display: flex;
+      align-items: center;
   }
   
   .nav-links a {
@@ -255,10 +263,60 @@
           padding: 1rem;
       }
 
+      .logo-text {
+          font-size: 1.4rem;
+      }
+
+      .logo-img {
+          height: 32px;
+      }
+
       .nav-links {
           flex-wrap: wrap;
           justify-content: center;
-          gap: 1rem;
+          gap: 0.75rem;
+          width: 100%;
+      }
+
+      .nav-links li {
+          flex-shrink: 0;
+      }
+
+      .nav-links a {
+          font-size: 0.9rem;
+      }
+
+      .user-mini-card {
+          padding: 0.4rem 0.8rem;
+          gap: 0.5rem;
+      }
+
+      .user-avatar {
+          width: 32px;
+          height: 32px;
+      }
+
+      .user-name {
+          font-size: 0.85rem;
+      }
+
+      .user-status {
+          font-size: 0.7rem;
+      }
+
+      .auth-button {
+          padding: 0.5rem 1.2rem !important;
+          font-size: 0.9rem;
+      }
+
+      .logout-btn {
+          padding: 8px 16px;
+          font-size: 0.9rem;
+      }
+
+      .dashboard-actions {
+          width: 100%;
+          justify-content: center;
       }
   }
 
