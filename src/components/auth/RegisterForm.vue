@@ -160,7 +160,12 @@
             {{ avatarPreview ? 'Нажмите чтобы заменить' : 'Перетащите файл или нажмите' }}
           </p>
           <p class="upload-hint">JPG, PNG, WebP до 5MB</p>
-          <p class="upload-hint badge-hint">Аватарка будет использована для бейджика</p>
+          <div class="badge-warning">
+            <svg class="warning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <span>Этот аватар будет напечатан на вашем физическом бейджике!</span>
+          </div>
         </div>
         <p v-if="errors.avatar" class="error-text">{{ errors.avatar }}</p>
       </div>
@@ -703,10 +708,25 @@ function redirectToDashboard() {
   margin-top: 0.25rem;
 }
 
-.badge-hint {
+.badge-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(255, 179, 71, 0.15), rgba(255, 107, 53, 0.15));
+  border: 1.5px solid var(--fire-glow);
+  border-radius: 10px;
   color: var(--fire-glow);
-  opacity: 1;
-  font-style: italic;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.warning-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--amber);
 }
 
 .char-count {
@@ -943,7 +963,7 @@ function redirectToDashboard() {
 }
 
 .success-title {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Merriweather', serif;
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--cream);

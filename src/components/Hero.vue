@@ -42,7 +42,7 @@
   }
   
   h1 {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Merriweather', serif;
       font-size: clamp(3rem, 8vw, 6rem);
       font-weight: 900;
       background: linear-gradient(135deg, var(--fire-glow) 0%, var(--amber) 50%, var(--fire) 100%);
