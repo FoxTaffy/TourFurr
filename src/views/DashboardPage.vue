@@ -188,7 +188,7 @@
             <p class="info-text">{{ user.petDescription || 'Не указано' }}</p>
           </div>
 
-          <p class="status-message">{{ statusDescriptions.value[user?.status || 'pending'] }}</p>
+          <p class="status-message">{{ statusDescriptions[user?.status || 'pending'] }}</p>
         </div>
 
         <!-- Right Column - Payment Info (only for approved) -->
