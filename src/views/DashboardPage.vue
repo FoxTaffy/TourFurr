@@ -143,7 +143,7 @@
         <!-- Middle Column - Event Details -->
         <div class="details-card">
           <div class="card-header">
-            <h3>Лесной Кемп 2026</h3>
+            <h3>TourFurr 2026 | Игра Престолов</h3>
           </div>
 
           <div class="details-list">
@@ -188,7 +188,7 @@
             <p class="info-text">{{ user.petDescription || 'Не указано' }}</p>
           </div>
 
-          <p class="status-message">{{ statusDescriptions[user?.status || 'pending'] }}</p>
+          <p class="status-message">{{ statusDescriptions.value[user?.status || 'pending'] }}</p>
         </div>
 
         <!-- Right Column - Payment Info (only for approved) -->
@@ -436,11 +436,17 @@ const statusLabels: Record<string, string> = {
   rejected: 'Отклонено'
 }
 
-const statusDescriptions: Record<string, string> = {
-  pending: 'Вы получите уведомление на почту, когда статус заявки изменится.',
-  approved: 'Поздравляем! Ваша заявка одобрена. Оплатите участие по реквизитам справа.',
-  rejected: 'К сожалению, ваша заявка отклонена. Свяжитесь с нами в Telegram.'
-}
+const statusDescriptions = computed(() => {
+  const isSubscribed = user.value?.emailSubscribed || false
+
+  return {
+    pending: isSubscribed
+      ? 'Вы получите уведомление на почту, когда статус заявки изменится.'
+      : 'Подпишитесь на рассылку, чтобы получать уведомления о статусе заявки на почту.',
+    approved: 'Поздравляем! Ваша заявка одобрена. Оплатите участие по реквизитам справа.',
+    rejected: 'К сожалению, ваша заявка отклонена. Свяжитесь с нами в Telegram.'
+  }
+})
 
 function formatDate(dateStr: string | undefined) {
   if (!dateStr) return 'Неизвестно'
