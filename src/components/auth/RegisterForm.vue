@@ -205,7 +205,7 @@
       <div class="form-group">
         <label class="checkbox-label special">
           <input v-model="form.bringingPet" type="checkbox" class="checkbox" />
-          <span>Хочу взять животное на КОН</span>
+          <span>Планирую взять с собой питомца</span>
         </label>
         <div v-if="form.bringingPet" class="conditional-field">
           <textarea
@@ -222,9 +222,18 @@
       <!-- Checkboxes -->
       <div class="checkbox-group">
         <label class="checkbox-label">
+          <input v-model="form.confirmAge" type="checkbox" class="checkbox" />
+          <span>
+            Подтверждаю, что мне исполнилось 18 лет
+            <span class="required">*</span>
+          </span>
+        </label>
+        <p v-if="errors.confirmAge" class="error-text checkbox-error">{{ errors.confirmAge }}</p>
+
+        <label class="checkbox-label">
           <input v-model="form.agreeRules" type="checkbox" class="checkbox" />
           <span>
-            Согласен с <a href="#">правилами конвента</a>
+            Согласен с <a href="/#rules">правилами конвента</a>
             <span class="required">*</span>
           </span>
         </label>
@@ -233,7 +242,7 @@
         <label class="checkbox-label">
           <input v-model="form.agreePrivacy" type="checkbox" class="checkbox" />
           <span>
-            Согласен на <a href="#">обработку персональных данных</a>
+            Согласен на <a href="#" @click.prevent="showPrivacyModal = true">обработку персональных данных</a>
             <span class="required">*</span>
           </span>
         </label>
@@ -310,6 +319,61 @@
       </div>
     </div>
   </Teleport>
+
+  <!-- Privacy Policy Modal -->
+  <Teleport to="body">
+    <div v-if="showPrivacyModal" class="privacy-overlay" @click="showPrivacyModal = false">
+      <div class="privacy-modal" @click.stop>
+        <div class="modal-header">
+          <h3>Политика обработки персональных данных</h3>
+          <button @click="showPrivacyModal = false" class="close-btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-content">
+          <p>Настоящая Политика конфиденциальности персональных данных (далее – Политика конфиденциальности) действует в отношении всей информации, которую организаторы мероприятия TourFurr 2026 могут получить о пользователе во время использования им сайта и регистрации на мероприятие.</p>
+
+          <h4>1. Определение терминов</h4>
+          <p>1.1. В настоящей Политике конфиденциальности используются следующие термины:</p>
+          <p>1.1.1. «Администрация сайта» – уполномоченные сотрудники на управление сайтом, действующие от имени организаторов TourFurr, которые организуют и (или) осуществляют обработку персональных данных, а также определяют цели обработки персональных данных, состав персональных данных, подлежащих обработке, действия (операции), совершаемые с персональными данными.</p>
+          <p>1.1.2. «Персональные данные» - любая информация, относящаяся к прямо или косвенно определенному или определяемому физическому лицу (субъекту персональных данных).</p>
+          <p>1.1.3. «Обработка персональных данных» - любое действие (операция) или совокупность действий (операций), совершаемых с использованием средств автоматизации или без использования таких средств с персональными данными, включая сбор, запись, систематизацию, накопление, хранение, уточнение (обновление, изменение), извлечение, использование, передачу (распространение, предоставление, доступ), обезличивание, блокирование, удаление, уничтожение персональных данных.</p>
+
+          <h4>2. Общие положения</h4>
+          <p>2.1. Использование Пользователем сайта означает согласие с настоящей Политикой конфиденциальности и условиями обработки персональных данных Пользователя.</p>
+          <p>2.2. В случае несогласия с условиями Политики конфиденциальности Пользователь должен прекратить использование сайта.</p>
+          <p>2.3. Настоящая Политика конфиденциальности применяется только к сайту TourFurr. Сайт не контролирует и не несет ответственность за сайты третьих лиц, на которые Пользователь может перейти по ссылкам, доступным на сайте.</p>
+
+          <h4>3. Предмет политики конфиденциальности</h4>
+          <p>3.1. Настоящая Политика конфиденциальности устанавливает обязательства Администрации сайта по неразглашению и обеспечению режима защиты конфиденциальности персональных данных, которые Пользователь предоставляет при регистрации на мероприятие.</p>
+          <p>3.2. Персональные данные, разрешённые к обработке в рамках настоящей Политики конфиденциальности, предоставляются Пользователем путём заполнения регистрационной формы и включают в себя следующую информацию:</p>
+          <p>3.2.1. email адрес Пользователя;</p>
+          <p>3.2.2. никнейм Пользователя;</p>
+          <p>3.2.3. номер телефона Пользователя;</p>
+          <p>3.2.4. Telegram Пользователя;</p>
+          <p>3.2.5. фотографию (аватар) Пользователя;</p>
+          <p>3.2.6. дополнительную информацию о себе, аллергиях и животных.</p>
+
+          <h4>4. Цели сбора персональной информации пользователя</h4>
+          <p>4.1. Персональные данные Пользователя Администрация сайта может использовать в целях:</p>
+          <p>4.1.1. Идентификации Пользователя, зарегистрированного на мероприятие;</p>
+          <p>4.1.2. Предоставления Пользователю доступа к персонализированным ресурсам сайта;</p>
+          <p>4.1.3. Установления с Пользователем обратной связи;</p>
+          <p>4.1.4. Отправки уведомлений о статусе заявки и информации о мероприятии;</p>
+          <p>4.1.5. Обеспечения безопасности участников мероприятия;</p>
+          <p>4.1.6. Печати бейджиков для участников мероприятия.</p>
+
+          <h4>5. Защита персональных данных</h4>
+          <p>5.1. Администрация сайта осуществляет обработку персональных данных Пользователя с использованием баз данных на территории Российской Федерации и принимает необходимые и достаточные правовые, организационные и технические меры для защиты персональных данных от неправомерного или случайного доступа, уничтожения, изменения, блокирования, копирования, распространения.</p>
+        </div>
+        <div class="modal-footer">
+          <button @click="showPrivacyModal = false" class="privacy-btn">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -328,6 +392,7 @@ const showPassword = ref(false)
 const isLoading = ref(false)
 const serverError = ref('')
 const showSuccessModal = ref(false)
+const showPrivacyModal = ref(false)
 const isDragging = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 const avatarPreview = ref<string | null>(null)
@@ -348,6 +413,7 @@ const form = reactive({
   allergiesDescription: '',
   bringingPet: false,
   petDescription: '',
+  confirmAge: false,
   agreeRules: false,
   agreePrivacy: false,
   emailSubscribed: false
@@ -361,6 +427,7 @@ const errors = reactive({
   phone: '',
   telegram: '',
   avatar: '',
+  confirmAge: '',
   agreeRules: '',
   agreePrivacy: ''
 })
@@ -407,6 +474,7 @@ const step2Schema = yup.object({
 })
 
 const step3Schema = yup.object({
+  confirmAge: yup.boolean().oneOf([true], 'Необходимо подтвердить возраст 18+'),
   agreeRules: yup.boolean().oneOf([true], 'Необходимо согласиться с правилами'),
   agreePrivacy: yup.boolean().oneOf([true], 'Необходимо дать согласие')
 })
@@ -1121,5 +1189,132 @@ function redirectToDashboard() {
 .success-btn .btn-icon {
   width: 20px;
   height: 20px;
+}
+
+/* Privacy Modal */
+.privacy-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.privacy-modal {
+  position: relative;
+  background: linear-gradient(135deg, rgba(42, 31, 26, 0.98), rgba(26, 17, 14, 0.98));
+  border: 1px solid var(--moss);
+  border-radius: 20px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(139, 111, 71, 0.3);
+}
+
+.modal-header h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  color: var(--cream);
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--sage);
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color 0.3s ease;
+}
+
+.close-btn:hover {
+  color: var(--cream);
+}
+
+.close-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  color: var(--sage);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.modal-content h4 {
+  font-family: 'Playfair Display', serif;
+  color: var(--fire-glow);
+  font-size: 1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.modal-content h4:first-child {
+  margin-top: 0;
+}
+
+.modal-content p {
+  margin-bottom: 0.75rem;
+}
+
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid rgba(139, 111, 71, 0.3);
+}
+
+.privacy-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, var(--fire), var(--fire-glow));
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-family: 'Lora', serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.privacy-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+}
+
+/* Scrollbar Styles for Modal Content */
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: rgba(26, 17, 14, 0.4);
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: var(--moss);
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: var(--sage);
 }
 </style>

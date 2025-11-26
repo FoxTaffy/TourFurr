@@ -113,7 +113,7 @@
               <div class="form-group">
                 <label class="checkbox-label-edit">
                   <input v-model="editForm.bringingPet" type="checkbox" />
-                  <span>Хочу взять животное на КОН</span>
+                  <span>Планирую взять с собой питомца</span>
                 </label>
                 <textarea
                   v-if="editForm.bringingPet"
@@ -183,7 +183,7 @@
               <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              <span class="info-title">Животное на КОН</span>
+              <span class="info-title">Питомец</span>
             </div>
             <p class="info-text">{{ user.petDescription || 'Не указано' }}</p>
           </div>
