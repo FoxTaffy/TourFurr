@@ -39,7 +39,7 @@
               {{ item.text }}
             </p>
             <p class="included-note">
-              * Еда и напитки приобретаются отдельно на территории
+              * Еда включена в стоимость билета
             </p>
           </div>
         </div>
@@ -72,7 +72,7 @@
             icon: 'fas fa-users',
             label: 'Количество мест',
             value: '~150',
-            detail: 'Включая организаторов'
+            detail: 'мест для участников'
           }
         ],
         includedItems: [
@@ -145,7 +145,7 @@
   }
   
   .info-value {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Merriweather', serif;
       font-size: 2.5rem;
       font-weight: 700;
       color: var(--fire-glow);
@@ -162,7 +162,7 @@
   }
   
   .included-title {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Merriweather', serif;
       font-size: 2rem;
       color: var(--fire-glow);
       margin-bottom: 1.5rem;

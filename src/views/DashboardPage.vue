@@ -5,20 +5,7 @@
     <div class="fog"></div>
 
     <!-- Header -->
-    <header class="dashboard-header">
-      <div class="header-content">
-        <router-link to="/" class="logo">
-          <img :src="logoImg" alt="TourFurr" class="logo-img" />
-          <span class="logo-text">TourFurr</span>
-        </router-link>
-        <button @click="handleLogout" class="logout-btn">
-          <svg class="logout-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-          </svg>
-          Выйти
-        </button>
-      </div>
-    </header>
+    <Header :isDashboard="true" />
 
     <!-- Main Content -->
     <main class="dashboard-main">
@@ -26,6 +13,14 @@
 
         <!-- Left Column - Profile Card -->
         <div class="profile-card">
+          <!-- Avatar Warning -->
+          <div class="avatar-badge-warning">
+            <svg class="warning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <span>Аватар будет напечатан на вашем физическом бейджике!</span>
+          </div>
+
           <div class="avatar-section">
             <div class="avatar" @click="isEditing && triggerAvatarUpload()">
               <img v-if="avatarPreview || user?.avatar" :src="avatarPreview || user?.avatar" alt="Avatar" />
@@ -229,7 +224,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
-import logoImg from '../assets/logo.png'
+import Header from '../components/Header.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -413,86 +408,12 @@ function handleLogout() {
   position: relative;
 }
 
-/* Header */
-.dashboard-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(26, 17, 14, 0.95);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(139, 111, 71, 0.3);
-}
-
-.header-content {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 1rem 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-
-.logo-img {
-  height: 36px;
-  width: auto;
-  object-fit: contain;
-  transition: transform 0.3s ease;
-}
-
-.logo-text {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--fire-glow);
-  transition: all 0.3s ease;
-}
-
-.logo:hover .logo-text {
-  color: var(--amber);
-  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-}
-
-.logo:hover .logo-img {
-  transform: scale(1.05);
-}
-
-.logout-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: rgba(255, 107, 53, 0.15);
-  border: 1px solid rgba(255, 107, 53, 0.4);
-  border-radius: 12px;
-  color: var(--fire-glow);
-  font-family: 'Lora', serif;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.logout-btn:hover {
-  background: rgba(255, 107, 53, 0.25);
-}
-
-.logout-icon {
-  width: 18px;
-  height: 18px;
-}
-
 /* Main Content */
 .dashboard-main {
   position: relative;
   z-index: 10;
   padding: 2rem;
+  padding-top: 6rem;
 }
 
 .dashboard-grid {
@@ -526,6 +447,32 @@ function handleLogout() {
 .profile-card {
   text-align: center;
   grid-row: span 2;
+}
+
+/* Avatar Badge Warning */
+.avatar-badge-warning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(255, 179, 71, 0.15), rgba(255, 107, 53, 0.15));
+  border: 1.5px solid var(--fire-glow);
+  border-radius: 12px;
+  color: var(--fire-glow);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.avatar-badge-warning .warning-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .avatar-section {
@@ -823,16 +770,60 @@ function handleLogout() {
 @media (max-width: 768px) {
   .dashboard-main {
     padding: 1rem;
+    padding-top: 5.5rem;
   }
 
   .dashboard-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .profile-card,
   .location-card,
   .error-card {
     grid-column: auto;
+  }
+
+  .avatar-badge-warning {
+    font-size: 0.7rem;
+    padding: 0.6rem 0.75rem;
+    gap: 0.4rem;
+  }
+
+  .avatar-badge-warning .warning-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .avatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .profile-name {
+    font-size: 1.25rem;
+  }
+
+  .card-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .detail-value {
+    text-align: left;
+  }
+
+  .visual-card {
+    padding: 1.25rem;
+  }
+
+  .card-number {
+    font-size: 1rem;
   }
 }
 
