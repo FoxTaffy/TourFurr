@@ -12,16 +12,82 @@
           <li><a href="#faq" @click.prevent="scrollTo('faq')">FAQ</a></li>
           <li><a href="#contacts" @click.prevent="scrollTo('contacts')">Контакты</a></li>
         </ul>
+
+        <div class="auth-buttons">
+          <!-- Кнопка админ-доступа (показывается только до 1 марта 2026 и если нет доступа) -->
+          <button
+            v-if="!isRegistrationOpen && !hasAdminAccess"
+            @click="openPinModal"
+            class="btn-admin"
+            title="Админ-доступ"
+          >
+            <i class="fas fa-key"></i>
+          </button>
+
+          <!-- Кнопки входа/регистрации (показываются после 1 марта или с админ-доступом) -->
+          <template v-if="isRegistrationOpen || hasAdminAccess">
+            <button @click="login" class="btn-auth btn-login">Войти</button>
+            <button @click="register" class="btn-auth btn-register">Регистрация</button>
+          </template>
+        </div>
       </nav>
+
+      <AdminPinModal
+        :isOpen="isPinModalOpen"
+        @close="closePinModal"
+        @pin-verified="onPinVerified"
+      />
     </header>
   </template>
   
   <script>
+  import AdminPinModal from './AdminPinModal.vue'
+
   export default {
     name: 'Header',
+    components: {
+      AdminPinModal
+    },
+    data() {
+      return {
+        hasAdminAccess: false,
+        isPinModalOpen: false
+      }
+    },
+    computed: {
+      isRegistrationOpen() {
+        const now = new Date()
+        const openingDate = new Date('2026-03-01T00:00:00')
+        return now >= openingDate
+      }
+    },
+    mounted() {
+      // Проверяем сохраненный админ-доступ
+      this.hasAdminAccess = localStorage.getItem('admin_access') === 'true'
+    },
     methods: {
       scrollTo(id) {
         const element = document.getElementById(id)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      },
+      openPinModal() {
+        this.isPinModalOpen = true
+      },
+      closePinModal() {
+        this.isPinModalOpen = false
+      },
+      onPinVerified() {
+        this.hasAdminAccess = true
+        alert('Добро пожаловать, администратор!')
+      },
+      login() {
+        // TODO: Реализовать логику входа
+        alert('Функция входа будет реализована позже')
+      },
+      register() {
+        const element = document.getElementById('registration')
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }
@@ -120,17 +186,97 @@
       width: 100%;
   }
   
+  /* Auth buttons */
+  .auth-buttons {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+  }
+
+  .btn-admin {
+      background: rgba(93, 74, 58, 0.3);
+      border: 1px solid rgba(139, 111, 71, 0.4);
+      color: var(--sage);
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+  }
+
+  .btn-admin:hover {
+      background: rgba(139, 111, 71, 0.4);
+      color: var(--fire-glow);
+      border-color: var(--fire-glow);
+  }
+
+  .btn-auth {
+      padding: 0.625rem 1.25rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+  }
+
+  .btn-login {
+      background: rgba(93, 74, 58, 0.3);
+      color: var(--sage);
+      border: 1px solid rgba(139, 111, 71, 0.4);
+  }
+
+  .btn-login:hover {
+      background: rgba(93, 74, 58, 0.5);
+      color: var(--cream);
+      border-color: var(--sage);
+  }
+
+  .btn-register {
+      background: linear-gradient(135deg, var(--fire) 0%, var(--fire-glow) 100%);
+      color: var(--forest-deep);
+  }
+
+  .btn-register:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+  }
+
+  @media (max-width: 1024px) {
+      nav {
+          flex-wrap: wrap;
+          gap: 1rem;
+      }
+
+      .nav-links {
+          order: 3;
+          width: 100%;
+          justify-content: center;
+          gap: 1.5rem;
+          flex-wrap: wrap;
+      }
+
+      .auth-buttons {
+          order: 2;
+      }
+  }
+
   @media (max-width: 768px) {
       nav {
           flex-direction: column;
           gap: 1rem;
           padding: 1rem;
       }
-  
+
       .nav-links {
           flex-wrap: wrap;
           justify-content: center;
           gap: 1rem;
+      }
+
+      .auth-buttons {
+          width: 100%;
+          justify-content: center;
       }
   }
   </style>
