@@ -166,6 +166,28 @@
             <p>{{ user.description }}</p>
           </div>
 
+          <!-- Allergies Info -->
+          <div v-if="user?.hasAllergies" class="info-block allergies-block">
+            <div class="info-header">
+              <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+              </svg>
+              <span class="info-title">Аллергия</span>
+            </div>
+            <p class="info-text">{{ user.allergiesDescription || 'Не указано' }}</p>
+          </div>
+
+          <!-- Pet Info -->
+          <div v-if="user?.bringingPet" class="info-block pet-block">
+            <div class="info-header">
+              <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="info-title">Животное на КОН</span>
+            </div>
+            <p class="info-text">{{ user.petDescription || 'Не указано' }}</p>
+          </div>
+
           <p class="status-message">{{ statusDescriptions[user?.status || 'pending'] }}</p>
         </div>
 
@@ -679,6 +701,58 @@ function handleLogout() {
   font-size: 0.95rem;
   line-height: 1.5;
   margin-top: 0.5rem;
+}
+
+/* Info Blocks */
+.info-block {
+  background: rgba(26, 17, 14, 0.5);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-left: 3px solid;
+}
+
+.allergies-block {
+  border-left-color: #f59e0b;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(26, 17, 14, 0.5));
+}
+
+.pet-block {
+  border-left-color: #22c55e;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(26, 17, 14, 0.5));
+}
+
+.info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.info-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.allergies-block .info-icon {
+  color: #f59e0b;
+}
+
+.pet-block .info-icon {
+  color: #22c55e;
+}
+
+.info-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--cream);
+}
+
+.info-text {
+  color: var(--sage);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .status-message {
