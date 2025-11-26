@@ -153,7 +153,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
-import { supabase } from '../../supabase'
+import { supabase } from '../../services/supabase'
 import * as yup from 'yup'
 
 const router = useRouter()
