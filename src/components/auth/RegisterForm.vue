@@ -581,7 +581,11 @@ function prevStep() {
 }
 
 async function checkEmail() {
-  if (!form.email) return
+  if (!form.email) {
+    errors.email = '' // Clear error if field is empty
+    return
+  }
+  errors.email = '' // Clear previous error before checking
   const isUnique = await authStore.checkEmailUnique(form.email)
   if (!isUnique) {
     errors.email = 'Этот email уже зарегистрирован'
@@ -589,7 +593,11 @@ async function checkEmail() {
 }
 
 async function checkNickname() {
-  if (!form.nickname) return
+  if (!form.nickname) {
+    errors.nickname = '' // Clear error if field is empty
+    return
+  }
+  errors.nickname = '' // Clear previous error before checking
   const isUnique = await authStore.checkNicknameUnique(form.nickname)
   if (!isUnique) {
     errors.nickname = 'Этот никнейм уже занят'

@@ -172,22 +172,35 @@ export const useAuthStore = defineStore('auth', () => {
         password: password
       })
 
-      // 2. If Supabase Auth fails, check if it's an old user with bcrypt password
+      // 2. If Supabase Auth fails, check if it's an old user with bcrypt password or unverified new user
       if (authData.error && authData.error.message.includes('Invalid login credentials')) {
-        console.log('Supabase Auth failed, checking for old user with bcrypt...')
+        console.log('Supabase Auth failed, checking for old user or unverified user...')
 
-        // Check if user exists in database with old bcrypt password
-        const { data: oldUser, error: dbError } = await supabase
+        // Check if user exists in database
+        const { data: existingUser, error: dbError } = await supabase
           .from('users')
           .select('*')
           .eq('email', cleanEmail)
           .maybeSingle()
 
-        if (oldUser && oldUser.password_hash) {
+        // Check if it's a new unverified user
+        if (existingUser && !existingUser.email_verified && !existingUser.password_hash) {
+          console.log('Found unverified new user')
+          error.value = 'Пожалуйста, подтвердите ваш email. Проверьте вашу почту.'
+          securityLogger.log({
+            type: 'login_failure',
+            identifier: cleanEmail,
+            details: { reason: 'email_not_verified', fingerprint }
+          })
+          return { success: false, error: error.value }
+        }
+
+        // Check if it's an old user with bcrypt password
+        if (existingUser && existingUser.password_hash) {
           console.log('Found old user, verifying bcrypt password...')
 
           // Verify old bcrypt password
-          const isValidBcrypt = await bcrypt.compare(password, oldUser.password_hash)
+          const isValidBcrypt = await bcrypt.compare(password, existingUser.password_hash)
 
           if (isValidBcrypt) {
             console.log('Old password valid, migrating to Supabase Auth...')
@@ -199,7 +212,7 @@ export const useAuthStore = defineStore('auth', () => {
               options: {
                 data: {
                   migrated: true,
-                  original_id: oldUser.id
+                  original_id: existingUser.id
                 }
               }
             })
@@ -214,13 +227,13 @@ export const useAuthStore = defineStore('auth', () => {
 
             // Delete old record and create new one with Supabase Auth ID
             // Step 1: Save old user data
-            const oldUserData = { ...oldUser }
+            const oldUserData = { ...existingUser }
 
             // Step 2: Delete old record
             const { error: deleteError } = await supabase
               .from('users')
               .delete()
-              .eq('id', oldUser.id)
+              .eq('id', existingUser.id)
 
             if (deleteError) {
               console.error('Failed to delete old user record:', deleteError)
