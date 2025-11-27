@@ -308,23 +308,28 @@
         </div>
 
         <!-- Content -->
-        <h3 class="success-title">Регистрация успешна!</h3>
-        <p class="success-text">Ваша заявка на рассмотрении.<br>Мы уведомим вас о решении.</p>
+        <h3 class="success-title">Регистрация успешна! 🎉</h3>
+        <p class="success-text">
+          Мы отправили письмо с подтверждением на вашу почту.<br>
+          Пожалуйста, проверьте ваш email и перейдите по ссылке для активации аккаунта.
+        </p>
 
-        <!-- Status indicator -->
-        <div class="status-badge">
-          <span class="status-dot"></span>
-          Статус: На рассмотрении
+        <!-- Email hint -->
+        <div class="status-badge email-badge">
+          <svg class="email-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px; margin-right: 8px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          Проверьте папку "Спам", если письмо не пришло
         </div>
 
         <!-- Button -->
-        <button @click="redirectToDashboard" class="success-btn">
+        <button @click="redirectToLogin" class="success-btn">
           <span class="btn-glow"></span>
           <span class="btn-content">
             <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
             </svg>
-            Перейти в личный кабинет
+            Перейти ко входу
           </span>
         </button>
       </div>
@@ -689,9 +694,9 @@ async function handleSubmit() {
   }
 }
 
-function redirectToDashboard() {
+function redirectToLogin() {
   showSuccessModal.value = false
-  router.push('/dashboard')
+  router.push('/auth')
 }
 </script>
 

@@ -166,25 +166,91 @@ export const useAuthStore = defineStore('auth', () => {
 
       console.log('Attempting login with email:', cleanEmail)
 
-      const { data, error: dbError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', cleanEmail)
-        .maybeSingle()
+      // 1. Try Supabase Auth first (for new users)
+      let authData = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: password
+      })
 
-      if (dbError) {
-        console.error('Database error:', dbError)
+      // 2. If Supabase Auth fails, check if it's an old user with bcrypt password
+      if (authData.error && authData.error.message.includes('Invalid login credentials')) {
+        console.log('Supabase Auth failed, checking for old user with bcrypt...')
+
+        // Check if user exists in database with old bcrypt password
+        const { data: oldUser, error: dbError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', cleanEmail)
+          .maybeSingle()
+
+        if (oldUser && oldUser.password_hash) {
+          console.log('Found old user, verifying bcrypt password...')
+
+          // Verify old bcrypt password
+          const isValidBcrypt = await bcrypt.compare(password, oldUser.password_hash)
+
+          if (isValidBcrypt) {
+            console.log('Old password valid, migrating to Supabase Auth...')
+
+            // Migrate user to Supabase Auth
+            const { data: migratedAuth, error: migrateError } = await supabase.auth.signUp({
+              email: cleanEmail,
+              password: password,
+              options: {
+                data: {
+                  migrated: true,
+                  original_id: oldUser.id
+                }
+              }
+            })
+
+            if (migrateError || !migratedAuth.user) {
+              console.error('Migration failed:', migrateError)
+              error.value = 'Ошибка миграции аккаунта. Свяжитесь с поддержкой.'
+              return { success: false, error: error.value }
+            }
+
+            console.log('Migration successful, updating user record...')
+
+            // Update user record with new Supabase Auth ID
+            const { error: updateError } = await supabase
+              .from('users')
+              .update({
+                id: migratedAuth.user.id,
+                password_hash: '', // Clear old password
+                email_verified: true // Old users are pre-verified
+              })
+              .eq('email', cleanEmail)
+
+            if (updateError) {
+              console.error('Failed to update user record:', updateError)
+            }
+
+            // Now try to sign in again with Supabase Auth
+            authData = await supabase.auth.signInWithPassword({
+              email: cleanEmail,
+              password: password
+            })
+
+            console.log('Migrated user logged in successfully')
+          }
+        }
+      }
+
+      // 3. Check final auth result
+      if (authData.error) {
+        console.error('Auth error:', authData.error)
         securityLogger.log({
           type: 'login_failure',
           identifier: cleanEmail,
-          details: { reason: 'database_error', fingerprint }
+          details: { reason: 'auth_error', fingerprint }
         })
-        error.value = 'Ошибка базы данных'
+        error.value = 'Неверный email или пароль'
         return { success: false, error: error.value }
       }
 
-      if (!data) {
-        console.log('User not found with email:', cleanEmail)
+      if (!authData.data?.user) {
+        console.log('User not found')
         securityLogger.log({
           type: 'login_failure',
           identifier: cleanEmail,
@@ -194,24 +260,45 @@ export const useAuthStore = defineStore('auth', () => {
         return { success: false, error: error.value }
       }
 
-      console.log('User found, verifying password...')
-      // Verify password
-      const isValid = await bcrypt.compare(password, data.password_hash)
-      if (!isValid) {
-        console.log('Password verification failed')
+      // 4. Check if email is verified (skip for migrated old users)
+      const isMigratedUser = authData.data.user.user_metadata?.migrated
+      if (!isMigratedUser && !authData.data.user.email_confirmed_at) {
+        console.log('Email not confirmed')
         securityLogger.log({
           type: 'login_failure',
           identifier: cleanEmail,
-          details: { reason: 'invalid_password', fingerprint }
+          details: { reason: 'email_not_verified', fingerprint }
         })
-        error.value = 'Неверный email или пароль'
+        await supabase.auth.signOut() // Sign out immediately
+        error.value = 'Пожалуйста, подтвердите ваш email. Проверьте вашу почту.'
+        return { success: false, error: error.value }
+      }
+
+      console.log('Email verified, fetching user data...')
+
+      // 5. Get user profile from users table
+      const { data: userData, error: dbError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authData.data.user.id)
+        .maybeSingle()
+
+      if (dbError || !userData) {
+        console.error('Database error:', dbError)
+        securityLogger.log({
+          type: 'login_failure',
+          identifier: cleanEmail,
+          details: { reason: 'database_error', fingerprint }
+        })
+        error.value = 'Ошибка получения данных пользователя'
         return { success: false, error: error.value }
       }
 
       console.log('Login successful')
-      const mappedUser = mapDbUserToUser(data)
-      // Security: Use cryptographically secure token
-      token.value = crypto.randomUUID()
+      const mappedUser = mapDbUserToUser(userData)
+
+      // Use Supabase session token
+      token.value = authData.data.session?.access_token || crypto.randomUUID()
       user.value = mappedUser
       localStorage.setItem('auth_token', token.value)
       localStorage.setItem('current_user', JSON.stringify(mappedUser))
@@ -293,10 +380,7 @@ export const useAuthStore = defineStore('auth', () => {
         details: { fingerprint }
       })
 
-      // Hash password
-      const passwordHash = await bcrypt.hash(data.password, 12)
-
-      // Upload avatar if provided
+      // Upload avatar if provided (before Supabase Auth signup)
       let avatarUrl: string | null = null
       if (data.avatar) {
         // Security: Validate file type and size
@@ -324,19 +408,50 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      // Insert user with sanitized inputs
+      // 1. Register user with Supabase Auth (sends email verification)
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password: data.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/confirm`,
+          data: {
+            nickname: cleanNickname,
+            phone: sanitizeInput(data.phone),
+            telegram: sanitizeInput(data.telegram)
+          }
+        }
+      })
+
+      if (authError) {
+        console.error('Auth signup error:', authError)
+        if (authError.message.includes('already registered')) {
+          error.value = 'Этот email уже зарегистрирован'
+        } else {
+          error.value = authError.message
+        }
+        return { success: false, error: error.value }
+      }
+
+      if (!authData.user) {
+        error.value = 'Ошибка создания пользователя'
+        return { success: false, error: error.value }
+      }
+
+      // 2. Create user profile in users table
       const { data: newUser, error: dbError } = await supabase
         .from('users')
         .insert({
-          email: sanitizeInput(data.email).toLowerCase(),
-          password_hash: passwordHash,
-          nickname: sanitizeInput(data.nickname),
+          id: authData.user.id, // Important: use Supabase Auth user ID
+          email: cleanEmail,
+          password_hash: '', // Not needed anymore, Supabase Auth handles it
+          nickname: cleanNickname,
           phone: sanitizeInput(data.phone),
           telegram: sanitizeInput(data.telegram),
           avatar_url: avatarUrl,
           description: data.description ? sanitizeInput(data.description) : null,
           status: 'pending',
           email_subscribed: data.emailSubscribed,
+          email_verified: false, // Will be updated when user confirms email
           agree_rules: data.agreeRules,
           agree_privacy: data.agreePrivacy,
           has_allergies: data.hasAllergies,
@@ -348,10 +463,9 @@ export const useAuthStore = defineStore('auth', () => {
         .single()
 
       if (dbError) {
+        console.error('Database error:', dbError)
         if (dbError.code === '23505') {
-          if (dbError.message.includes('email')) {
-            error.value = 'Этот email уже зарегистрирован'
-          } else if (dbError.message.includes('nickname')) {
+          if (dbError.message.includes('nickname')) {
             error.value = 'Этот никнейм уже занят'
           } else {
             error.value = 'Пользователь уже существует'
@@ -362,18 +476,16 @@ export const useAuthStore = defineStore('auth', () => {
         return { success: false, error: error.value }
       }
 
-      const mappedUser = mapDbUserToUser(newUser)
-      // Security: Use cryptographically secure token
-      token.value = crypto.randomUUID()
-      user.value = mappedUser
-      localStorage.setItem('auth_token', token.value)
-      localStorage.setItem('current_user', JSON.stringify(mappedUser))
-
       // Security: Reset rate limit on successful registration
       rateLimiter.reset(cleanEmail)
 
-      return { success: true }
+      // Don't auto-login - user needs to verify email first
+      return {
+        success: true,
+        message: 'Регистрация успешна! Проверьте вашу почту для подтверждения email.'
+      }
     } catch (err: any) {
+      console.error('Registration error:', err)
       error.value = err.message || 'Ошибка регистрации'
       return { success: false, error: error.value }
     } finally {
