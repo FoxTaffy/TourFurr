@@ -255,6 +255,17 @@
       </div>
     </div>
 
+    <!-- hCaptcha (показывается на шаге 3) -->
+    <div v-if="currentStep === 3" class="captcha-wrapper">
+      <HCaptcha
+        :sitekey="captchaSiteKey"
+        @verify="handleCaptchaVerify"
+        @error="handleCaptchaError"
+        @expired="handleCaptchaExpired"
+      />
+      <p v-if="captchaError" class="error-text">{{ captchaError }}</p>
+    </div>
+
     <!-- Server Error -->
     <div v-if="serverError" class="server-error">
       <p>{{ serverError }}</p>
@@ -428,6 +439,7 @@ import { useRouter } from 'vue-router'
 import { vMaska } from 'maska/vue'
 import { useAuthStore } from '../../stores/auth'
 import TelegramInput from './TelegramInput.vue'
+import HCaptcha from '@hcaptcha/vue3-hcaptcha'
 import * as yup from 'yup'
 
 const router = useRouter()
@@ -442,6 +454,11 @@ const showPrivacyModal = ref(false)
 const isDragging = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 const avatarPreview = ref<string | null>(null)
+
+// hCaptcha state
+const captchaSiteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY || ''
+const captchaToken = ref<string | null>(null)
+const captchaError = ref('')
 
 const stepTitles = ['Основное', 'Профиль', 'Дополнительно']
 
@@ -617,10 +634,33 @@ function processFile(file: File) {
   reader.readAsDataURL(file)
 }
 
+// hCaptcha handlers
+function handleCaptchaVerify(token: string) {
+  captchaToken.value = token
+  captchaError.value = ''
+}
+
+function handleCaptchaError() {
+  captchaToken.value = null
+  captchaError.value = 'Ошибка проверки CAPTCHA. Попробуйте еще раз'
+}
+
+function handleCaptchaExpired() {
+  captchaToken.value = null
+  captchaError.value = 'CAPTCHA истекла. Пожалуйста, пройдите проверку снова'
+}
+
 async function handleSubmit() {
   if (!(await validateStep(3))) return
 
+  // Проверка CAPTCHA
+  if (!captchaToken.value) {
+    captchaError.value = 'Пожалуйста, пройдите проверку CAPTCHA'
+    return
+  }
+
   serverError.value = ''
+  captchaError.value = ''
   isLoading.value = true
 
   const result = await authStore.register({
@@ -1405,5 +1445,25 @@ function redirectToDashboard() {
 
 .modal-content::-webkit-scrollbar-thumb:hover {
   background: var(--sage);
+}
+
+/* hCaptcha Styles */
+.captcha-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.captcha-wrapper > div {
+  transform: scale(0.95);
+  transform-origin: center;
+}
+
+@media (max-width: 640px) {
+  .captcha-wrapper > div {
+    transform: scale(0.85);
+  }
 }
 </style>

@@ -180,10 +180,11 @@
           <!-- Pet Info -->
           <div v-if="user?.bringingPet" class="info-block pet-block">
             <div class="info-header">
-              <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              <svg class="info-icon" fill="currentColor" viewBox="0 0 24 24">
+                <!-- Dog paw icon -->
+                <path d="M8.5 14c1.38 0 2.5-1.12 2.5-2.5S9.88 9 8.5 9 6 10.12 6 11.5 7.12 14 8.5 14zm0-3.5c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM15.5 14c1.38 0 2.5-1.12 2.5-2.5S16.88 9 15.5 9 13 10.12 13 11.5s1.12 2.5 2.5 2.5zm0-3.5c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM5.5 9C6.88 9 8 7.88 8 6.5S6.88 4 5.5 4 3 5.12 3 6.5 4.12 9 5.5 9zm0-3.5c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM18.5 9c1.38 0 2.5-1.12 2.5-2.5S19.88 4 18.5 4 16 5.12 16 6.5 17.12 9 18.5 9zm0-3.5c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM12 18c3.31 0 6-2.69 6-6h-2c0 2.21-1.79 4-4 4s-4-1.79-4-4H6c0 3.31 2.69 6 6 6z"/>
               </svg>
-              <span class="info-title">Питомец</span>
+              <span class="info-title">Питомец 🐾</span>
             </div>
             <p class="info-text">{{ user.petDescription || 'Не указано' }}</p>
           </div>

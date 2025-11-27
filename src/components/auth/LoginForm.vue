@@ -65,6 +65,17 @@
         <p>{{ serverError }}</p>
       </div>
 
+      <!-- hCaptcha (появляется после 2 неудачных попыток) -->
+      <div v-if="showCaptcha" class="captcha-wrapper">
+        <HCaptcha
+          :sitekey="captchaSiteKey"
+          @verify="handleCaptchaVerify"
+          @error="handleCaptchaError"
+          @expired="handleCaptchaExpired"
+        />
+        <p v-if="captchaError" class="error-text">{{ captchaError }}</p>
+      </div>
+
       <!-- Submit Button -->
       <button type="submit" :disabled="isLoading" class="submit-btn">
         <span class="btn-glow"></span>
@@ -150,10 +161,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { supabase } from '../../services/supabase'
+import HCaptcha from '@hcaptcha/vue3-hcaptcha'
 import * as yup from 'yup'
 
 const router = useRouter()
@@ -173,6 +185,13 @@ const showPassword = ref(false)
 const isLoading = ref(false)
 const serverError = ref('')
 
+// hCaptcha state
+const captchaSiteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY || ''
+const captchaToken = ref<string | null>(null)
+const captchaError = ref('')
+const loginAttempts = ref(0)
+const showCaptcha = computed(() => loginAttempts.value >= 2)
+
 // Password reset state
 const showForgotPassword = ref(false)
 const resetEmail = ref('')
@@ -189,10 +208,33 @@ const resetSchema = yup.object({
   email: yup.string().required('Email обязателен').email('Неверный формат email')
 })
 
+// hCaptcha handlers
+function handleCaptchaVerify(token: string) {
+  captchaToken.value = token
+  captchaError.value = ''
+}
+
+function handleCaptchaError() {
+  captchaToken.value = null
+  captchaError.value = 'Ошибка проверки CAPTCHA. Попробуйте еще раз'
+}
+
+function handleCaptchaExpired() {
+  captchaToken.value = null
+  captchaError.value = 'CAPTCHA истекла. Пожалуйста, пройдите проверку снова'
+}
+
 async function handleSubmit() {
   errors.email = ''
   errors.password = ''
   serverError.value = ''
+  captchaError.value = ''
+
+  // Проверка CAPTCHA если она показана
+  if (showCaptcha.value && !captchaToken.value) {
+    captchaError.value = 'Пожалуйста, пройдите проверку CAPTCHA'
+    return
+  }
 
   try {
     await schema.validate(form, { abortEarly: false })
@@ -210,8 +252,14 @@ async function handleSubmit() {
   isLoading.value = false
 
   if (result.success) {
+    // Сбросить счетчик попыток при успешном входе
+    loginAttempts.value = 0
+    captchaToken.value = null
     router.push('/dashboard')
   } else {
+    // Увеличить счетчик неудачных попыток
+    loginAttempts.value++
+    captchaToken.value = null // Сбросить токен для новой попытки
     serverError.value = result.error || 'Ошибка входа'
   }
 }
@@ -520,5 +568,23 @@ function resetForgotForm() {
   height: 24px;
   flex-shrink: 0;
   margin-top: 2px;
+}
+
+.captcha-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.captcha-wrapper > div {
+  transform: scale(0.95);
+  transform-origin: center;
+}
+
+@media (max-width: 640px) {
+  .captcha-wrapper > div {
+    transform: scale(0.85);
+  }
 }
 </style>

@@ -14,6 +14,11 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresGuest: true }
   },
   {
+    path: '/auth/confirm',
+    name: 'EmailConfirm',
+    component: () => import('../views/EmailConfirmPage.vue')
+  },
+  {
     path: '/dashboard',
     name: 'Dashboard',
     component: () => import('../views/DashboardPage.vue'),
