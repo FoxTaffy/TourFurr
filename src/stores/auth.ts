@@ -479,25 +479,39 @@ export const useAuthStore = defineStore('auth', () => {
           email: cleanEmail,
           password_hash: '', // Not needed anymore, Supabase Auth handles it
           nickname: cleanNickname,
-          phone: sanitizeInput(data.phone),
-          telegram: sanitizeInput(data.telegram),
+          phone: sanitizeInput(data.phone, 20),
+          telegram: sanitizeInput(data.telegram, 100),
           avatar_url: avatarUrl,
-          description: data.description ? sanitizeInput(data.description) : null,
+          description: data.description ? sanitizeInput(data.description, 500) : null,
           status: 'pending',
           email_subscribed: data.emailSubscribed,
           email_verified: false, // Will be updated when user confirms email
           agree_rules: data.agreeRules,
           agree_privacy: data.agreePrivacy,
           has_allergies: data.hasAllergies,
-          allergies_description: data.allergiesDescription ? sanitizeInput(data.allergiesDescription) : null,
+          allergies_description: data.allergiesDescription ? sanitizeInput(data.allergiesDescription, 300) : null,
           bringing_pet: data.bringingPet,
-          pet_description: data.petDescription ? sanitizeInput(data.petDescription) : null
+          pet_description: data.petDescription ? sanitizeInput(data.petDescription, 300) : null
         })
         .select()
         .single()
 
       if (dbError) {
         console.error('Database error:', dbError)
+
+        // Security: Cleanup uploaded avatar if DB insert failed
+        if (avatarUrl) {
+          try {
+            const fileName = avatarUrl.split('/').pop()
+            if (fileName) {
+              await supabase.storage.from('avatars').remove([fileName])
+              console.log('Cleaned up orphaned avatar file:', fileName)
+            }
+          } catch (cleanupError) {
+            console.error('Failed to cleanup avatar:', cleanupError)
+          }
+        }
+
         if (dbError.code === '23505') {
           if (dbError.message.includes('nickname')) {
             error.value = 'Этот никнейм уже занят'
