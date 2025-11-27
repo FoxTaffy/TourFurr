@@ -1,0 +1,332 @@
+/*
+ * Common Component Styles для TourFurr
+ * Централизованные стили для переиспользования в компонентах
+ */
+
+/* ============================================================================
+   КНОПКИ
+   ============================================================================ */
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--fire), var(--fire-glow));
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.5);
+}
+
+.btn-secondary {
+  background: rgba(61, 45, 36, 0.8);
+  border: 1px solid rgba(139, 111, 71, 0.4);
+  color: var(--cream);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(61, 45, 36, 1);
+  transform: translateY(-2px);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ============================================================================
+   ФОРМЫ
+   ============================================================================ */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--cream);
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(26, 17, 14, 0.6);
+  border: 1px solid var(--moss);
+  border-radius: 10px;
+  color: var(--cream);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--sage);
+  opacity: 0.7;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--fire);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.form-input.error,
+.form-textarea.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.error-text {
+  font-size: 0.8rem;
+  color: #fca5a5;
+  margin-top: 0.25rem;
+}
+
+.char-count {
+  font-size: 0.75rem;
+  color: var(--sage);
+  text-align: right;
+  margin-top: 0.25rem;
+}
+
+/* ============================================================================
+   КАРТОЧКИ
+   ============================================================================ */
+
+.card {
+  background: linear-gradient(
+    135deg,
+    rgba(42, 31, 26, 0.85) 0%,
+    rgba(61, 45, 36, 0.80) 100%
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 111, 71, 0.5);
+  border-radius: 20px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(255, 107, 53, 0.1);
+}
+
+.card-header {
+  font-family: 'Merriweather', serif;
+  font-size: 1.5rem;
+  color: var(--fire-glow);
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(139, 111, 71, 0.3);
+}
+
+/* ============================================================================
+   ЧЕКБОКСЫ
+   ============================================================================ */
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--sage);
+  transition: color 0.3s ease;
+}
+
+.checkbox-label:hover {
+  color: var(--cream);
+}
+
+.checkbox {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--fire);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* ============================================================================
+   МОДАЛЬНЫЕ ОКНА
+   ============================================================================ */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.modal-content {
+  background: linear-gradient(
+    135deg,
+    rgba(42, 31, 26, 0.95) 0%,
+    rgba(61, 45, 36, 0.95) 100%
+  );
+  padding: 2.5rem;
+  border-radius: 20px;
+  max-width: 500px;
+  width: 90%;
+  border: 1px solid rgba(139, 111, 71, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+}
+
+/* ============================================================================
+   ЗАГРУЗЧИКИ
+   ============================================================================ */
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-large {
+  width: 48px;
+  height: 48px;
+  border-width: 4px;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   СТАТУСЫ
+   ============================================================================ */
+
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-pending {
+  background: rgba(255, 179, 71, 0.2);
+  color: var(--fire-glow);
+}
+
+.status-approved {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.status-rejected {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+/* ============================================================================
+   УТИЛИТЫ
+   ============================================================================ */
+
+.text-center {
+  text-align: center;
+}
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mt-4 { margin-top: 2rem; }
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 2rem; }
+
+.gap-1 { gap: 0.5rem; }
+.gap-2 { gap: 1rem; }
+.gap-3 { gap: 1.5rem; }
+.gap-4 { gap: 2rem; }
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+
+/* ============================================================================
+   АДАПТИВНОСТЬ
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .btn {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.95rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .card-header {
+    font-size: 1.25rem;
+  }
+
+  .modal-content {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+  }
+}

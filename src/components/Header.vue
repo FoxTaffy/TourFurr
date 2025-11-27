@@ -7,13 +7,26 @@
             <span class="logo-text">TourFurr</span>
           </a>
 
+          <!-- Mobile Menu Toggle -->
+          <button
+            v-if="!isDashboard"
+            class="mobile-menu-toggle"
+            @click="mobileMenuOpen = !mobileMenuOpen"
+            :class="{ active: mobileMenuOpen }"
+            aria-label="Toggle menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
           <!-- Navigation Links (for home page) -->
-          <ul v-if="!isDashboard" class="nav-links">
-            <li><a href="#event" @click.prevent="scrollTo('event')">О событии</a></li>
-            <li><a href="#info" @click.prevent="scrollTo('info')">Информация</a></li>
-            <li><a href="#rules" @click.prevent="scrollTo('rules')">Правила</a></li>
-            <li><a href="#faq" @click.prevent="scrollTo('faq')">FAQ</a></li>
-            <li><a href="#contacts" @click.prevent="scrollTo('contacts')">Контакты</a></li>
+          <ul v-if="!isDashboard" class="nav-links" :class="{ open: mobileMenuOpen }">
+            <li><a href="#event" @click.prevent="scrollToAndClose('event')">О событии</a></li>
+            <li><a href="#info" @click.prevent="scrollToAndClose('info')">Информация</a></li>
+            <li><a href="#rules" @click.prevent="scrollToAndClose('rules')">Правила</a></li>
+            <li><a href="#faq" @click.prevent="scrollToAndClose('faq')">FAQ</a></li>
+            <li><a href="#contacts" @click.prevent="scrollToAndClose('contacts')">Контакты</a></li>
             <li v-if="showAuthButtons && !isAuthenticated">
               <a href="/auth" class="auth-button">Войти</a>
             </li>
@@ -44,6 +57,13 @@
           </div>
         </nav>
       </header>
+
+      <!-- Mobile Menu Overlay -->
+      <div
+        v-if="!isDashboard && mobileMenuOpen"
+        class="mobile-overlay"
+        @click="mobileMenuOpen = false"
+      ></div>
 
       <!-- Pin Code Modal (outside header for full screen) -->
       <Teleport to="body">
@@ -100,6 +120,7 @@
         pinCode: '',
         pinError: '',
         isPinUnlocked: false,
+        mobileMenuOpen: false,
         defaultAvatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=default&backgroundColor=ff6b35'
       }
     },
@@ -133,6 +154,10 @@
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }
+      },
+      scrollToAndClose(id) {
+        this.scrollTo(id)
+        this.mobileMenuOpen = false
       },
       checkPinCode() {
         if (this.pinCode === ADMIN_PIN) {
@@ -256,67 +281,196 @@
       width: 100%;
   }
   
+  /* Mobile Menu Toggle Button */
+  .mobile-menu-toggle {
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 30px;
+      height: 24px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      z-index: 1001;
+      transition: transform 0.3s ease;
+  }
+
+  .mobile-menu-toggle span {
+      width: 100%;
+      height: 3px;
+      background: var(--fire-glow);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+      transform-origin: center;
+  }
+
+  .mobile-menu-toggle.active span:nth-child(1) {
+      transform: translateY(10.5px) rotate(45deg);
+  }
+
+  .mobile-menu-toggle.active span:nth-child(2) {
+      opacity: 0;
+      transform: scaleX(0);
+  }
+
+  .mobile-menu-toggle.active span:nth-child(3) {
+      transform: translateY(-10.5px) rotate(-45deg);
+  }
+
+  /* Mobile Overlay */
+  .mobile-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 999;
+      backdrop-filter: blur(4px);
+  }
+
   @media (max-width: 768px) {
       nav {
-          flex-direction: column;
-          gap: 1rem;
-          padding: 1rem;
+          padding: 0.875rem 1rem;
       }
 
       .logo-text {
-          font-size: 1.4rem;
+          font-size: 1.5rem;
       }
 
       .logo-img {
-          height: 32px;
+          height: 34px;
       }
 
+      /* Show mobile menu toggle */
+      .mobile-menu-toggle {
+          display: flex;
+      }
+
+      /* Hide navigation by default on mobile */
       .nav-links {
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 0.75rem;
-          width: 100%;
+          position: fixed;
+          top: 0;
+          right: 0;
+          height: 100vh;
+          width: 280px;
+          max-width: 85vw;
+          background: linear-gradient(
+              135deg,
+              rgba(26, 17, 14, 0.98) 0%,
+              rgba(42, 31, 26, 0.98) 100%
+          );
+          backdrop-filter: blur(20px) saturate(150%);
+          -webkit-backdrop-filter: blur(20px) saturate(150%);
+          border-left: 1px solid rgba(139, 111, 71, 0.4);
+          box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+          flex-direction: column;
+          justify-content: flex-start;
+          align-items: stretch;
+          gap: 0;
+          padding: 5rem 0 2rem;
+          z-index: 1000;
+          transform: translateX(100%);
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          overflow-y: auto;
+      }
+
+      .nav-links.open {
+          transform: translateX(0);
+      }
+
+      .mobile-overlay {
+          display: block;
       }
 
       .nav-links li {
-          flex-shrink: 0;
+          width: 100%;
+          border-bottom: 1px solid rgba(139, 111, 71, 0.2);
+      }
+
+      .nav-links li:last-child {
+          border-bottom: none;
       }
 
       .nav-links a {
-          font-size: 0.9rem;
+          display: block;
+          padding: 1rem 1.5rem;
+          font-size: 1rem;
+          color: var(--cream);
+          text-align: left;
+          transition: all 0.3s ease;
+      }
+
+      .nav-links a:hover {
+          background: rgba(255, 107, 53, 0.1);
+          color: var(--fire-glow);
+          padding-left: 2rem;
+      }
+
+      .nav-links a::after {
+          display: none;
       }
 
       .user-mini-card {
-          padding: 0.4rem 0.8rem;
-          gap: 0.5rem;
+          padding: 0.75rem 1.5rem;
+          gap: 0.75rem;
+          border-radius: 0;
+          background: rgba(61, 45, 36, 0.3);
+      }
+
+      .user-mini-card-link:hover .user-mini-card {
+          transform: none;
+          box-shadow: none;
+          background: rgba(61, 45, 36, 0.5);
       }
 
       .user-avatar {
-          width: 32px;
-          height: 32px;
+          width: 38px;
+          height: 38px;
       }
 
       .user-name {
-          font-size: 0.85rem;
+          font-size: 0.95rem;
       }
 
       .user-status {
-          font-size: 0.7rem;
+          font-size: 0.75rem;
       }
 
       .auth-button {
-          padding: 0.5rem 1.2rem !important;
-          font-size: 0.9rem;
+          display: block;
+          text-align: center;
+          padding: 0.875rem 1.5rem !important;
+          font-size: 1rem;
+          border-radius: 0;
+          margin: 0;
+      }
+
+      .auth-button:hover {
+          transform: none;
       }
 
       .logout-btn {
-          padding: 8px 16px;
-          font-size: 0.9rem;
+          padding: 10px 18px;
+          font-size: 0.95rem;
       }
 
       .dashboard-actions {
+          width: auto;
+      }
+  }
+
+  @media (max-width: 480px) {
+      .logo-text {
+          font-size: 1.3rem;
+      }
+
+      .logo-img {
+          height: 30px;
+      }
+
+      .nav-links {
           width: 100%;
-          justify-content: center;
+          max-width: 100vw;
       }
   }
 

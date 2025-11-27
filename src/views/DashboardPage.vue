@@ -97,6 +97,32 @@
                 <textarea v-model="editForm.description" rows="3"></textarea>
               </div>
 
+              <div class="form-group">
+                <label class="checkbox-label-edit">
+                  <input v-model="editForm.hasAllergies" type="checkbox" />
+                  <span>У меня есть аллергия</span>
+                </label>
+                <textarea
+                  v-if="editForm.hasAllergies"
+                  v-model="editForm.allergiesDescription"
+                  rows="2"
+                  placeholder="Опишите вашу аллергию..."
+                ></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="checkbox-label-edit">
+                  <input v-model="editForm.bringingPet" type="checkbox" />
+                  <span>Планирую взять с собой питомца</span>
+                </label>
+                <textarea
+                  v-if="editForm.bringingPet"
+                  v-model="editForm.petDescription"
+                  rows="2"
+                  placeholder="Опишите животное..."
+                ></textarea>
+              </div>
+
               <div class="edit-actions">
                 <button class="save-btn" @click="saveProfile" :disabled="isSaving">
                   {{ isSaving ? 'Сохранение...' : 'Сохранить' }}
@@ -117,7 +143,7 @@
         <!-- Middle Column - Event Details -->
         <div class="details-card">
           <div class="card-header">
-            <h3>Лесной Кемп 2026</h3>
+            <h3>TourFurr 2026 | Игра Престолов</h3>
           </div>
 
           <div class="details-list">
@@ -138,6 +164,28 @@
           <div v-if="user?.description" class="description-block">
             <span class="detail-label">О себе</span>
             <p>{{ user.description }}</p>
+          </div>
+
+          <!-- Allergies Info -->
+          <div v-if="user?.hasAllergies" class="info-block allergies-block">
+            <div class="info-header">
+              <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+              </svg>
+              <span class="info-title">Аллергия</span>
+            </div>
+            <p class="info-text">{{ user.allergiesDescription || 'Не указано' }}</p>
+          </div>
+
+          <!-- Pet Info -->
+          <div v-if="user?.bringingPet" class="info-block pet-block">
+            <div class="info-header">
+              <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="info-title">Питомец</span>
+            </div>
+            <p class="info-text">{{ user.petDescription || 'Не указано' }}</p>
           </div>
 
           <p class="status-message">{{ statusDescriptions[user?.status || 'pending'] }}</p>
@@ -256,7 +304,11 @@ const editForm = ref({
   nickname: '',
   phone: '',
   telegram: '',
-  description: ''
+  description: '',
+  hasAllergies: false,
+  allergiesDescription: '',
+  bringingPet: false,
+  petDescription: ''
 })
 
 function startEditing() {
@@ -265,7 +317,11 @@ function startEditing() {
       nickname: user.value.nickname,
       phone: user.value.phone,
       telegram: user.value.telegram,
-      description: user.value.description || ''
+      description: user.value.description || '',
+      hasAllergies: user.value.hasAllergies,
+      allergiesDescription: user.value.allergiesDescription || '',
+      bringingPet: user.value.bringingPet,
+      petDescription: user.value.petDescription || ''
     }
     avatarPreview.value = null
     newAvatarFile.value = null
@@ -299,7 +355,11 @@ async function saveProfile() {
     nickname: editForm.value.nickname,
     phone: editForm.value.phone,
     telegram: editForm.value.telegram,
-    description: editForm.value.description
+    description: editForm.value.description,
+    hasAllergies: editForm.value.hasAllergies,
+    allergiesDescription: editForm.value.allergiesDescription,
+    bringingPet: editForm.value.bringingPet,
+    petDescription: editForm.value.petDescription
   }
 
   if (newAvatarFile.value) {
@@ -376,11 +436,17 @@ const statusLabels: Record<string, string> = {
   rejected: 'Отклонено'
 }
 
-const statusDescriptions: Record<string, string> = {
-  pending: 'Ваша заявка находится на рассмотрении. Обычно это занимает 1-2 рабочих дня.',
-  approved: 'Поздравляем! Ваша заявка одобрена. Оплатите участие по реквизитам справа.',
-  rejected: 'К сожалению, ваша заявка отклонена. Свяжитесь с нами в Telegram.'
-}
+const statusDescriptions = computed(() => {
+  const isSubscribed = user.value?.emailSubscribed || false
+
+  return {
+    pending: isSubscribed
+      ? 'Вы получите уведомление на почту, когда статус заявки изменится.'
+      : 'Подпишитесь на рассылку, чтобы получать уведомления о статусе заявки на почту.',
+    approved: 'Поздравляем! Ваша заявка одобрена. Оплатите участие по реквизитам справа.',
+    rejected: 'К сожалению, ваша заявка отклонена. Свяжитесь с нами в Telegram.'
+  }
+})
 
 function formatDate(dateStr: string | undefined) {
   if (!dateStr) return 'Неизвестно'
@@ -641,6 +707,58 @@ function handleLogout() {
   font-size: 0.95rem;
   line-height: 1.5;
   margin-top: 0.5rem;
+}
+
+/* Info Blocks */
+.info-block {
+  background: rgba(26, 17, 14, 0.5);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-left: 3px solid;
+}
+
+.allergies-block {
+  border-left-color: #f59e0b;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(26, 17, 14, 0.5));
+}
+
+.pet-block {
+  border-left-color: #22c55e;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(26, 17, 14, 0.5));
+}
+
+.info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.info-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.allergies-block .info-icon {
+  color: #f59e0b;
+}
+
+.pet-block .info-icon {
+  color: #22c55e;
+}
+
+.info-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--cream);
+}
+
+.info-text {
+  color: var(--sage);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .status-message {
@@ -997,5 +1115,26 @@ function handleLogout() {
 .delete-btn svg {
   width: 16px;
   height: 16px;
+}
+
+.checkbox-label-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--cream);
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+.checkbox-label-edit input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--fire);
+}
+
+.checkbox-label-edit:hover {
+  color: var(--fire-glow);
 }
 </style>
