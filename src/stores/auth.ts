@@ -2,15 +2,20 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '../services/supabase'
 import bcrypt from 'bcryptjs'
+import {
+  rateLimiter,
+  RATE_LIMITS,
+  sanitizeInput,
+  isValidEmail,
+  checkPasswordStrength,
+  detectSuspiciousActivity,
+  securityLogger,
+  getClientFingerprint
+} from '@/utils/security'
 
 // Security: Allowed file types for avatar
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
-
-// Security: Sanitize user input
-function sanitizeInput(input: string): string {
-  return input.trim().slice(0, 500)
-}
 
 // Security: Validate file
 function validateFile(file: File): { valid: boolean; error?: string } {
@@ -115,24 +120,72 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      // Security: Sanitize email input
-      const sanitizedEmail = sanitizeInput(email).toLowerCase()
-      console.log('Attempting login with email:', sanitizedEmail)
+      // Security: Sanitize and validate email
+      const cleanEmail = sanitizeInput(email.toLowerCase())
+      const fingerprint = getClientFingerprint()
+
+      // Security: Rate limiting - prevent brute force attacks
+      if (!rateLimiter.isAllowed(cleanEmail, RATE_LIMITS.LOGIN)) {
+        const blockedTime = rateLimiter.getBlockedTime(cleanEmail)
+        securityLogger.log({
+          type: 'rate_limit',
+          identifier: cleanEmail,
+          details: { action: 'login', fingerprint }
+        })
+        error.value = `Слишком много попыток входа. Попробуйте через ${Math.ceil(blockedTime / 60)} минут`
+        return { success: false, error: error.value }
+      }
+
+      // Security: Email validation
+      if (!isValidEmail(cleanEmail)) {
+        error.value = 'Неверный формат email'
+        return { success: false, error: error.value }
+      }
+
+      // Security: Detect suspicious activity (XSS, SQL injection attempts)
+      if (detectSuspiciousActivity(email) || detectSuspiciousActivity(password)) {
+        securityLogger.log({
+          type: 'suspicious_activity',
+          identifier: cleanEmail,
+          details: { action: 'login', fingerprint }
+        })
+        error.value = 'Обнаружена подозрительная активность'
+        return { success: false, error: error.value }
+      }
+
+      // Security: Log login attempt
+      securityLogger.log({
+        type: 'login_attempt',
+        identifier: cleanEmail,
+        details: { fingerprint }
+      })
+
+      console.log('Attempting login with email:', cleanEmail)
 
       const { data, error: dbError } = await supabase
         .from('users')
         .select('*')
-        .eq('email', sanitizedEmail)
+        .eq('email', cleanEmail)
         .maybeSingle()
 
       if (dbError) {
         console.error('Database error:', dbError)
+        securityLogger.log({
+          type: 'login_failure',
+          identifier: cleanEmail,
+          details: { reason: 'database_error', fingerprint }
+        })
         error.value = 'Ошибка базы данных'
         return { success: false, error: error.value }
       }
 
       if (!data) {
-        console.log('User not found with email:', sanitizedEmail)
+        console.log('User not found with email:', cleanEmail)
+        securityLogger.log({
+          type: 'login_failure',
+          identifier: cleanEmail,
+          details: { reason: 'user_not_found', fingerprint }
+        })
         error.value = 'Неверный email или пароль'
         return { success: false, error: error.value }
       }
@@ -142,6 +195,11 @@ export const useAuthStore = defineStore('auth', () => {
       const isValid = await bcrypt.compare(password, data.password_hash)
       if (!isValid) {
         console.log('Password verification failed')
+        securityLogger.log({
+          type: 'login_failure',
+          identifier: cleanEmail,
+          details: { reason: 'invalid_password', fingerprint }
+        })
         error.value = 'Неверный email или пароль'
         return { success: false, error: error.value }
       }
@@ -154,9 +212,18 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem('auth_token', token.value)
       localStorage.setItem('current_user', JSON.stringify(mappedUser))
 
+      // Security: Reset rate limit on successful login
+      rateLimiter.reset(cleanEmail)
+
       return { success: true }
     } catch (err: any) {
       console.error('Login error:', err)
+      const cleanEmail = sanitizeInput(email.toLowerCase())
+      securityLogger.log({
+        type: 'login_failure',
+        identifier: cleanEmail,
+        details: { error: err.message, fingerprint: getClientFingerprint() }
+      })
       error.value = err.message || 'Ошибка входа'
       return { success: false, error: error.value }
     } finally {
@@ -169,6 +236,59 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
+      // Security: Sanitize and validate email
+      const cleanEmail = sanitizeInput(data.email.toLowerCase())
+      const cleanNickname = sanitizeInput(data.nickname)
+      const fingerprint = getClientFingerprint()
+
+      // Security: Rate limiting - prevent mass registration attacks
+      if (!rateLimiter.isAllowed(cleanEmail, RATE_LIMITS.REGISTER)) {
+        const blockedTime = rateLimiter.getBlockedTime(cleanEmail)
+        error.value = `Слишком много попыток регистрации. Попробуйте через ${Math.ceil(blockedTime / 60)} минут`
+        return { success: false, error: error.value }
+      }
+
+      // Security: Email validation
+      if (!isValidEmail(cleanEmail)) {
+        error.value = 'Неверный формат email'
+        return { success: false, error: error.value }
+      }
+
+      // Security: Password strength check
+      const passwordCheck = checkPasswordStrength(data.password)
+      if (!passwordCheck.isStrong) {
+        error.value = `Пароль недостаточно надежный: ${passwordCheck.feedback.join(', ')}`
+        return { success: false, error: error.value }
+      }
+
+      // Security: Detect suspicious activity in all text inputs
+      const allInputs = [
+        data.email,
+        data.nickname,
+        data.phone,
+        data.telegram,
+        data.description || '',
+        data.allergiesDescription || '',
+        data.petDescription || ''
+      ]
+
+      if (allInputs.some(input => detectSuspiciousActivity(input))) {
+        securityLogger.log({
+          type: 'suspicious_activity',
+          identifier: cleanEmail,
+          details: { action: 'register', fingerprint }
+        })
+        error.value = 'Обнаружена подозрительная активность в данных'
+        return { success: false, error: error.value }
+      }
+
+      // Security: Log registration attempt
+      securityLogger.log({
+        type: 'registration',
+        identifier: cleanEmail,
+        details: { fingerprint }
+      })
+
       // Hash password
       const passwordHash = await bcrypt.hash(data.password, 12)
 
@@ -245,6 +365,9 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem('auth_token', token.value)
       localStorage.setItem('current_user', JSON.stringify(mappedUser))
 
+      // Security: Reset rate limit on successful registration
+      rateLimiter.reset(cleanEmail)
+
       return { success: true }
     } catch (err: any) {
       error.value = err.message || 'Ошибка регистрации'
@@ -255,14 +378,32 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function checkEmailUnique(email: string): Promise<boolean> {
-    // Security: Sanitize input
-    const sanitizedEmail = sanitizeInput(email).toLowerCase()
-    const { data } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', sanitizedEmail)
-      .single()
-    return !data
+    // Security: Sanitize and validate email
+    const cleanEmail = sanitizeInput(email.toLowerCase())
+
+    // Security: Rate limiting to prevent email enumeration attacks
+    if (!rateLimiter.isAllowed(`email_check_${cleanEmail}`, RATE_LIMITS.EMAIL_CHECK)) {
+      // Return true to not reveal information when rate limited
+      return true
+    }
+
+    // Security: Email format validation
+    if (!isValidEmail(cleanEmail)) {
+      return true
+    }
+
+    try {
+      const { data } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', cleanEmail)
+        .maybeSingle()
+
+      return !data
+    } catch {
+      // Return true to not reveal information on error
+      return true
+    }
   }
 
   async function checkNicknameUnique(nickname: string): Promise<boolean> {
