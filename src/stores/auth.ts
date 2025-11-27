@@ -54,6 +54,8 @@ export interface User {
   description?: string
   status: 'pending' | 'approved' | 'rejected'
   emailSubscribed: boolean
+  emailVerified: boolean
+  emailVerifiedAt?: string
   createdAt: string
   isAdmin: boolean
   hasAllergies: boolean
@@ -91,6 +93,8 @@ function mapDbUserToUser(dbUser: any): User {
     description: dbUser.description,
     status: dbUser.status,
     emailSubscribed: dbUser.email_subscribed,
+    emailVerified: dbUser.email_verified || false,
+    emailVerifiedAt: dbUser.email_verified_at,
     createdAt: dbUser.created_at,
     isAdmin: dbUser.is_admin || false,
     hasAllergies: dbUser.has_allergies || false,
