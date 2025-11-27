@@ -586,6 +586,7 @@ export const useAuthStore = defineStore('auth', () => {
     allergiesDescription?: string
     bringingPet?: boolean
     petDescription?: string
+    emailSubscribed?: boolean
   }) {
     if (!user.value) return { success: false, error: 'Не авторизован' }
 
@@ -613,6 +614,9 @@ export const useAuthStore = defineStore('auth', () => {
       }
       if (updates.petDescription !== undefined) {
         updateData.pet_description = updates.petDescription ? sanitizeInput(updates.petDescription) : null
+      }
+      if (updates.emailSubscribed !== undefined) {
+        updateData.email_subscribed = updates.emailSubscribed
       }
 
       // Handle avatar upload
