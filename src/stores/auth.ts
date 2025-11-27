@@ -210,21 +210,55 @@ export const useAuthStore = defineStore('auth', () => {
               return { success: false, error: error.value }
             }
 
-            console.log('Migration successful, updating user record...')
+            console.log('Migration successful, migrating user record...')
 
-            // Update user record with new Supabase Auth ID
-            const { error: updateError } = await supabase
+            // Delete old record and create new one with Supabase Auth ID
+            // Step 1: Save old user data
+            const oldUserData = { ...oldUser }
+
+            // Step 2: Delete old record
+            const { error: deleteError } = await supabase
               .from('users')
-              .update({
-                id: migratedAuth.user.id,
-                password_hash: '', // Clear old password
-                email_verified: true // Old users are pre-verified
-              })
-              .eq('email', cleanEmail)
+              .delete()
+              .eq('id', oldUser.id)
 
-            if (updateError) {
-              console.error('Failed to update user record:', updateError)
+            if (deleteError) {
+              console.error('Failed to delete old user record:', deleteError)
+              error.value = 'Ошибка миграции аккаунта. Свяжитесь с поддержкой.'
+              return { success: false, error: error.value }
             }
+
+            // Step 3: Insert new record with new Supabase Auth ID
+            const { error: insertError } = await supabase
+              .from('users')
+              .insert({
+                id: migratedAuth.user.id,  // New Supabase Auth ID
+                email: oldUserData.email,
+                password_hash: '',  // Clear old password (now managed by Supabase Auth)
+                nickname: oldUserData.nickname,
+                phone: oldUserData.phone,
+                telegram: oldUserData.telegram,
+                avatar_url: oldUserData.avatar_url,
+                description: oldUserData.description,
+                status: oldUserData.status,
+                email_subscribed: oldUserData.email_subscribed,
+                email_verified: true,  // Old users are pre-verified
+                agree_rules: oldUserData.agree_rules,
+                agree_privacy: oldUserData.agree_privacy,
+                has_allergies: oldUserData.has_allergies,
+                allergies_description: oldUserData.allergies_description,
+                bringing_pet: oldUserData.bringing_pet,
+                pet_description: oldUserData.pet_description,
+                created_at: oldUserData.created_at  // Preserve original creation date
+              })
+
+            if (insertError) {
+              console.error('Failed to insert migrated user record:', insertError)
+              error.value = 'Ошибка миграции аккаунта. Свяжитесь с поддержкой.'
+              return { success: false, error: error.value }
+            }
+
+            console.log('User record migrated successfully')
 
             // Now try to sign in again with Supabase Auth
             authData = await supabase.auth.signInWithPassword({
