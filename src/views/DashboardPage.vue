@@ -180,9 +180,9 @@
           <!-- Pet Info -->
           <div v-if="user?.bringingPet" class="info-block pet-block">
             <div class="info-header">
-              <svg class="info-icon" fill="currentColor" viewBox="0 0 24 24">
-                <!-- Dog paw icon -->
-                <path d="M8.5 14c1.38 0 2.5-1.12 2.5-2.5S9.88 9 8.5 9 6 10.12 6 11.5 7.12 14 8.5 14zm0-3.5c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM15.5 14c1.38 0 2.5-1.12 2.5-2.5S16.88 9 15.5 9 13 10.12 13 11.5s1.12 2.5 2.5 2.5zm0-3.5c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM5.5 9C6.88 9 8 7.88 8 6.5S6.88 4 5.5 4 3 5.12 3 6.5 4.12 9 5.5 9zm0-3.5c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM18.5 9c1.38 0 2.5-1.12 2.5-2.5S19.88 4 18.5 4 16 5.12 16 6.5 17.12 9 18.5 9zm0-3.5c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM12 18c3.31 0 6-2.69 6-6h-2c0 2.21-1.79 4-4 4s-4-1.79-4-4H6c0 3.31 2.69 6 6 6z"/>
+              <svg class="info-icon" fill="currentColor" viewBox="0 0 512 512">
+                <!-- Beautiful paw print icon from FontAwesome -->
+                <path d="M226.5 92.9c14.3 42.9-.3 86.2-32.6 96.8s-70.1-15.6-84.4-58.5s.3-86.2 32.6-96.8s70.1 15.6 84.4 58.5zM100.4 198.6c18.9 32.4 14.3 70.1-10.2 84.1s-59.7-.9-78.5-33.3S-2.7 179.3 21.8 165.3s59.7 .9 78.5 33.3zM69.2 401.2C121.6 259.9 214.7 224 256 224s134.4 35.9 186.8 177.2c3.6 9.7 5.2 20.1 5.2 30.5v1.6c0 25.8-20.9 46.7-46.7 46.7c-11.5 0-22.9-1.4-34-4.2l-88-22c-15.3-3.8-31.3-3.8-46.6 0l-88 22c-11.1 2.8-22.5 4.2-34 4.2C84.9 480 64 459.1 64 433.3v-1.6c0-10.4 1.6-20.8 5.2-30.5zM421.8 282.7c-24.5-14-29.1-51.7-10.2-84.1s54-47.3 78.5-33.3s29.1 51.7 10.2 84.1s-54 47.3-78.5 33.3zM310.1 189.7c-32.3-10.6-46.9-53.9-32.6-96.8s52.1-69.1 84.4-58.5s46.9 53.9 32.6 96.8s-52.1 69.1-84.4 58.5z"/>
               </svg>
               <span class="info-title">Питомец 🐾</span>
             </div>
@@ -190,6 +190,19 @@
           </div>
 
           <p class="status-message">{{ statusDescriptions[user?.status || 'pending'] }}</p>
+
+          <!-- Newsletter Subscription Button (only if not subscribed) -->
+          <button
+            v-if="!user?.emailSubscribed"
+            @click="subscribeToNewsletter"
+            :disabled="isSubscribing"
+            class="subscribe-btn"
+          >
+            <svg class="subscribe-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+            <span>{{ isSubscribing ? 'Подписка...' : 'Подписаться на рассылку' }}</span>
+          </button>
         </div>
 
         <!-- Right Column - Payment Info (only for approved) -->
@@ -297,6 +310,7 @@ const infoError = ref<string | null>(null)
 // Edit mode
 const isEditing = ref(false)
 const isSaving = ref(false)
+const isSubscribing = ref(false)
 const avatarInput = ref<HTMLInputElement | null>(null)
 const avatarPreview = ref<string | null>(null)
 const newAvatarFile = ref<File | null>(null)
@@ -391,6 +405,23 @@ async function confirmDelete() {
       }
     }
   }
+}
+
+async function subscribeToNewsletter() {
+  isSubscribing.value = true
+
+  const result = await authStore.updateProfile({
+    emailSubscribed: true
+  })
+
+  if (result.success) {
+    // Success - user is now subscribed
+    console.log('Successfully subscribed to newsletter')
+  } else {
+    alert(result.error || 'Ошибка подписки на рассылку')
+  }
+
+  isSubscribing.value = false
 }
 
 async function fetchApprovedInfo() {
@@ -767,6 +798,42 @@ function handleLogout() {
   font-size: 0.9rem;
   line-height: 1.5;
   font-style: italic;
+  margin-bottom: 1rem;
+}
+
+/* Newsletter Subscription Button */
+.subscribe-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--fire), var(--fire-glow));
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-family: 'Lora', serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.subscribe-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+}
+
+.subscribe-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.subscribe-icon {
+  width: 20px;
+  height: 20px;
 }
 
 /* Visual Card */

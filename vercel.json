@@ -28,5 +28,11 @@
         }
       ]
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cleanup-unverified",
+      "schedule": "0 2 * * *"
+    }
   ]
 }
