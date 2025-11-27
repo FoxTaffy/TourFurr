@@ -166,14 +166,80 @@ export const useAuthStore = defineStore('auth', () => {
 
       console.log('Attempting login with email:', cleanEmail)
 
-      // 1. Authenticate with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      // 1. Try Supabase Auth first (for new users)
+      let authData = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password: password
       })
 
-      if (authError) {
-        console.error('Auth error:', authError)
+      // 2. If Supabase Auth fails, check if it's an old user with bcrypt password
+      if (authData.error && authData.error.message.includes('Invalid login credentials')) {
+        console.log('Supabase Auth failed, checking for old user with bcrypt...')
+
+        // Check if user exists in database with old bcrypt password
+        const { data: oldUser, error: dbError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', cleanEmail)
+          .maybeSingle()
+
+        if (oldUser && oldUser.password_hash) {
+          console.log('Found old user, verifying bcrypt password...')
+
+          // Verify old bcrypt password
+          const isValidBcrypt = await bcrypt.compare(password, oldUser.password_hash)
+
+          if (isValidBcrypt) {
+            console.log('Old password valid, migrating to Supabase Auth...')
+
+            // Migrate user to Supabase Auth
+            const { data: migratedAuth, error: migrateError } = await supabase.auth.signUp({
+              email: cleanEmail,
+              password: password,
+              options: {
+                data: {
+                  migrated: true,
+                  original_id: oldUser.id
+                }
+              }
+            })
+
+            if (migrateError || !migratedAuth.user) {
+              console.error('Migration failed:', migrateError)
+              error.value = 'Ошибка миграции аккаунта. Свяжитесь с поддержкой.'
+              return { success: false, error: error.value }
+            }
+
+            console.log('Migration successful, updating user record...')
+
+            // Update user record with new Supabase Auth ID
+            const { error: updateError } = await supabase
+              .from('users')
+              .update({
+                id: migratedAuth.user.id,
+                password_hash: '', // Clear old password
+                email_verified: true // Old users are pre-verified
+              })
+              .eq('email', cleanEmail)
+
+            if (updateError) {
+              console.error('Failed to update user record:', updateError)
+            }
+
+            // Now try to sign in again with Supabase Auth
+            authData = await supabase.auth.signInWithPassword({
+              email: cleanEmail,
+              password: password
+            })
+
+            console.log('Migrated user logged in successfully')
+          }
+        }
+      }
+
+      // 3. Check final auth result
+      if (authData.error) {
+        console.error('Auth error:', authData.error)
         securityLogger.log({
           type: 'login_failure',
           identifier: cleanEmail,
@@ -183,7 +249,7 @@ export const useAuthStore = defineStore('auth', () => {
         return { success: false, error: error.value }
       }
 
-      if (!authData.user) {
+      if (!authData.data?.user) {
         console.log('User not found')
         securityLogger.log({
           type: 'login_failure',
@@ -194,8 +260,9 @@ export const useAuthStore = defineStore('auth', () => {
         return { success: false, error: error.value }
       }
 
-      // 2. Check if email is verified
-      if (!authData.user.email_confirmed_at) {
+      // 4. Check if email is verified (skip for migrated old users)
+      const isMigratedUser = authData.data.user.user_metadata?.migrated
+      if (!isMigratedUser && !authData.data.user.email_confirmed_at) {
         console.log('Email not confirmed')
         securityLogger.log({
           type: 'login_failure',
@@ -209,11 +276,11 @@ export const useAuthStore = defineStore('auth', () => {
 
       console.log('Email verified, fetching user data...')
 
-      // 3. Get user profile from users table
+      // 5. Get user profile from users table
       const { data: userData, error: dbError } = await supabase
         .from('users')
         .select('*')
-        .eq('id', authData.user.id)
+        .eq('id', authData.data.user.id)
         .maybeSingle()
 
       if (dbError || !userData) {
@@ -231,7 +298,7 @@ export const useAuthStore = defineStore('auth', () => {
       const mappedUser = mapDbUserToUser(userData)
 
       // Use Supabase session token
-      token.value = authData.session?.access_token || crypto.randomUUID()
+      token.value = authData.data.session?.access_token || crypto.randomUUID()
       user.value = mappedUser
       localStorage.setItem('auth_token', token.value)
       localStorage.setItem('current_user', JSON.stringify(mappedUser))
