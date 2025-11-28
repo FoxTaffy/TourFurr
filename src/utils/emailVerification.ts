@@ -72,7 +72,7 @@ export async function verifyCode(email: string, code: string): Promise<{
   error?: string
 }> {
   try {
-    // Find the most recent unused code for this email
+    // STRATEGY 1: Try our custom verification code system first
     const { data: codes, error: fetchError } = await supabase
       .from('email_verification_codes')
       .select('*')
@@ -81,57 +81,74 @@ export async function verifyCode(email: string, code: string): Promise<{
       .order('created_at', { ascending: false })
       .limit(1)
 
-    if (fetchError) {
-      console.error('Error fetching verification code:', fetchError)
-      return { success: false, error: 'Ошибка проверки кода' }
-    }
+    if (!fetchError && codes && codes.length > 0) {
+      const verificationRecord = codes[0] as VerificationCode
 
-    if (!codes || codes.length === 0) {
-      return { success: false, error: 'Код не найден. Запросите новый код.' }
-    }
+      // Check if code has expired
+      if (new Date(verificationRecord.expires_at) < new Date()) {
+        console.log('Custom code expired, will try Supabase OTP fallback')
+        // Don't return yet, try Supabase OTP as fallback
+      }
+      // Check if too many attempts
+      else if (verificationRecord.attempts >= 3) {
+        console.log('Too many attempts on custom code, will try Supabase OTP fallback')
+        // Don't return yet, try Supabase OTP as fallback
+      }
+      // Check if code matches our custom code
+      else if (verificationRecord.code === code) {
+        // Code is correct! Mark as used
+        const { error: updateError } = await supabase
+          .from('email_verification_codes')
+          .update({
+            used: true,
+            verified_at: new Date().toISOString()
+          })
+          .eq('id', verificationRecord.id)
 
-    const verificationRecord = codes[0] as VerificationCode
+        if (updateError) {
+          console.error('Error updating verification code:', updateError)
+        }
 
-    // Check if code has expired
-    if (new Date(verificationRecord.expires_at) < new Date()) {
-      return { success: false, error: 'Код истёк. Запросите новый код.' }
-    }
+        console.log('✅ Verified using custom code')
+        return { success: true }
+      } else {
+        // Increment attempts for wrong custom code
+        await supabase
+          .from('email_verification_codes')
+          .update({ attempts: verificationRecord.attempts + 1 })
+          .eq('id', verificationRecord.id)
 
-    // Check if too many attempts
-    if (verificationRecord.attempts >= 3) {
-      return { success: false, error: 'Превышено количество попыток. Запросите новый код.' }
-    }
-
-    // Check if code matches
-    if (verificationRecord.code !== code) {
-      // Increment attempts
-      await supabase
-        .from('email_verification_codes')
-        .update({ attempts: verificationRecord.attempts + 1 })
-        .eq('id', verificationRecord.id)
-
-      const attemptsLeft = 3 - (verificationRecord.attempts + 1)
-      return {
-        success: false,
-        error: `Неверный код. Осталось попыток: ${attemptsLeft}`
+        console.log('Custom code mismatch, will try Supabase OTP fallback')
+        // Continue to Supabase OTP fallback
       }
     }
 
-    // Code is correct! Mark as used
-    const { error: updateError } = await supabase
-      .from('email_verification_codes')
-      .update({
-        used: true,
-        verified_at: new Date().toISOString()
-      })
-      .eq('id', verificationRecord.id)
+    // STRATEGY 2: Fallback to Supabase's built-in OTP verification
+    // This handles codes sent by Supabase's automatic email system
+    console.log('Trying Supabase OTP verification as fallback...')
 
-    if (updateError) {
-      console.error('Error updating verification code:', updateError)
-      return { success: false, error: 'Ошибка обновления кода' }
+    try {
+      const { data: otpData, error: otpError } = await supabase.auth.verifyOtp({
+        email: email.toLowerCase(),
+        token: code,
+        type: 'email'
+      })
+
+      if (!otpError && otpData?.user) {
+        console.log('✅ Verified using Supabase OTP')
+        return { success: true }
+      } else {
+        console.log('Supabase OTP verification failed:', otpError?.message)
+      }
+    } catch (otpException: any) {
+      console.log('Exception during Supabase OTP verification:', otpException.message)
     }
 
-    return { success: true }
+    // Both strategies failed
+    return {
+      success: false,
+      error: 'Неверный код. Проверьте код из письма или запросите новый.'
+    }
   } catch (err: any) {
     console.error('Exception verifying code:', err)
     return { success: false, error: err.message || 'Неизвестная ошибка' }
