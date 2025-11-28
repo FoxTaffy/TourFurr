@@ -53,13 +53,10 @@ export interface User {
   avatar?: string
   description?: string
   status: 'pending' | 'approved' | 'rejected'
-  emailSubscribed: boolean
   emailVerified: boolean
   emailVerifiedAt?: string
   createdAt: string
   isAdmin: boolean
-  hasAllergies: boolean
-  allergiesDescription?: string
   bringingPet: boolean
   petDescription?: string
 }
@@ -74,9 +71,6 @@ export interface RegisterData {
   description?: string
   agreeRules: boolean
   agreePrivacy: boolean
-  emailSubscribed: boolean
-  hasAllergies: boolean
-  allergiesDescription?: string
   bringingPet: boolean
   petDescription?: string
 }
@@ -92,13 +86,10 @@ function mapDbUserToUser(dbUser: any): User {
     avatar: dbUser.avatar_url,
     description: dbUser.description,
     status: dbUser.status,
-    emailSubscribed: dbUser.email_subscribed,
     emailVerified: dbUser.email_verified || false,
     emailVerifiedAt: dbUser.email_verified_at,
     createdAt: dbUser.created_at,
     isAdmin: dbUser.is_admin || false,
-    hasAllergies: dbUser.has_allergies || false,
-    allergiesDescription: dbUser.allergies_description,
     bringingPet: dbUser.bringing_pet || false,
     petDescription: dbUser.pet_description
   }
@@ -254,12 +245,9 @@ export const useAuthStore = defineStore('auth', () => {
                 avatar_url: oldUserData.avatar_url,
                 description: oldUserData.description,
                 status: oldUserData.status,
-                email_subscribed: oldUserData.email_subscribed,
                 email_verified: true,  // Old users are pre-verified
                 agree_rules: oldUserData.agree_rules,
                 agree_privacy: oldUserData.agree_privacy,
-                has_allergies: oldUserData.has_allergies,
-                allergies_description: oldUserData.allergies_description,
                 bringing_pet: oldUserData.bringing_pet,
                 pet_description: oldUserData.pet_description,
                 created_at: oldUserData.created_at  // Preserve original creation date
@@ -497,12 +485,9 @@ export const useAuthStore = defineStore('auth', () => {
           avatar_url: avatarUrl,
           description: data.description ? sanitizeInput(data.description, 500) : null,
           status: 'pending',
-          email_subscribed: data.emailSubscribed,
           email_verified: false, // Will be updated when user confirms email
           agree_rules: data.agreeRules,
           agree_privacy: data.agreePrivacy,
-          has_allergies: data.hasAllergies,
-          allergies_description: data.allergiesDescription ? sanitizeInput(data.allergiesDescription, 300) : null,
           bringing_pet: data.bringingPet,
           pet_description: data.petDescription ? sanitizeInput(data.petDescription, 300) : null
         })
@@ -643,11 +628,8 @@ export const useAuthStore = defineStore('auth', () => {
     telegram?: string
     description?: string
     avatar?: File
-    hasAllergies?: boolean
-    allergiesDescription?: string
     bringingPet?: boolean
     petDescription?: string
-    emailSubscribed?: boolean
   }) {
     if (!user.value) return { success: false, error: 'Не авторизован' }
 
@@ -664,20 +646,11 @@ export const useAuthStore = defineStore('auth', () => {
       if (updates.description !== undefined) {
         updateData.description = updates.description ? sanitizeInput(updates.description) : null
       }
-      if (updates.hasAllergies !== undefined) {
-        updateData.has_allergies = updates.hasAllergies
-      }
-      if (updates.allergiesDescription !== undefined) {
-        updateData.allergies_description = updates.allergiesDescription ? sanitizeInput(updates.allergiesDescription) : null
-      }
       if (updates.bringingPet !== undefined) {
         updateData.bringing_pet = updates.bringingPet
       }
       if (updates.petDescription !== undefined) {
         updateData.pet_description = updates.petDescription ? sanitizeInput(updates.petDescription) : null
-      }
-      if (updates.emailSubscribed !== undefined) {
-        updateData.email_subscribed = updates.emailSubscribed
       }
 
       // Handle avatar upload

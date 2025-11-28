@@ -183,24 +183,6 @@
         <p class="char-count">{{ form.description.length }}/500</p>
       </div>
 
-      <!-- Allergies -->
-      <div class="form-group">
-        <label class="checkbox-label special">
-          <input v-model="form.hasAllergies" type="checkbox" class="checkbox" />
-          <span>У меня есть аллергия</span>
-        </label>
-        <div v-if="form.hasAllergies" class="conditional-field">
-          <textarea
-            v-model="form.allergiesDescription"
-            rows="2"
-            maxlength="300"
-            placeholder="Опишите вашу аллергию..."
-            class="form-input form-textarea"
-          />
-          <p class="char-count">{{ form.allergiesDescription.length }}/300</p>
-        </div>
-      </div>
-
       <!-- Pet -->
       <div class="form-group">
         <label class="checkbox-label special">
@@ -248,10 +230,14 @@
         </label>
         <p v-if="errors.agreePrivacy" class="error-text checkbox-error">{{ errors.agreePrivacy }}</p>
 
-        <label class="checkbox-label">
-          <input v-model="form.emailSubscribed" type="checkbox" class="checkbox" />
-          <span>Подписаться на email-рассылку</span>
-        </label>
+      </div>
+
+      <!-- Email Notification Info -->
+      <div class="info-notice">
+        <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p>На указанный email будет отправлен статус подтверждения вашей заявки</p>
       </div>
     </div>
 
@@ -368,7 +354,7 @@
             <li>Номер телефона;</li>
             <li>Идентификатор в мессенджере Telegram;</li>
             <li>Фотография (аватар);</li>
-            <li>Иная информация, предоставленная добровольно: дополнительные сведения о себе, наличие аллергий, информация о сопровождающих животных.</li>
+            <li>Иная информация, предоставленная добровольно: дополнительные сведения о себе, информация о сопровождающих животных.</li>
           </ul>
           <p>3.1.2. Автоматически собираемые данные:</p>
           <ul>
@@ -474,14 +460,11 @@ const form = reactive({
   telegramConverted: '',
   avatar: null as File | null,
   description: '',
-  hasAllergies: false,
-  allergiesDescription: '',
   bringingPet: false,
   petDescription: '',
   confirmAge: false,
   agreeRules: false,
-  agreePrivacy: false,
-  emailSubscribed: false
+  agreePrivacy: false
 })
 
 const errors = reactive({
@@ -681,13 +664,10 @@ async function handleSubmit() {
     telegram: form.telegramConverted || form.telegram,
     avatar: form.avatar || undefined,
     description: form.description,
-    hasAllergies: form.hasAllergies,
-    allergiesDescription: form.allergiesDescription,
     bringingPet: form.bringingPet,
     petDescription: form.petDescription,
     agreeRules: form.agreeRules,
-    agreePrivacy: form.agreePrivacy,
-    emailSubscribed: form.emailSubscribed
+    agreePrivacy: form.agreePrivacy
   })
 
   isLoading.value = false
@@ -1013,6 +993,33 @@ function redirectToLogin() {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Info Notice */
+.info-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 10px;
+  margin-top: 0.5rem;
+}
+
+.info-notice .info-icon {
+  width: 20px;
+  height: 20px;
+  color: #60a5fa;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-notice p {
+  color: var(--sage);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* Server Error */
