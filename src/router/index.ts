@@ -19,6 +19,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../views/EmailConfirmPage.vue')
   },
   {
+    path: '/auth/verify-email',
+    name: 'VerifyEmail',
+    component: () => import('../views/VerifyEmailPage.vue')
+  },
+  {
     path: '/dashboard',
     name: 'Dashboard',
     component: () => import('../views/DashboardPage.vue'),

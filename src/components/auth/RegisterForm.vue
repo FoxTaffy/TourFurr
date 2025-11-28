@@ -673,7 +673,12 @@ async function handleSubmit() {
   isLoading.value = false
 
   if (result.success) {
-    showSuccessModal.value = true
+    // Redirect to email verification page with email in query params
+    const email = (result as any).email || form.email
+    router.push({
+      path: '/auth/verify-email',
+      query: { email }
+    })
   } else {
     serverError.value = result.error || 'Ошибка регистрации'
   }

@@ -394,7 +394,6 @@ export const useAuthStore = defineStore('auth', () => {
         data.phone,
         data.telegram,
         data.description || '',
-        data.allergiesDescription || '',
         data.petDescription || ''
       ]
 
@@ -443,7 +442,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      // 1. Register user with Supabase Auth (sends email verification)
+      // 1. Register user with Supabase Auth (without email verification - we handle it with codes)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: cleanEmail,
         password: data.password,
@@ -454,6 +453,8 @@ export const useAuthStore = defineStore('auth', () => {
             phone: sanitizeInput(data.phone),
             telegram: sanitizeInput(data.telegram)
           }
+          // Note: Supabase Auth will still send confirmation email
+          // We override this by sending our own 6-digit code instead
         }
       })
 
@@ -525,10 +526,27 @@ export const useAuthStore = defineStore('auth', () => {
       // Security: Reset rate limit on successful registration
       rateLimiter.reset(cleanEmail)
 
+      // Generate and send 6-digit verification code
+      try {
+        const { createVerificationCode, sendVerificationEmail } = await import('../utils/emailVerification')
+
+        const codeResult = await createVerificationCode(cleanEmail)
+
+        if (codeResult.success && codeResult.code) {
+          await sendVerificationEmail(cleanEmail, codeResult.code)
+        } else {
+          console.error('Failed to create verification code:', codeResult.error)
+        }
+      } catch (codeError: any) {
+        console.error('Error generating verification code:', codeError)
+        // Don't fail registration if code generation fails
+      }
+
       // Don't auto-login - user needs to verify email first
       return {
         success: true,
-        message: 'Регистрация успешна! Проверьте вашу почту для подтверждения email.'
+        email: cleanEmail,
+        message: 'Регистрация успешна! На вашу почту отправлен код подтверждения.'
       }
     } catch (err: any) {
       console.error('Registration error:', err)
