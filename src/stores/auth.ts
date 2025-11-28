@@ -53,13 +53,10 @@ export interface User {
   avatar?: string
   description?: string
   status: 'pending' | 'approved' | 'rejected'
-  emailSubscribed: boolean
   emailVerified: boolean
   emailVerifiedAt?: string
   createdAt: string
   isAdmin: boolean
-  hasAllergies: boolean
-  allergiesDescription?: string
   bringingPet: boolean
   petDescription?: string
 }
@@ -74,9 +71,6 @@ export interface RegisterData {
   description?: string
   agreeRules: boolean
   agreePrivacy: boolean
-  emailSubscribed: boolean
-  hasAllergies: boolean
-  allergiesDescription?: string
   bringingPet: boolean
   petDescription?: string
 }
@@ -92,13 +86,10 @@ function mapDbUserToUser(dbUser: any): User {
     avatar: dbUser.avatar_url,
     description: dbUser.description,
     status: dbUser.status,
-    emailSubscribed: dbUser.email_subscribed,
     emailVerified: dbUser.email_verified || false,
     emailVerifiedAt: dbUser.email_verified_at,
     createdAt: dbUser.created_at,
     isAdmin: dbUser.is_admin || false,
-    hasAllergies: dbUser.has_allergies || false,
-    allergiesDescription: dbUser.allergies_description,
     bringingPet: dbUser.bringing_pet || false,
     petDescription: dbUser.pet_description
   }
@@ -172,22 +163,58 @@ export const useAuthStore = defineStore('auth', () => {
         password: password
       })
 
-      // 2. If Supabase Auth fails, check if it's an old user with bcrypt password
+      // 2. If Supabase Auth fails, check if it's an old user with bcrypt password or unverified new user
       if (authData.error && authData.error.message.includes('Invalid login credentials')) {
-        console.log('Supabase Auth failed, checking for old user with bcrypt...')
+        console.log('Supabase Auth failed, checking for old user or unverified user...')
 
-        // Check if user exists in database with old bcrypt password
-        const { data: oldUser, error: dbError } = await supabase
+        // Check if user exists in database
+        const { data: existingUser, error: dbError } = await supabase
           .from('users')
           .select('*')
           .eq('email', cleanEmail)
           .maybeSingle()
 
-        if (oldUser && oldUser.password_hash) {
+        // Check if it's a new unverified user
+        if (existingUser && !existingUser.email_verified && !existingUser.password_hash) {
+          console.log('Found unverified new user, sending new verification code...')
+
+          // Generate and send new verification code
+          try {
+            const { createVerificationCode, sendVerificationEmail, invalidateOldCodes } = await import('../utils/emailVerification')
+
+            // Invalidate old codes first
+            await invalidateOldCodes(cleanEmail)
+
+            // Create new code
+            const codeResult = await createVerificationCode(cleanEmail)
+
+            if (codeResult.success && codeResult.code) {
+              await sendVerificationEmail(cleanEmail, codeResult.code)
+            }
+          } catch (codeError: any) {
+            console.error('Error generating verification code:', codeError)
+          }
+
+          error.value = 'Email не подтверждён. Новый код отправлен на вашу почту.'
+          securityLogger.log({
+            type: 'login_failure',
+            identifier: cleanEmail,
+            details: { reason: 'email_not_verified', fingerprint }
+          })
+          return {
+            success: false,
+            error: error.value,
+            needsVerification: true,
+            email: cleanEmail
+          }
+        }
+
+        // Check if it's an old user with bcrypt password
+        if (existingUser && existingUser.password_hash) {
           console.log('Found old user, verifying bcrypt password...')
 
           // Verify old bcrypt password
-          const isValidBcrypt = await bcrypt.compare(password, oldUser.password_hash)
+          const isValidBcrypt = await bcrypt.compare(password, existingUser.password_hash)
 
           if (isValidBcrypt) {
             console.log('Old password valid, migrating to Supabase Auth...')
@@ -199,7 +226,7 @@ export const useAuthStore = defineStore('auth', () => {
               options: {
                 data: {
                   migrated: true,
-                  original_id: oldUser.id
+                  original_id: existingUser.id
                 }
               }
             })
@@ -210,21 +237,52 @@ export const useAuthStore = defineStore('auth', () => {
               return { success: false, error: error.value }
             }
 
-            console.log('Migration successful, updating user record...')
+            console.log('Migration successful, migrating user record...')
 
-            // Update user record with new Supabase Auth ID
-            const { error: updateError } = await supabase
+            // Delete old record and create new one with Supabase Auth ID
+            // Step 1: Save old user data
+            const oldUserData = { ...existingUser }
+
+            // Step 2: Delete old record
+            const { error: deleteError } = await supabase
               .from('users')
-              .update({
-                id: migratedAuth.user.id,
-                password_hash: '', // Clear old password
-                email_verified: true // Old users are pre-verified
-              })
-              .eq('email', cleanEmail)
+              .delete()
+              .eq('id', existingUser.id)
 
-            if (updateError) {
-              console.error('Failed to update user record:', updateError)
+            if (deleteError) {
+              console.error('Failed to delete old user record:', deleteError)
+              error.value = 'Ошибка миграции аккаунта. Свяжитесь с поддержкой.'
+              return { success: false, error: error.value }
             }
+
+            // Step 3: Insert new record with new Supabase Auth ID
+            const { error: insertError } = await supabase
+              .from('users')
+              .insert({
+                id: migratedAuth.user.id,  // New Supabase Auth ID
+                email: oldUserData.email,
+                password_hash: '',  // Clear old password (now managed by Supabase Auth)
+                nickname: oldUserData.nickname,
+                phone: oldUserData.phone,
+                telegram: oldUserData.telegram,
+                avatar_url: oldUserData.avatar_url,
+                description: oldUserData.description,
+                status: oldUserData.status,
+                email_verified: true,  // Old users are pre-verified
+                agree_rules: oldUserData.agree_rules,
+                agree_privacy: oldUserData.agree_privacy,
+                bringing_pet: oldUserData.bringing_pet,
+                pet_description: oldUserData.pet_description,
+                created_at: oldUserData.created_at  // Preserve original creation date
+              })
+
+            if (insertError) {
+              console.error('Failed to insert migrated user record:', insertError)
+              error.value = 'Ошибка миграции аккаунта. Свяжитесь с поддержкой.'
+              return { success: false, error: error.value }
+            }
+
+            console.log('User record migrated successfully')
 
             // Now try to sign in again with Supabase Auth
             authData = await supabase.auth.signInWithPassword({
@@ -359,7 +417,6 @@ export const useAuthStore = defineStore('auth', () => {
         data.phone,
         data.telegram,
         data.description || '',
-        data.allergiesDescription || '',
         data.petDescription || ''
       ]
 
@@ -408,7 +465,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      // 1. Register user with Supabase Auth (sends email verification)
+      // 1. Register user with Supabase Auth (without email verification - we handle it with codes)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: cleanEmail,
         password: data.password,
@@ -419,6 +476,8 @@ export const useAuthStore = defineStore('auth', () => {
             phone: sanitizeInput(data.phone),
             telegram: sanitizeInput(data.telegram)
           }
+          // Note: Supabase Auth will still send confirmation email
+          // We override this by sending our own 6-digit code instead
         }
       })
 
@@ -445,25 +504,36 @@ export const useAuthStore = defineStore('auth', () => {
           email: cleanEmail,
           password_hash: '', // Not needed anymore, Supabase Auth handles it
           nickname: cleanNickname,
-          phone: sanitizeInput(data.phone),
-          telegram: sanitizeInput(data.telegram),
+          phone: sanitizeInput(data.phone, 20),
+          telegram: sanitizeInput(data.telegram, 100),
           avatar_url: avatarUrl,
-          description: data.description ? sanitizeInput(data.description) : null,
+          description: data.description ? sanitizeInput(data.description, 500) : null,
           status: 'pending',
-          email_subscribed: data.emailSubscribed,
           email_verified: false, // Will be updated when user confirms email
           agree_rules: data.agreeRules,
           agree_privacy: data.agreePrivacy,
-          has_allergies: data.hasAllergies,
-          allergies_description: data.allergiesDescription ? sanitizeInput(data.allergiesDescription) : null,
           bringing_pet: data.bringingPet,
-          pet_description: data.petDescription ? sanitizeInput(data.petDescription) : null
+          pet_description: data.petDescription ? sanitizeInput(data.petDescription, 300) : null
         })
         .select()
         .single()
 
       if (dbError) {
         console.error('Database error:', dbError)
+
+        // Security: Cleanup uploaded avatar if DB insert failed
+        if (avatarUrl) {
+          try {
+            const fileName = avatarUrl.split('/').pop()
+            if (fileName) {
+              await supabase.storage.from('avatars').remove([fileName])
+              console.log('Cleaned up orphaned avatar file:', fileName)
+            }
+          } catch (cleanupError) {
+            console.error('Failed to cleanup avatar:', cleanupError)
+          }
+        }
+
         if (dbError.code === '23505') {
           if (dbError.message.includes('nickname')) {
             error.value = 'Этот никнейм уже занят'
@@ -479,10 +549,27 @@ export const useAuthStore = defineStore('auth', () => {
       // Security: Reset rate limit on successful registration
       rateLimiter.reset(cleanEmail)
 
+      // Generate and send 6-digit verification code
+      try {
+        const { createVerificationCode, sendVerificationEmail } = await import('../utils/emailVerification')
+
+        const codeResult = await createVerificationCode(cleanEmail)
+
+        if (codeResult.success && codeResult.code) {
+          await sendVerificationEmail(cleanEmail, codeResult.code)
+        } else {
+          console.error('Failed to create verification code:', codeResult.error)
+        }
+      } catch (codeError: any) {
+        console.error('Error generating verification code:', codeError)
+        // Don't fail registration if code generation fails
+      }
+
       // Don't auto-login - user needs to verify email first
       return {
         success: true,
-        message: 'Регистрация успешна! Проверьте вашу почту для подтверждения email.'
+        email: cleanEmail,
+        message: 'Регистрация успешна! На вашу почту отправлен код подтверждения.'
       }
     } catch (err: any) {
       console.error('Registration error:', err)
@@ -582,11 +669,8 @@ export const useAuthStore = defineStore('auth', () => {
     telegram?: string
     description?: string
     avatar?: File
-    hasAllergies?: boolean
-    allergiesDescription?: string
     bringingPet?: boolean
     petDescription?: string
-    emailSubscribed?: boolean
   }) {
     if (!user.value) return { success: false, error: 'Не авторизован' }
 
@@ -603,20 +687,11 @@ export const useAuthStore = defineStore('auth', () => {
       if (updates.description !== undefined) {
         updateData.description = updates.description ? sanitizeInput(updates.description) : null
       }
-      if (updates.hasAllergies !== undefined) {
-        updateData.has_allergies = updates.hasAllergies
-      }
-      if (updates.allergiesDescription !== undefined) {
-        updateData.allergies_description = updates.allergiesDescription ? sanitizeInput(updates.allergiesDescription) : null
-      }
       if (updates.bringingPet !== undefined) {
         updateData.bringing_pet = updates.bringingPet
       }
       if (updates.petDescription !== undefined) {
         updateData.pet_description = updates.petDescription ? sanitizeInput(updates.petDescription) : null
-      }
-      if (updates.emailSubscribed !== undefined) {
-        updateData.email_subscribed = updates.emailSubscribed
       }
 
       // Handle avatar upload

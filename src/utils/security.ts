@@ -134,8 +134,10 @@ export const rateLimiter = new RateLimiter()
 
 /**
  * Input sanitization to prevent XSS and injection attacks
+ * @param input - String to sanitize
+ * @param maxLength - Maximum allowed length (default: 1000)
  */
-export function sanitizeInput(input: string): string {
+export function sanitizeInput(input: string, maxLength: number = 1000): string {
   if (!input) return ''
 
   return input
@@ -143,7 +145,7 @@ export function sanitizeInput(input: string): string {
     .replace(/[<>]/g, '') // Remove potential HTML tags
     .replace(/javascript:/gi, '') // Remove javascript: protocol
     .replace(/on\w+\s*=/gi, '') // Remove event handlers
-    .substring(0, 1000) // Limit length
+    .substring(0, maxLength) // Limit length
 }
 
 /**
@@ -174,19 +176,24 @@ export function checkPasswordStrength(password: string): PasswordStrength {
   const feedback: string[] = []
   let score = 0
 
-  if (password.length >= 8) score++
-  else feedback.push('Пароль должен содержать минимум 8 символов')
+  // Check all basic requirements
+  const hasMinLength = password.length >= 8
+  const hasMixedCase = /[a-z]/.test(password) && /[A-Z]/.test(password)
+  const hasDigits = /\d/.test(password)
+  const hasSpecialChars = /[^a-zA-Z0-9]/.test(password)
 
+  // Add feedback for missing requirements
+  if (!hasMinLength) feedback.push('Пароль должен содержать минимум 8 символов')
+  if (!hasMixedCase) feedback.push('Используйте строчные и заглавные буквы')
+  if (!hasDigits) feedback.push('Добавьте цифры')
+  if (!hasSpecialChars) feedback.push('Добавьте специальные символы (!@#$%^&*)')
+
+  // Calculate score
+  if (hasMinLength) score++
   if (password.length >= 12) score++
-
-  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++
-  else feedback.push('Используйте строчные и заглавные буквы')
-
-  if (/\d/.test(password)) score++
-  else feedback.push('Добавьте цифры')
-
-  if (/[^a-zA-Z0-9]/.test(password)) score++
-  else feedback.push('Добавьте специальные символы (!@#$%^&*)')
+  if (hasMixedCase) score++
+  if (hasDigits) score++
+  if (hasSpecialChars) score++
 
   // Check for common patterns
   const commonPatterns = [
@@ -197,21 +204,26 @@ export function checkPasswordStrength(password: string): PasswordStrength {
     /abc123/i
   ]
 
+  let hasCommonPattern = false
   for (const pattern of commonPatterns) {
     if (pattern.test(password)) {
       score = Math.max(0, score - 2)
       feedback.push('Избегайте очевидных паролей')
+      hasCommonPattern = true
       break
     }
   }
 
-  // Normalize score to 0-4
-  score = Math.min(4, Math.max(0, score))
+  // Normalize score to 0-5
+  score = Math.min(5, Math.max(0, score))
+
+  // Password is strong only if it meets ALL basic requirements AND no common patterns
+  const isStrong = hasMinLength && hasMixedCase && hasDigits && hasSpecialChars && !hasCommonPattern
 
   return {
     score,
     feedback,
-    isStrong: score >= 3
+    isStrong
   }
 }
 

@@ -99,19 +99,6 @@
 
               <div class="form-group">
                 <label class="checkbox-label-edit">
-                  <input v-model="editForm.hasAllergies" type="checkbox" />
-                  <span>У меня есть аллергия</span>
-                </label>
-                <textarea
-                  v-if="editForm.hasAllergies"
-                  v-model="editForm.allergiesDescription"
-                  rows="2"
-                  placeholder="Опишите вашу аллергию..."
-                ></textarea>
-              </div>
-
-              <div class="form-group">
-                <label class="checkbox-label-edit">
                   <input v-model="editForm.bringingPet" type="checkbox" />
                   <span>Планирую взять с собой питомца</span>
                 </label>
@@ -166,17 +153,6 @@
             <p>{{ user.description }}</p>
           </div>
 
-          <!-- Allergies Info -->
-          <div v-if="user?.hasAllergies" class="info-block allergies-block">
-            <div class="info-header">
-              <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-              </svg>
-              <span class="info-title">Аллергия</span>
-            </div>
-            <p class="info-text">{{ user.allergiesDescription || 'Не указано' }}</p>
-          </div>
-
           <!-- Pet Info -->
           <div v-if="user?.bringingPet" class="info-block pet-block">
             <div class="info-header">
@@ -191,18 +167,13 @@
 
           <p class="status-message">{{ statusDescriptions[user?.status || 'pending'] }}</p>
 
-          <!-- Newsletter Subscription Button (only if not subscribed) -->
-          <button
-            v-if="!user?.emailSubscribed"
-            @click="subscribeToNewsletter"
-            :disabled="isSubscribing"
-            class="subscribe-btn"
-          >
-            <svg class="subscribe-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <!-- Email Notification Info -->
+          <div class="email-notice">
+            <svg class="notice-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
             </svg>
-            <span>{{ isSubscribing ? 'Подписка...' : 'Подписаться на рассылку' }}</span>
-          </button>
+            <p>На ваш email ({{ user?.email }}) будет отправлен статус подтверждения заявки</p>
+          </div>
         </div>
 
         <!-- Right Column - Payment Info (only for approved) -->
@@ -241,6 +212,17 @@
           </div>
 
           <p class="payment-note">{{ approvedInfo.payment_note }}</p>
+
+          <!-- Receipt reminder -->
+          <div class="receipt-reminder">
+            <svg class="reminder-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <div class="reminder-content">
+              <strong>Важно!</strong>
+              <p>После оплаты отправьте чек об оплате организаторам в Telegram</p>
+            </div>
+          </div>
         </div>
 
         <!-- Location Card (only for approved) -->
@@ -310,7 +292,6 @@ const infoError = ref<string | null>(null)
 // Edit mode
 const isEditing = ref(false)
 const isSaving = ref(false)
-const isSubscribing = ref(false)
 const avatarInput = ref<HTMLInputElement | null>(null)
 const avatarPreview = ref<string | null>(null)
 const newAvatarFile = ref<File | null>(null)
@@ -320,8 +301,6 @@ const editForm = ref({
   phone: '',
   telegram: '',
   description: '',
-  hasAllergies: false,
-  allergiesDescription: '',
   bringingPet: false,
   petDescription: ''
 })
@@ -333,8 +312,6 @@ function startEditing() {
       phone: user.value.phone,
       telegram: user.value.telegram,
       description: user.value.description || '',
-      hasAllergies: user.value.hasAllergies,
-      allergiesDescription: user.value.allergiesDescription || '',
       bringingPet: user.value.bringingPet,
       petDescription: user.value.petDescription || ''
     }
@@ -371,8 +348,6 @@ async function saveProfile() {
     phone: editForm.value.phone,
     telegram: editForm.value.telegram,
     description: editForm.value.description,
-    hasAllergies: editForm.value.hasAllergies,
-    allergiesDescription: editForm.value.allergiesDescription,
     bringingPet: editForm.value.bringingPet,
     petDescription: editForm.value.petDescription
   }
@@ -405,23 +380,6 @@ async function confirmDelete() {
       }
     }
   }
-}
-
-async function subscribeToNewsletter() {
-  isSubscribing.value = true
-
-  const result = await authStore.updateProfile({
-    emailSubscribed: true
-  })
-
-  if (result.success) {
-    // Success - user is now subscribed
-    console.log('Successfully subscribed to newsletter')
-  } else {
-    alert(result.error || 'Ошибка подписки на рассылку')
-  }
-
-  isSubscribing.value = false
 }
 
 async function fetchApprovedInfo() {
@@ -468,17 +426,11 @@ const statusLabels: Record<string, string> = {
   rejected: 'Отклонено'
 }
 
-const statusDescriptions = computed(() => {
-  const isSubscribed = user.value?.emailSubscribed || false
-
-  return {
-    pending: isSubscribed
-      ? 'Вы получите уведомление на почту, когда статус заявки изменится.'
-      : 'Подпишитесь на рассылку, чтобы получать уведомления о статусе заявки на почту.',
-    approved: 'Поздравляем! Ваша заявка одобрена. Оплатите участие по реквизитам справа.',
-    rejected: 'К сожалению, ваша заявка отклонена. Свяжитесь с нами в Telegram.'
-  }
-})
+const statusDescriptions = {
+  pending: 'Ваша заявка на рассмотрении. Вы получите уведомление на почту, когда статус изменится.',
+  approved: 'Поздравляем! Ваша заявка одобрена. Оплатите участие по реквизитам справа.',
+  rejected: 'К сожалению, ваша заявка отклонена. Свяжитесь с нами в Telegram.'
+}
 
 function formatDate(dateStr: string | undefined) {
   if (!dateStr) return 'Неизвестно'
@@ -750,11 +702,6 @@ function handleLogout() {
   border-left: 3px solid;
 }
 
-.allergies-block {
-  border-left-color: #f59e0b;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(26, 17, 14, 0.5));
-}
-
 .pet-block {
   border-left-color: #22c55e;
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(26, 17, 14, 0.5));
@@ -771,10 +718,6 @@ function handleLogout() {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
-}
-
-.allergies-block .info-icon {
-  color: #f59e0b;
 }
 
 .pet-block .info-icon {
@@ -801,39 +744,31 @@ function handleLogout() {
   margin-bottom: 1rem;
 }
 
-/* Newsletter Subscription Button */
-.subscribe-btn {
-  width: 100%;
+/* Email Notice */
+.email-notice {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, var(--fire), var(--fire-glow));
-  border: none;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: 10px;
-  color: white;
-  font-family: 'Lora', serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
   margin-top: 1rem;
 }
 
-.subscribe-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
-}
-
-.subscribe-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.subscribe-icon {
+.email-notice .notice-icon {
   width: 20px;
   height: 20px;
+  color: #60a5fa;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.email-notice p {
+  color: var(--sage);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* Visual Card */
@@ -897,6 +832,45 @@ function handleLogout() {
   font-size: 0.85rem;
   font-style: italic;
   text-align: center;
+}
+
+/* Receipt Reminder */
+.receipt-reminder {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(255, 179, 71, 0.1);
+  border: 1px solid rgba(255, 179, 71, 0.3);
+  border-left: 3px solid var(--fire-glow);
+  border-radius: 10px;
+  margin-top: 1rem;
+}
+
+.receipt-reminder .reminder-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--fire-glow);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.receipt-reminder .reminder-content {
+  flex: 1;
+}
+
+.receipt-reminder strong {
+  display: block;
+  color: var(--fire-glow);
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.receipt-reminder p {
+  color: var(--sage);
+  font-size: 0.85rem;
+  margin: 0;
+  line-height: 1.5;
 }
 
 /* Location Card */
