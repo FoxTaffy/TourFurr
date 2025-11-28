@@ -119,7 +119,7 @@ async function handleResend() {
   z-index: 10;
   width: 100%;
   max-width: 500px;
-  background: linear-gradient(135deg, rgba(42, 31, 26, 0.95), rgba(61, 45, 36, 0.95));
+  background: linear-gradient(135deg, rgba(42, 31, 26, 0.85), rgba(61, 45, 36, 0.85));
   backdrop-filter: blur(20px);
   border: 1px solid rgba(139, 111, 71, 0.5);
   border-radius: 24px;

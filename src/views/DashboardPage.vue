@@ -212,6 +212,17 @@
           </div>
 
           <p class="payment-note">{{ approvedInfo.payment_note }}</p>
+
+          <!-- Receipt reminder -->
+          <div class="receipt-reminder">
+            <svg class="reminder-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <div class="reminder-content">
+              <strong>Важно!</strong>
+              <p>После оплаты отправьте чек об оплате организаторам в Telegram</p>
+            </div>
+          </div>
         </div>
 
         <!-- Location Card (only for approved) -->
@@ -821,6 +832,45 @@ function handleLogout() {
   font-size: 0.85rem;
   font-style: italic;
   text-align: center;
+}
+
+/* Receipt Reminder */
+.receipt-reminder {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(255, 179, 71, 0.1);
+  border: 1px solid rgba(255, 179, 71, 0.3);
+  border-left: 3px solid var(--fire-glow);
+  border-radius: 10px;
+  margin-top: 1rem;
+}
+
+.receipt-reminder .reminder-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--fire-glow);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.receipt-reminder .reminder-content {
+  flex: 1;
+}
+
+.receipt-reminder strong {
+  display: block;
+  color: var(--fire-glow);
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.receipt-reminder p {
+  color: var(--sage);
+  font-size: 0.85rem;
+  margin: 0;
+  line-height: 1.5;
 }
 
 /* Location Card */
