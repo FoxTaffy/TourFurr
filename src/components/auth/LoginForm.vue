@@ -257,6 +257,16 @@ async function handleSubmit() {
     captchaToken.value = null
     router.push('/dashboard')
   } else {
+    // Check if user needs email verification
+    if ((result as any).needsVerification) {
+      const email = (result as any).email || form.email
+      router.push({
+        path: '/auth/verify-email',
+        query: { email }
+      })
+      return
+    }
+
     // Увеличить счетчик неудачных попыток
     loginAttempts.value++
     captchaToken.value = null // Сбросить токен для новой попытки

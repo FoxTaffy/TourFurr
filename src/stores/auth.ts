@@ -176,14 +176,37 @@ export const useAuthStore = defineStore('auth', () => {
 
         // Check if it's a new unverified user
         if (existingUser && !existingUser.email_verified && !existingUser.password_hash) {
-          console.log('Found unverified new user')
-          error.value = 'Пожалуйста, подтвердите ваш email. Проверьте вашу почту.'
+          console.log('Found unverified new user, sending new verification code...')
+
+          // Generate and send new verification code
+          try {
+            const { createVerificationCode, sendVerificationEmail, invalidateOldCodes } = await import('../utils/emailVerification')
+
+            // Invalidate old codes first
+            await invalidateOldCodes(cleanEmail)
+
+            // Create new code
+            const codeResult = await createVerificationCode(cleanEmail)
+
+            if (codeResult.success && codeResult.code) {
+              await sendVerificationEmail(cleanEmail, codeResult.code)
+            }
+          } catch (codeError: any) {
+            console.error('Error generating verification code:', codeError)
+          }
+
+          error.value = 'Email не подтверждён. Новый код отправлен на вашу почту.'
           securityLogger.log({
             type: 'login_failure',
             identifier: cleanEmail,
             details: { reason: 'email_not_verified', fingerprint }
           })
-          return { success: false, error: error.value }
+          return {
+            success: false,
+            error: error.value,
+            needsVerification: true,
+            email: cleanEmail
+          }
         }
 
         // Check if it's an old user with bcrypt password
