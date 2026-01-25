@@ -65,10 +65,11 @@
         <p>{{ serverError }}</p>
       </div>
 
-      <!-- hCaptcha (появляется после 2 неудачных попыток) -->
+      <!-- Cloudflare Turnstile (появляется после 2 неудачных попыток) -->
       <div v-if="showCaptcha" class="captcha-wrapper">
-        <HCaptcha
-          :sitekey="captchaSiteKey"
+        <CloudflareTurnstile
+          :siteKey="turnstilesiteKey"
+          theme="dark"
           @verify="handleCaptchaVerify"
           @error="handleCaptchaError"
           @expired="handleCaptchaExpired"
@@ -165,7 +166,7 @@ import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { supabase } from '../../services/supabase'
-import HCaptcha from '@hcaptcha/vue3-hcaptcha'
+import CloudflareTurnstile from '../common/CloudflareTurnstile.vue'
 import * as yup from 'yup'
 
 const router = useRouter()
@@ -185,8 +186,8 @@ const showPassword = ref(false)
 const isLoading = ref(false)
 const serverError = ref('')
 
-// hCaptcha state
-const captchaSiteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY || ''
+// Cloudflare Turnstile state
+const turnstilesiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAACQmENl2nYwq4ELx'
 const captchaToken = ref<string | null>(null)
 const captchaError = ref('')
 const loginAttempts = ref(0)
@@ -208,20 +209,20 @@ const resetSchema = yup.object({
   email: yup.string().required('Email обязателен').email('Неверный формат email')
 })
 
-// hCaptcha handlers
+// Cloudflare Turnstile handlers
 function handleCaptchaVerify(token: string) {
   captchaToken.value = token
   captchaError.value = ''
 }
 
-function handleCaptchaError() {
+function handleCaptchaError(error: string) {
   captchaToken.value = null
-  captchaError.value = 'Ошибка проверки CAPTCHA. Попробуйте еще раз'
+  captchaError.value = error || 'Ошибка проверки. Попробуйте еще раз'
 }
 
 function handleCaptchaExpired() {
   captchaToken.value = null
-  captchaError.value = 'CAPTCHA истекла. Пожалуйста, пройдите проверку снова'
+  captchaError.value = 'Проверка истекла. Пожалуйста, пройдите проверку снова'
 }
 
 async function handleSubmit() {
