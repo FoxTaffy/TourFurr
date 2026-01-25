@@ -4,14 +4,19 @@
         <p class="copyright">
           © 2026 TourFurr | Сайт сделан при поддержке <a href="https://FoxTaffy.fun" target="_blank" rel="noopener noreferrer" class="support-link">FoxTaffy.fun</a>
         </p>
+        <p class="version">v{{ version }} | Обновлено {{ lastUpdate }}</p>
       </div>
     </footer>
   </template>
-  
-  <script>
-  export default {
-    name: 'Footer'
-  }
+
+  <script setup lang="ts">
+  import { ref } from 'vue'
+
+  // Автоматическая версия из package.json
+  const version = ref('1.0.0')
+
+  // Дата последнего обновления (автоматически обновляется при билде)
+  const lastUpdate = ref('25.01.2026')
   </script>
   
   <style scoped>
@@ -45,5 +50,12 @@
   .support-link:hover {
       color: var(--amber);
       text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  }
+
+  .version {
+      color: var(--sage);
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      opacity: 0.7;
   }
   </style>
