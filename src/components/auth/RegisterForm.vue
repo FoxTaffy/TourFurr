@@ -241,10 +241,11 @@
       </div>
     </div>
 
-    <!-- hCaptcha (показывается на шаге 3) -->
+    <!-- Cloudflare Turnstile (показывается на шаге 3) -->
     <div v-if="currentStep === 3" class="captcha-wrapper">
-      <HCaptcha
-        :sitekey="captchaSiteKey"
+      <CloudflareTurnstile
+        :siteKey="turnstilesiteKey"
+        theme="dark"
         @verify="handleCaptchaVerify"
         @error="handleCaptchaError"
         @expired="handleCaptchaExpired"
@@ -427,7 +428,7 @@ import { useRouter } from 'vue-router'
 import { vMaska } from 'maska/vue'
 import { useAuthStore } from '../../stores/auth'
 import TelegramInput from './TelegramInput.vue'
-import HCaptcha from '@hcaptcha/vue3-hcaptcha'
+import CloudflareTurnstile from '../common/CloudflareTurnstile.vue'
 import * as yup from 'yup'
 
 const router = useRouter()
@@ -443,8 +444,8 @@ const isDragging = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 const avatarPreview = ref<string | null>(null)
 
-// hCaptcha state
-const captchaSiteKey = import.meta.env.VITE_HCAPTCHA_SITE_KEY || ''
+// Cloudflare Turnstile state
+const turnstilesiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAACQmENl2nYwq4ELx'
 const captchaToken = ref<string | null>(null)
 const captchaError = ref('')
 
@@ -627,28 +628,28 @@ function processFile(file: File) {
   reader.readAsDataURL(file)
 }
 
-// hCaptcha handlers
+// Cloudflare Turnstile handlers
 function handleCaptchaVerify(token: string) {
   captchaToken.value = token
   captchaError.value = ''
 }
 
-function handleCaptchaError() {
+function handleCaptchaError(error: string) {
   captchaToken.value = null
-  captchaError.value = 'Ошибка проверки CAPTCHA. Попробуйте еще раз'
+  captchaError.value = error || 'Ошибка проверки. Попробуйте еще раз'
 }
 
 function handleCaptchaExpired() {
   captchaToken.value = null
-  captchaError.value = 'CAPTCHA истекла. Пожалуйста, пройдите проверку снова'
+  captchaError.value = 'Проверка истекла. Пожалуйста, пройдите проверку снова'
 }
 
 async function handleSubmit() {
   if (!(await validateStep(3))) return
 
-  // Проверка CAPTCHA
+  // Проверка Turnstile
   if (!captchaToken.value) {
-    captchaError.value = 'Пожалуйста, пройдите проверку CAPTCHA'
+    captchaError.value = 'Пожалуйста, пройдите проверку безопасности'
     return
   }
 
@@ -1469,7 +1470,7 @@ function redirectToLogin() {
   background: var(--sage);
 }
 
-/* hCaptcha Styles */
+/* Cloudflare Turnstile Styles */
 .captcha-wrapper {
   display: flex;
   flex-direction: column;
