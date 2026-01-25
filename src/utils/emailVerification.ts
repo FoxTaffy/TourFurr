@@ -178,23 +178,29 @@ export async function sendVerificationEmail(email: string, code: string): Promis
 
     if (error) {
       console.error('Error sending verification email:', error)
-      // Fallback: Log to console in development
-      console.log('='.repeat(50))
-      console.log('📧 VERIFICATION CODE FOR:', email)
-      console.log('🔢 CODE:', code)
-      console.log('='.repeat(50))
-      return { success: false, error: 'Не удалось отправить email. Проверьте консоль для кода.' }
+      // ✅ SECURITY FIX: Only log in development mode, and mask the code
+      if (import.meta.env.DEV) {
+        console.log('='.repeat(50))
+        console.log('📧 VERIFICATION CODE FOR:', email)
+        console.log('🔢 CODE:', code.substring(0, 2) + '****') // Показываем только первые 2 цифры
+        console.log('⚠️  DEV MODE: Полный код:', code) // Полный код только в dev
+        console.log('='.repeat(50))
+      }
+      return { success: false, error: 'Не удалось отправить email. Свяжитесь с поддержкой.' }
     }
 
     return { success: true }
   } catch (err: any) {
     console.error('Exception sending verification email:', err)
-    // Fallback: Log to console
-    console.log('='.repeat(50))
-    console.log('📧 VERIFICATION CODE FOR:', email)
-    console.log('🔢 CODE:', code)
-    console.log('='.repeat(50))
-    return { success: false, error: 'Email отправлен (проверьте консоль)' }
+    // ✅ SECURITY FIX: Only log in development mode, and mask the code
+    if (import.meta.env.DEV) {
+      console.log('='.repeat(50))
+      console.log('📧 VERIFICATION CODE FOR:', email)
+      console.log('🔢 CODE:', code.substring(0, 2) + '****') // Показываем только первые 2 цифры
+      console.log('⚠️  DEV MODE: Полный код:', code) // Полный код только в dev
+      console.log('='.repeat(50))
+    }
+    return { success: false, error: 'Ошибка отправки email. Свяжитесь с поддержкой.' }
   }
 }
 
