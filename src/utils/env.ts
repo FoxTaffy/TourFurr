@@ -7,15 +7,12 @@
 
 /**
  * Получить переменную окружения с валидацией
- * @throws Error если переменная не установлена в production (только в runtime)
  */
-function getEnvVar(key: string, defaultValue: string = ''): string {
+function getEnvVar(key: string, defaultValue: string): string {
   const value = import.meta.env[key]
-
-  if (value !== undefined) {
-    return value
+  if (value !== undefined && value !== null) {
+    return String(value)
   }
-
   return defaultValue
 }
 
@@ -23,7 +20,8 @@ function getEnvVar(key: string, defaultValue: string = ''): string {
  * Проверить что переменная установлена
  */
 function hasEnvVar(key: string): boolean {
-  return !!import.meta.env[key]
+  const value = import.meta.env[key]
+  return value !== undefined && value !== null && value !== ''
 }
 
 // =============================================================================
