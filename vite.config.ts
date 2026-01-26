@@ -8,7 +8,10 @@ const removeConsolePlugin = () => {
   return {
     name: 'remove-console',
     transform(code: string, id: string) {
-      if (process.env.NODE_ENV === 'production' && /\.(js|ts|vue)$/.test(id)) {
+      // Only process our source files, not node_modules
+      if (process.env.NODE_ENV === 'production' &&
+          /\.(js|ts|vue)$/.test(id) &&
+          !id.includes('node_modules')) {
         return {
           code: code
             .replace(/console\.(log|debug|info|warn)\s*\([^)]*\)\s*;?/g, '')

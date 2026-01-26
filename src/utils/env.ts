@@ -1,186 +1,95 @@
-/**
- * Environment Variables Utility
- *
- * Безопасное получение переменных окружения с валидацией
- * ⚠️ ВАЖНО: Все переменные должны быть установлены в .env файле
- */
+// Extract environment variables
+const viteSupabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const viteSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const viteTurnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
+const viteDisableEmail = import.meta.env.VITE_DISABLE_EMAIL
+const viteRegistrationOpenDate = import.meta.env.VITE_REGISTRATION_OPEN_DATE
+const viteAdminPin = import.meta.env.VITE_ADMIN_PIN
+const viteGracePeriodMinutes = import.meta.env.VITE_GRACE_PERIOD_MINUTES
+const viteProd = import.meta.env.PROD
+const viteDev = import.meta.env.DEV
 
-/**
- * Получить переменную окружения с валидацией
- */
-function getEnvVar(key: string, defaultValue: string): string {
-  const value = import.meta.env[key]
-  if (value !== undefined && value !== null) {
-    return String(value)
-  }
-  return defaultValue
-}
-
-/**
- * Проверить что переменная установлена
- */
-function hasEnvVar(key: string): boolean {
-  const value = import.meta.env[key]
-  return value !== undefined && value !== null && value !== ''
-}
-
-// =============================================================================
 // Supabase Configuration
-// =============================================================================
+export const SUPABASE_URL: string = viteSupabaseUrl || ''
+export const SUPABASE_ANON_KEY: string = viteSupabaseAnonKey || ''
 
-export const SUPABASE_URL = getEnvVar('VITE_SUPABASE_URL', '')
-export const SUPABASE_ANON_KEY = getEnvVar('VITE_SUPABASE_ANON_KEY', '')
+// Cloudflare Turnstile
+export const TURNSTILE_SITE_KEY: string = viteTurnstileSiteKey || '0x4AAAAAACQmENl2nYwq4ELx'
 
-// =============================================================================
-// Cloudflare Turnstile (CAPTCHA)
-// =============================================================================
-
-export const TURNSTILE_SITE_KEY = getEnvVar(
-  'VITE_TURNSTILE_SITE_KEY',
-  '0x4AAAAAACQmENl2nYwq4ELx' // fallback для dev режима
-)
-
-// =============================================================================
 // Email Configuration
-// =============================================================================
+const disableEmailValue = viteDisableEmail || 'false'
+export const DISABLE_EMAIL: boolean = disableEmailValue === 'true'
 
-/**
- * Отключить реальную отправку email (для разработки)
- * В dev режиме коды будут показываться в консоли
- */
-export const DISABLE_EMAIL = getEnvVar('VITE_DISABLE_EMAIL', 'false') === 'true'
-
-// =============================================================================
 // Registration Settings
-// =============================================================================
+const registrationDateStr = viteRegistrationOpenDate || '2026-03-01T00:00:00'
+export const REGISTRATION_OPEN_DATE: Date = new Date(registrationDateStr)
 
-/**
- * Дата открытия регистрации
- * ⚠️ ВАЖНО: Хранится в .env, не хардкожено в коде
- */
-export const REGISTRATION_OPEN_DATE = new Date(
-  getEnvVar('VITE_REGISTRATION_OPEN_DATE', '2026-03-01T00:00:00')
-)
-
-/**
- * Проверить, открыта ли регистрация
- */
 export function isRegistrationOpen(): boolean {
   return new Date() >= REGISTRATION_OPEN_DATE
 }
 
-// =============================================================================
 // Admin Access
-// =============================================================================
+export const ADMIN_PIN: string = viteAdminPin || ''
 
-/**
- * Секретный PIN для доступа в админ-панель
- * ⚠️ КРИТИЧНО: Должен быть установлен в .env
- * ⚠️ НИКОГДА не храните в коде!
- */
-export const ADMIN_PIN = getEnvVar('VITE_ADMIN_PIN', '')
-
-/**
- * Проверить админ PIN
- * @param pin - введенный пользователем PIN
- * @returns true если PIN верный
- */
 export function verifyAdminPin(pin: string): boolean {
-  // Базовая защита от timing attacks
   const correctPin = ADMIN_PIN
-
   if (!correctPin || !pin || pin.length !== correctPin.length) {
     return false
   }
-
-  // Constant-time comparison
   let result = 0
   for (let i = 0; i < correctPin.length; i++) {
     result |= correctPin.charCodeAt(i) ^ pin.charCodeAt(i)
   }
-
   return result === 0
 }
 
-// =============================================================================
 // Grace Period
-// =============================================================================
+const gracePeriodStr = viteGracePeriodMinutes || '15'
+export const GRACE_PERIOD_MINUTES: number = parseInt(gracePeriodStr, 10)
 
-/**
- * Grace period для подтверждения email (в минутах)
- */
-export const GRACE_PERIOD_MINUTES = parseInt(
-  getEnvVar('VITE_GRACE_PERIOD_MINUTES', '15'),
-  10
-)
-
-// =============================================================================
 // Production Mode
-// =============================================================================
+export const IS_PRODUCTION: boolean = viteProd || false
+export const IS_DEVELOPMENT: boolean = viteDev || false
 
-/**
- * Проверить что приложение запущено в production режиме
- */
-export const IS_PRODUCTION = import.meta.env.PROD
-
-/**
- * Проверить что приложение запущено в development режиме
- */
-export const IS_DEVELOPMENT = import.meta.env.DEV
-
-// =============================================================================
 // Validation
-// =============================================================================
-
-/**
- * Валидация всех обязательных переменных окружения
- * Вызывается при запуске приложения
- */
 export function validateEnvironment(): void {
-  const requiredVars = [
-    'VITE_SUPABASE_URL',
-    'VITE_SUPABASE_ANON_KEY',
-    'VITE_ADMIN_PIN',
-    'VITE_REGISTRATION_OPEN_DATE',
-  ]
+  const missing: string[] = []
+  if (!viteSupabaseUrl) missing.push('VITE_SUPABASE_URL')
+  if (!viteSupabaseAnonKey) missing.push('VITE_SUPABASE_ANON_KEY')
+  if (!viteAdminPin) missing.push('VITE_ADMIN_PIN')
+  if (!viteRegistrationOpenDate) missing.push('VITE_REGISTRATION_OPEN_DATE')
 
-  const missingVars = requiredVars.filter(key => !hasEnvVar(key))
-
-  if (missingVars.length > 0 && IS_PRODUCTION) {
-    throw new Error(
-      `Missing required environment variables: ${missingVars.join(', ')}\n` +
-      'Please check your .env file and ensure all variables are set.'
-    )
+  if (missing.length > 0 && IS_PRODUCTION) {
+    const errorMsg = 'Missing required environment variables: ' + missing.join(', ')
+    throw new Error(errorMsg)
   }
 
-  // Предупреждение в dev режиме
-  if (missingVars.length > 0 && IS_DEVELOPMENT) {
-    console.warn(
-      '⚠️ Missing environment variables:',
-      missingVars.join(', '),
-      '\nSome features may not work correctly.'
-    )
+  if (missing.length > 0 && IS_DEVELOPMENT) {
+    const warnMsg = 'Missing environment variables: ' + missing.join(', ')
+    console.warn(warnMsg)
   }
 }
 
-// =============================================================================
 // Security Helpers
-// =============================================================================
-
-/**
- * Безопасный вывод переменных окружения (для отладки)
- * Скрывает чувствительные данные
- */
 export function getEnvironmentInfo(): Record<string, string> {
+  const nodeEnv = IS_PRODUCTION ? 'production' : 'development'
+  const hasSupabaseKey = SUPABASE_ANON_KEY ? 'Yes' : 'No'
+  const hasTurnstileKey = TURNSTILE_SITE_KEY ? 'Yes' : 'No'
+  const hasAdminPin = ADMIN_PIN ? 'Yes' : 'No'
+  const disableEmailStr = DISABLE_EMAIL ? 'true' : 'false'
+  const regDateStr = REGISTRATION_OPEN_DATE.toISOString()
+  const isRegOpen = isRegistrationOpen() ? 'Yes' : 'No'
+  const gracePeriodStr2 = GRACE_PERIOD_MINUTES.toString()
+
   return {
-    NODE_ENV: IS_PRODUCTION ? 'production' : 'development',
+    NODE_ENV: nodeEnv,
     SUPABASE_URL: SUPABASE_URL,
-    HAS_SUPABASE_KEY: SUPABASE_ANON_KEY ? '✓' : '✗',
-    HAS_TURNSTILE_KEY: TURNSTILE_SITE_KEY ? '✓' : '✗',
-    HAS_ADMIN_PIN: ADMIN_PIN ? '✓' : '✗',
-    DISABLE_EMAIL: DISABLE_EMAIL ? 'true' : 'false',
-    REGISTRATION_OPEN_DATE: REGISTRATION_OPEN_DATE.toISOString(),
-    IS_REGISTRATION_OPEN: isRegistrationOpen() ? 'Yes' : 'No',
-    GRACE_PERIOD_MINUTES: GRACE_PERIOD_MINUTES.toString(),
+    HAS_SUPABASE_KEY: hasSupabaseKey,
+    HAS_TURNSTILE_KEY: hasTurnstileKey,
+    HAS_ADMIN_PIN: hasAdminPin,
+    DISABLE_EMAIL: disableEmailStr,
+    REGISTRATION_OPEN_DATE: regDateStr,
+    IS_REGISTRATION_OPEN: isRegOpen,
+    GRACE_PERIOD_MINUTES: gracePeriodStr2,
   }
 }
