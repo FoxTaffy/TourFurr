@@ -84,6 +84,7 @@ import { supabase } from '../services/supabase'
 import VerificationCodeInput from '../components/auth/VerificationCodeInput.vue'
 import { createVerificationCode, sendVerificationEmail, invalidateOldCodes } from '../utils/emailVerification'
 import { checkGracePeriodStatus, formatRemainingTime, type GracePeriodStatus } from '../utils/gracePeriod'
+import { logger } from '../utils/logger'
 
 const route = useRoute()
 const router = useRouter()
@@ -173,7 +174,7 @@ async function handleVerified() {
       .eq('email', email.value)
 
     if (error) {
-      console.error('Error updating email verification status:', error)
+      logger.error('Error updating email verification status:', error)
       alert('Ошибка обновления статуса. Свяжитесь с поддержкой.')
       return
     }
@@ -181,7 +182,7 @@ async function handleVerified() {
     // Redirect to login with success message
     router.push('/auth?verified=true')
   } catch (err: any) {
-    console.error('Error in handleVerified:', err)
+    logger.error('Error in handleVerified:', err)
     alert('Произошла ошибка. Попробуйте войти в систему.')
     router.push('/auth')
   }
@@ -200,7 +201,7 @@ async function handleResend() {
       alert(result.error || 'Не удалось отправить код')
     }
   } catch (err: any) {
-    console.error('Error resending code:', err)
+    logger.error('Error resending code:', err)
     alert('Ошибка отправки кода')
   }
 }
