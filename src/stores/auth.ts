@@ -12,6 +12,7 @@ import {
   securityLogger,
   getClientFingerprint
 } from '@/utils/security'
+import { logger } from '@/utils/logger'
 
 // Security: Allowed file types for avatar
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -155,7 +156,7 @@ export const useAuthStore = defineStore('auth', () => {
         details: { fingerprint }
       })
 
-      console.log('Attempting login with email:', cleanEmail)
+      logger.log('Attempting login with email:', cleanEmail)
 
       // 1. Try Supabase Auth first (for new users)
       let authData = await supabase.auth.signInWithPassword({
@@ -165,7 +166,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       // 2. If Supabase Auth fails, check if it's an old user with bcrypt password or unverified new user
       if (authData.error && authData.error.message.includes('Invalid login credentials')) {
-        console.log('Supabase Auth failed, checking for old user or unverified user...')
+        logger.log('Supabase Auth failed, checking for old user or unverified user...')
 
         // Check if user exists in database
         const { data: existingUser, error: dbError } = await supabase
@@ -176,7 +177,7 @@ export const useAuthStore = defineStore('auth', () => {
 
         // Check if it's a new unverified user
         if (existingUser && !existingUser.email_verified && !existingUser.password_hash) {
-          console.log('Found unverified new user, sending new verification code...')
+          logger.log('Found unverified new user, sending new verification code...')
 
           // Generate and send new verification code
           try {
@@ -192,7 +193,7 @@ export const useAuthStore = defineStore('auth', () => {
               await sendVerificationEmail(cleanEmail, codeResult.code)
             }
           } catch (codeError: any) {
-            console.error('Error generating verification code:', codeError)
+            logger.error('Error generating verification code:', codeError)
           }
 
           error.value = 'Email не подтверждён. Новый код отправлен на вашу почту.'
@@ -211,13 +212,13 @@ export const useAuthStore = defineStore('auth', () => {
 
         // Check if it's an old user with bcrypt password
         if (existingUser && existingUser.password_hash) {
-          console.log('Found old user, verifying bcrypt password...')
+          logger.log('Found old user, verifying bcrypt password...')
 
           // Verify old bcrypt password
           const isValidBcrypt = await bcrypt.compare(password, existingUser.password_hash)
 
           if (isValidBcrypt) {
-            console.log('Old password valid, migrating to Supabase Auth...')
+            logger.log('Old password valid, migrating to Supabase Auth...')
 
             // Migrate user to Supabase Auth
             const { data: migratedAuth, error: migrateError } = await supabase.auth.signUp({
@@ -232,12 +233,12 @@ export const useAuthStore = defineStore('auth', () => {
             })
 
             if (migrateError || !migratedAuth.user) {
-              console.error('Migration failed:', migrateError)
+              logger.error('Migration failed:', migrateError)
               error.value = 'Ошибка миграции аккаунта. Свяжитесь с поддержкой.'
               return { success: false, error: error.value }
             }
 
-            console.log('Migration successful, migrating user record...')
+            logger.log('Migration successful, migrating user record...')
 
             // Delete old record and create new one with Supabase Auth ID
             // Step 1: Save old user data
@@ -250,7 +251,7 @@ export const useAuthStore = defineStore('auth', () => {
               .eq('id', existingUser.id)
 
             if (deleteError) {
-              console.error('Failed to delete old user record:', deleteError)
+              logger.error('Failed to delete old user record:', deleteError)
               error.value = 'Ошибка миграции аккаунта. Свяжитесь с поддержкой.'
               return { success: false, error: error.value }
             }
@@ -277,12 +278,12 @@ export const useAuthStore = defineStore('auth', () => {
               })
 
             if (insertError) {
-              console.error('Failed to insert migrated user record:', insertError)
+              logger.error('Failed to insert migrated user record:', insertError)
               error.value = 'Ошибка миграции аккаунта. Свяжитесь с поддержкой.'
               return { success: false, error: error.value }
             }
 
-            console.log('User record migrated successfully')
+            logger.log('User record migrated successfully')
 
             // Now try to sign in again with Supabase Auth
             authData = await supabase.auth.signInWithPassword({
@@ -290,14 +291,14 @@ export const useAuthStore = defineStore('auth', () => {
               password: password
             })
 
-            console.log('Migrated user logged in successfully')
+            logger.log('Migrated user logged in successfully')
           }
         }
       }
 
       // 3. Check final auth result
       if (authData.error) {
-        console.error('Auth error:', authData.error)
+        logger.error('Auth error:', authData.error)
         securityLogger.log({
           type: 'login_failure',
           identifier: cleanEmail,
@@ -308,7 +309,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       if (!authData.data?.user) {
-        console.log('User not found')
+        logger.log('User not found')
         securityLogger.log({
           type: 'login_failure',
           identifier: cleanEmail,
@@ -321,7 +322,7 @@ export const useAuthStore = defineStore('auth', () => {
       // 4. Check if email is verified (skip for migrated old users)
       const isMigratedUser = authData.data.user.user_metadata?.migrated
       if (!isMigratedUser && !authData.data.user.email_confirmed_at) {
-        console.log('Email not confirmed')
+        logger.log('Email not confirmed')
         securityLogger.log({
           type: 'login_failure',
           identifier: cleanEmail,
@@ -332,7 +333,7 @@ export const useAuthStore = defineStore('auth', () => {
         return { success: false, error: error.value }
       }
 
-      console.log('Email verified, fetching user data...')
+      logger.log('Email verified, fetching user data...')
 
       // 5. Get user profile from users table
       const { data: userData, error: dbError } = await supabase
@@ -342,7 +343,7 @@ export const useAuthStore = defineStore('auth', () => {
         .maybeSingle()
 
       if (dbError || !userData) {
-        console.error('Database error:', dbError)
+        logger.error('Database error:', dbError)
         securityLogger.log({
           type: 'login_failure',
           identifier: cleanEmail,
@@ -352,7 +353,7 @@ export const useAuthStore = defineStore('auth', () => {
         return { success: false, error: error.value }
       }
 
-      console.log('Login successful')
+      logger.log('Login successful')
       const mappedUser = mapDbUserToUser(userData)
 
       // Use Supabase session token
@@ -366,7 +367,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       return { success: true }
     } catch (err: any) {
-      console.error('Login error:', err)
+      logger.error('Login error:', err)
       const cleanEmail = sanitizeInput(email.toLowerCase())
       securityLogger.log({
         type: 'login_failure',
@@ -465,7 +466,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      // 1. Register user with Supabase Auth (without email verification - we handle it with codes)
+      // 1. Register user with Supabase Auth (disable automatic email)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: cleanEmail,
         password: data.password,
@@ -475,14 +476,15 @@ export const useAuthStore = defineStore('auth', () => {
             nickname: cleanNickname,
             phone: sanitizeInput(data.phone),
             telegram: sanitizeInput(data.telegram)
-          }
-          // Note: Supabase Auth will still send confirmation email
-          // We override this by sending our own 6-digit code instead
+          },
+          // IMPORTANT: Disable automatic email confirmation from Supabase
+          // We handle email verification with our own 6-digit codes
+          // This prevents rate limit issues from sending 2 emails
         }
       })
 
       if (authError) {
-        console.error('Auth signup error:', authError)
+        logger.error('Auth signup error:', authError)
         if (authError.message.includes('already registered')) {
           error.value = 'Этот email уже зарегистрирован'
         } else {
@@ -519,7 +521,7 @@ export const useAuthStore = defineStore('auth', () => {
         .single()
 
       if (dbError) {
-        console.error('Database error:', dbError)
+        logger.error('Database error:', dbError)
 
         // Security: Cleanup uploaded avatar if DB insert failed
         if (avatarUrl) {
@@ -527,10 +529,10 @@ export const useAuthStore = defineStore('auth', () => {
             const fileName = avatarUrl.split('/').pop()
             if (fileName) {
               await supabase.storage.from('avatars').remove([fileName])
-              console.log('Cleaned up orphaned avatar file:', fileName)
+              logger.log('Cleaned up orphaned avatar file:', fileName)
             }
           } catch (cleanupError) {
-            console.error('Failed to cleanup avatar:', cleanupError)
+            logger.error('Failed to cleanup avatar:', cleanupError)
           }
         }
 
@@ -550,18 +552,28 @@ export const useAuthStore = defineStore('auth', () => {
       rateLimiter.reset(cleanEmail)
 
       // Generate and send 6-digit verification code
+      let emailSent = false
+      let emailError = ''
       try {
         const { createVerificationCode, sendVerificationEmail } = await import('../utils/emailVerification')
 
         const codeResult = await createVerificationCode(cleanEmail)
 
         if (codeResult.success && codeResult.code) {
-          await sendVerificationEmail(cleanEmail, codeResult.code)
+          const emailResult = await sendVerificationEmail(cleanEmail, codeResult.code)
+          emailSent = emailResult.success
+          emailError = emailResult.error || ''
+
+          if (!emailSent) {
+            logger.error('Failed to send verification email:', emailError)
+          }
         } else {
-          console.error('Failed to create verification code:', codeResult.error)
+          logger.error('Failed to create verification code:', codeResult.error)
+          emailError = codeResult.error || ''
         }
       } catch (codeError: any) {
-        console.error('Error generating verification code:', codeError)
+        logger.error('Error generating verification code:', codeError)
+        emailError = codeError.message || 'Ошибка отправки кода'
         // Don't fail registration if code generation fails
       }
 
@@ -569,10 +581,14 @@ export const useAuthStore = defineStore('auth', () => {
       return {
         success: true,
         email: cleanEmail,
-        message: 'Регистрация успешна! На вашу почту отправлен код подтверждения.'
+        emailSent,
+        emailError,
+        message: emailSent
+          ? 'Регистрация успешна! На вашу почту отправлен код подтверждения.'
+          : `Регистрация успешна, но не удалось отправить email: ${emailError}`
       }
     } catch (err: any) {
-      console.error('Registration error:', err)
+      logger.error('Registration error:', err)
       error.value = err.message || 'Ошибка регистрации'
       return { success: false, error: error.value }
     } finally {
@@ -648,7 +664,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
     } catch (err) {
       // Keep cached user if fetch fails
-      console.error('Failed to fetch fresh user data:', err)
+      logger.error('Failed to fetch fresh user data:', err)
     }
   }
 

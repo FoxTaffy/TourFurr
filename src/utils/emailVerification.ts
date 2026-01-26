@@ -1,4 +1,6 @@
 import { supabase } from '../services/supabase'
+import { DISABLE_EMAIL } from './env'
+import { logger } from './logger'
 
 export interface VerificationCode {
   id: string
@@ -46,7 +48,7 @@ export async function createVerificationCode(email: string): Promise<{
       .single()
 
     if (error) {
-      console.error('Error creating verification code:', error)
+      logger.error('Error creating verification code:', error)
       return { success: false, error: 'Не удалось создать код подтверждения' }
     }
 
@@ -56,7 +58,7 @@ export async function createVerificationCode(email: string): Promise<{
       expiresAt
     }
   } catch (err: any) {
-    console.error('Exception creating verification code:', err)
+    logger.error('Exception creating verification code:', err)
     return { success: false, error: err.message || 'Неизвестная ошибка' }
   }
 }
@@ -86,12 +88,12 @@ export async function verifyCode(email: string, code: string): Promise<{
 
       // Check if code has expired
       if (new Date(verificationRecord.expires_at) < new Date()) {
-        console.log('Custom code expired, will try Supabase OTP fallback')
+        logger.log('Custom code expired, will try Supabase OTP fallback')
         // Don't return yet, try Supabase OTP as fallback
       }
       // Check if too many attempts
       else if (verificationRecord.attempts >= 3) {
-        console.log('Too many attempts on custom code, will try Supabase OTP fallback')
+        logger.log('Too many attempts on custom code, will try Supabase OTP fallback')
         // Don't return yet, try Supabase OTP as fallback
       }
       // Check if code matches our custom code
@@ -106,10 +108,10 @@ export async function verifyCode(email: string, code: string): Promise<{
           .eq('id', verificationRecord.id)
 
         if (updateError) {
-          console.error('Error updating verification code:', updateError)
+          logger.error('Error updating verification code:', updateError)
         }
 
-        console.log('✅ Verified using custom code')
+        logger.log('✅ Verified using custom code')
         return { success: true }
       } else {
         // Increment attempts for wrong custom code
@@ -118,14 +120,14 @@ export async function verifyCode(email: string, code: string): Promise<{
           .update({ attempts: verificationRecord.attempts + 1 })
           .eq('id', verificationRecord.id)
 
-        console.log('Custom code mismatch, will try Supabase OTP fallback')
+        logger.log('Custom code mismatch, will try Supabase OTP fallback')
         // Continue to Supabase OTP fallback
       }
     }
 
     // STRATEGY 2: Fallback to Supabase's built-in OTP verification
     // This handles codes sent by Supabase's automatic email system
-    console.log('Trying Supabase OTP verification as fallback...')
+    logger.log('Trying Supabase OTP verification as fallback...')
 
     try {
       const { data: otpData, error: otpError } = await supabase.auth.verifyOtp({
@@ -135,13 +137,13 @@ export async function verifyCode(email: string, code: string): Promise<{
       })
 
       if (!otpError && otpData?.user) {
-        console.log('✅ Verified using Supabase OTP')
+        logger.log('✅ Verified using Supabase OTP')
         return { success: true }
       } else {
-        console.log('Supabase OTP verification failed:', otpError?.message)
+        logger.log('Supabase OTP verification failed:', otpError?.message)
       }
     } catch (otpException: any) {
-      console.log('Exception during Supabase OTP verification:', otpException.message)
+      logger.log('Exception during Supabase OTP verification:', otpException.message)
     }
 
     // Both strategies failed
@@ -150,7 +152,7 @@ export async function verifyCode(email: string, code: string): Promise<{
       error: 'Неверный код. Проверьте код из письма или запросите новый.'
     }
   } catch (err: any) {
-    console.error('Exception verifying code:', err)
+    logger.error('Exception verifying code:', err)
     return { success: false, error: err.message || 'Неизвестная ошибка' }
   }
 }
@@ -158,17 +160,26 @@ export async function verifyCode(email: string, code: string): Promise<{
 /**
  * Send verification code via email
  * Note: This requires a backend endpoint to actually send emails
- * For now, we'll log the code (in production, use a proper email service)
+ * In development mode, the code is only logged to console
  */
 export async function sendVerificationEmail(email: string, code: string): Promise<{
   success: boolean
   error?: string
 }> {
   try {
-    // TODO: Replace with actual email sending service (SendGrid, Mailgun, etc.)
-    // For development, we'll use Supabase Edge Function or similar
+    // DEVELOPMENT MODE: Just log the code without sending email
+    // This prevents rate limit issues during testing
+    if (DISABLE_EMAIL) {
+      logger.log('='.repeat(60))
+      logger.log('📧 DEV MODE: Email sending disabled')
+      logger.log('📨 Email:', email)
+      logger.log('🔢 Verification Code:', code)
+      logger.log('⏰ Expires in: 15 minutes')
+      logger.log('='.repeat(60))
+      return { success: true }
+    }
 
-    // Option 1: Use Supabase Edge Function
+    // PRODUCTION MODE: Use Supabase Edge Function to send email
     const { data, error } = await supabase.functions.invoke('send-verification-email', {
       body: {
         email,
@@ -177,30 +188,46 @@ export async function sendVerificationEmail(email: string, code: string): Promis
     })
 
     if (error) {
-      console.error('Error sending verification email:', error)
-      // ✅ SECURITY FIX: Only log in development mode, and mask the code
-      if (import.meta.env.DEV) {
-        console.log('='.repeat(50))
-        console.log('📧 VERIFICATION CODE FOR:', email)
-        console.log('🔢 CODE:', code.substring(0, 2) + '****') // Показываем только первые 2 цифры
-        console.log('⚠️  DEV MODE: Полный код:', code) // Полный код только в dev
-        console.log('='.repeat(50))
+      logger.error('Error sending verification email:', error)
+
+      // Check if it's a rate limit error
+      if (error.message && (
+        error.message.includes('rate limit') ||
+        error.message.includes('too many') ||
+        error.message.includes('Email rate limit exceeded')
+      )) {
+        return {
+          success: false,
+          error: 'Слишком много писем отправлено на этот адрес. Подождите 1 час и попробуйте снова.'
+        }
       }
-      return { success: false, error: 'Не удалось отправить email. Свяжитесь с поддержкой.' }
+
+      return {
+        success: false,
+        error: 'Не удалось отправить email. Попробуйте позже или свяжитесь с поддержкой.'
+      }
     }
 
     return { success: true }
   } catch (err: any) {
-    console.error('Exception sending verification email:', err)
-    // ✅ SECURITY FIX: Only log in development mode, and mask the code
-    if (import.meta.env.DEV) {
-      console.log('='.repeat(50))
-      console.log('📧 VERIFICATION CODE FOR:', email)
-      console.log('🔢 CODE:', code.substring(0, 2) + '****') // Показываем только первые 2 цифры
-      console.log('⚠️  DEV MODE: Полный код:', code) // Полный код только в dev
-      console.log('='.repeat(50))
+    logger.error('Exception sending verification email:', err)
+
+    // Check if it's a rate limit error
+    if (err.message && (
+      err.message.includes('rate limit') ||
+      err.message.includes('too many') ||
+      err.message.includes('Email rate limit exceeded')
+    )) {
+      return {
+        success: false,
+        error: 'Слишком много писем отправлено на этот адрес. Подождите 1 час и попробуйте снова.'
+      }
     }
-    return { success: false, error: 'Ошибка отправки email. Свяжитесь с поддержкой.' }
+
+    return {
+      success: false,
+      error: 'Ошибка отправки email. Попробуйте позже или свяжитесь с поддержкой.'
+    }
   }
 }
 

@@ -93,9 +93,7 @@
   import logoImg from '../assets/logo.png'
   import { useAuthStore } from '../stores/auth'
   import { computed } from 'vue'
-
-  const REGISTRATION_OPEN_DATE = new Date('2026-03-01T00:00:00')
-  const ADMIN_PIN = 'tourfurr2026'
+  import { isRegistrationOpen, verifyAdminPin } from '../utils/env'
 
   export default {
     name: 'Header',
@@ -126,7 +124,7 @@
     },
     computed: {
       isRegistrationOpen() {
-        return new Date() >= REGISTRATION_OPEN_DATE
+        return isRegistrationOpen()
       },
       showAuthButtons() {
         return this.isRegistrationOpen || this.isPinUnlocked
@@ -160,7 +158,7 @@
         this.mobileMenuOpen = false
       },
       checkPinCode() {
-        if (this.pinCode === ADMIN_PIN) {
+        if (verifyAdminPin(this.pinCode)) {
           this.isPinUnlocked = true
           localStorage.setItem('registration_unlocked', 'true')
           this.showPinModal = false

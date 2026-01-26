@@ -1,0 +1,143 @@
+╔══════════════════════════════════════════════════════════════╗
+║                   🔐 СЕКРЕТНЫЕ КЛЮЧИ                         ║
+║                    TourFurr 2026                             ║
+║                                                              ║
+║  ⚠️  КОНФИДЕНЦИАЛЬНО - НЕ ПУБЛИКОВАТЬ В ИНТЕРНЕТЕ!         ║
+╚══════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════
+ 📋 ЧТО НУЖНО УСТАНОВИТЬ В VERCEL/NETLIFY
+═══════════════════════════════════════════════════════════════
+
+1. VITE_SUPABASE_URL
+   └─ Где взять: Supabase Dashboard → Settings → API → Project URL
+   └─ Формат: https://xxxxx.supabase.co
+
+2. VITE_SUPABASE_ANON_KEY
+   └─ Где взять: Supabase Dashboard → Settings → API → anon key
+   └─ Формат: eyJhbGci... (длинная строка)
+
+3. VITE_TURNSTILE_SITE_KEY
+   └─ Где взять: Cloudflare Dashboard → Turnstile → Site Key
+   └─ Формат: 0x4AA...
+
+4. VITE_ADMIN_PIN
+   └─ Придумайте свой: например "TourFurr2026Secure!"
+   └─ ⚠️  ВАЖНО: Замените на свой уникальный PIN!
+
+5. VITE_REGISTRATION_OPEN_DATE
+   └─ Установите: 2026-03-01T00:00:00
+
+6. VITE_DISABLE_EMAIL
+   └─ Установите: false
+
+7. VITE_GRACE_PERIOD_MINUTES
+   └─ Установите: 15
+
+8. NODE_ENV
+   └─ Установите: production
+
+═══════════════════════════════════════════════════════════════
+ 🔑 СЕКРЕТЫ ДЛЯ SUPABASE (только backend!)
+═══════════════════════════════════════════════════════════════
+
+Установить через CLI:
+
+supabase secrets set RESEND_API_KEY="re_2BH5TbAW_2zFqeY8vzfUsyEKeMKJHHYep"
+supabase secrets set TURNSTILE_SECRET_KEY="ваш_cloudflare_secret_key"
+
+Или через Supabase Dashboard:
+  → Edge Functions → Manage secrets
+  → Добавить RESEND_API_KEY и TURNSTILE_SECRET_KEY
+
+═══════════════════════════════════════════════════════════════
+ 🚀 БЫСТРЫЙ СТАРТ
+═══════════════════════════════════════════════════════════════
+
+ШАГ 1: Настройте Vercel/Netlify
+  1. Project Settings → Environment Variables
+  2. Добавьте ВСЕ переменные из раздела выше
+  3. ВАЖНО: VITE_ADMIN_PIN замените на свой!
+
+ШАГ 2: Настройте Supabase Secrets
+  supabase login
+  supabase link --project-ref YOUR_PROJECT_REF
+  supabase secrets set RESEND_API_KEY="re_2BH5TbAW_2zFqeY8vzfUsyEKeMKJHHYep"
+
+ШАГ 3: Разверните Edge Functions
+  supabase functions deploy send-verification-email
+  supabase functions deploy cleanup-unverified-accounts
+
+ШАГ 4: Отключите Supabase Auto-Emails
+  Supabase Dashboard → Authentication → Email Templates
+  → Settings → СНЯТЬ ГАЛОЧКУ "Enable email confirmations"
+
+ШАГ 5: Проверьте deployment
+  - Откройте сайт
+  - Попробуйте зарегистрироваться
+  - Проверьте email доставку
+  - Проверьте admin PIN доступ
+
+═══════════════════════════════════════════════════════════════
+ ✅ ЧЕКЛИСТ БЕЗОПАСНОСТИ
+═══════════════════════════════════════════════════════════════
+
+✓ Все секреты в .env (не в коде)
+✓ VITE_ADMIN_PIN изменен на уникальный
+✓ .env файл в .gitignore
+✓ console.log удаляются в production build
+✓ Source maps отключены
+✓ Environment variables валидируются при старте
+✓ Admin PIN проверяется безопасно (constant-time)
+✓ Критичные ключи только на сервере (Supabase secrets)
+
+═══════════════════════════════════════════════════════════════
+ 🔒 ЧТО БЕЗОПАСНО / ЧТО ОПАСНО
+═══════════════════════════════════════════════════════════════
+
+МОЖНО показывать в клиенте (публичные ключи):
+  ✅ VITE_SUPABASE_URL
+  ✅ VITE_SUPABASE_ANON_KEY (это anon, не service_role!)
+  ✅ VITE_TURNSTILE_SITE_KEY (это site key, не secret!)
+  ✅ VITE_REGISTRATION_OPEN_DATE
+
+НЕЛЬЗЯ показывать (секретные ключи):
+  ❌ VITE_ADMIN_PIN (хранится в env, но не в коде!)
+  ❌ RESEND_API_KEY (только на сервере!)
+  ❌ TURNSTILE_SECRET_KEY (только на сервере!)
+  ❌ SUPABASE_SERVICE_ROLE_KEY (не используем в клиенте!)
+
+═══════════════════════════════════════════════════════════════
+ 📚 ДОКУМЕНТАЦИЯ
+═══════════════════════════════════════════════════════════════
+
+Подробные инструкции:
+  - PRODUCTION_SECRETS.md - полный гайд по deployment
+  - .env.example - шаблон для локальной разработки
+  - RESEND_SETUP.md - настройка email сервиса
+  - QUICK_START.md - быстрый старт для разработки
+
+═══════════════════════════════════════════════════════════════
+ 🆘 ПРОБЛЕМЫ?
+═══════════════════════════════════════════════════════════════
+
+"Missing required environment variable"
+  → Проверьте что ВСЕ переменные установлены
+  → Убедитесь что названия правильные (с префиксом VITE_)
+
+Email не отправляются
+  → VITE_DISABLE_EMAIL=false в production
+  → RESEND_API_KEY установлен в Supabase
+  → Edge Function развернута
+  → Supabase Email Confirmations отключены
+
+Admin PIN не работает
+  → Проверьте VITE_ADMIN_PIN в environment variables
+  → Не используйте сложные спецсимволы
+
+═══════════════════════════════════════════════════════════════
+
+Всё готово для production! 🚀
+
+Следуйте шагам выше для безопасного развертывания.
+

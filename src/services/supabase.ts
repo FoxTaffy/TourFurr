@@ -1,15 +1,19 @@
 import { createClient } from '@supabase/supabase-js'
+import { SUPABASE_URL, SUPABASE_ANON_KEY, IS_DEVELOPMENT } from '../utils/env'
+import { logger } from '../utils/logger'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase credentials not found, using mock mode')
+// Валидация в production
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  if (IS_DEVELOPMENT) {
+    logger.warn('⚠️ Supabase credentials not found. Please check your .env file.')
+  } else {
+    throw new Error('CRITICAL: Supabase credentials missing in production!')
+  }
 }
 
 export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
+  SUPABASE_URL || 'https://placeholder.supabase.co',
+  SUPABASE_ANON_KEY || 'placeholder-key'
 )
 
-export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey)
+export const isSupabaseConfigured = !!(SUPABASE_URL && SUPABASE_ANON_KEY)

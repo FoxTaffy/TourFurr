@@ -1,4 +1,5 @@
 import { supabase } from '../services/supabase'
+import { logger } from './logger'
 
 /**
  * Grace period для подтверждения email (в минутах)
@@ -80,7 +81,7 @@ export async function checkGracePeriodStatus(email: string): Promise<GracePeriod
       exists: true
     }
   } catch (err) {
-    console.error('Error checking grace period:', err)
+    logger.error('Error checking grace period:', err)
     return {
       isExpired: true,
       minutesRemaining: null,
