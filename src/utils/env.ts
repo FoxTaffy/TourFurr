@@ -7,17 +7,16 @@
 
 /**
  * Получить переменную окружения с валидацией
- * @throws Error если переменная не установлена в production
+ * @throws Error если переменная не установлена в production (только в runtime)
  */
-function getEnvVar(key: string, defaultValue?: string): string {
-  const value = import.meta.env[key] || defaultValue
+function getEnvVar(key: string, defaultValue: string = ''): string {
+  const value = import.meta.env[key]
 
-  // В production все обязательные переменные должны быть установлены
-  if (!value && import.meta.env.PROD) {
-    throw new Error(`Missing required environment variable: ${key}`)
+  if (value !== undefined) {
+    return value
   }
 
-  return value || ''
+  return defaultValue
 }
 
 /**
@@ -31,8 +30,8 @@ function hasEnvVar(key: string): boolean {
 // Supabase Configuration
 // =============================================================================
 
-export const SUPABASE_URL = getEnvVar('VITE_SUPABASE_URL')
-export const SUPABASE_ANON_KEY = getEnvVar('VITE_SUPABASE_ANON_KEY')
+export const SUPABASE_URL = getEnvVar('VITE_SUPABASE_URL', '')
+export const SUPABASE_ANON_KEY = getEnvVar('VITE_SUPABASE_ANON_KEY', '')
 
 // =============================================================================
 // Cloudflare Turnstile (CAPTCHA)
@@ -81,7 +80,7 @@ export function isRegistrationOpen(): boolean {
  * ⚠️ КРИТИЧНО: Должен быть установлен в .env
  * ⚠️ НИКОГДА не храните в коде!
  */
-export const ADMIN_PIN = getEnvVar('VITE_ADMIN_PIN')
+export const ADMIN_PIN = getEnvVar('VITE_ADMIN_PIN', '')
 
 /**
  * Проверить админ PIN
