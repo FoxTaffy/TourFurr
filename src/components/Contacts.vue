@@ -61,17 +61,17 @@
         organizers: [
           {
             id: 1,
-            name: 'FoxTaffy',
+            name: 'Kesaran',
             role: 'Главный организатор',
-            avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=FoxTaffy&backgroundColor=ff6b35',
-            link: 'https://t.me/foxtaffy'
+            avatar: 'https://gczgcatmsrlncjbqdghu.supabase.co/storage/v1/object/public/avatars/Kesaran.jpg',
+            link: 'https://t.me/Kesaran_Pasaran'
           },
           {
             id: 2,
-            name: 'ForestWolf',
+            name: 'Морда',
             role: 'Координатор мероприятий',
-            avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=ForestWolf&backgroundColor=ffb347',
-            link: 'https://t.me/forestwolf'
+            avatar: 'https://gczgcatmsrlncjbqdghu.supabase.co/storage/v1/object/public/avatars/morderhurr.jpg',
+            link: 'https://t.me/morderhurr'
           }
         ]
       }
