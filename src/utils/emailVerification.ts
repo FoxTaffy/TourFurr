@@ -158,17 +158,26 @@ export async function verifyCode(email: string, code: string): Promise<{
 /**
  * Send verification code via email
  * Note: This requires a backend endpoint to actually send emails
- * For now, we'll log the code (in production, use a proper email service)
+ * In development mode, the code is only logged to console
  */
 export async function sendVerificationEmail(email: string, code: string): Promise<{
   success: boolean
   error?: string
 }> {
   try {
-    // TODO: Replace with actual email sending service (SendGrid, Mailgun, etc.)
-    // For development, we'll use Supabase Edge Function or similar
+    // DEVELOPMENT MODE: Just log the code without sending email
+    // This prevents rate limit issues during testing
+    if (import.meta.env.DEV || import.meta.env.VITE_DISABLE_EMAIL === 'true') {
+      console.log('='.repeat(60))
+      console.log('📧 DEV MODE: Email sending disabled')
+      console.log('📨 Email:', email)
+      console.log('🔢 Verification Code:', code)
+      console.log('⏰ Expires in: 15 minutes')
+      console.log('='.repeat(60))
+      return { success: true }
+    }
 
-    // Option 1: Use Supabase Edge Function
+    // PRODUCTION MODE: Use Supabase Edge Function to send email
     const { data, error } = await supabase.functions.invoke('send-verification-email', {
       body: {
         email,
@@ -178,29 +187,45 @@ export async function sendVerificationEmail(email: string, code: string): Promis
 
     if (error) {
       console.error('Error sending verification email:', error)
-      // ✅ SECURITY FIX: Only log in development mode, and mask the code
-      if (import.meta.env.DEV) {
-        console.log('='.repeat(50))
-        console.log('📧 VERIFICATION CODE FOR:', email)
-        console.log('🔢 CODE:', code.substring(0, 2) + '****') // Показываем только первые 2 цифры
-        console.log('⚠️  DEV MODE: Полный код:', code) // Полный код только в dev
-        console.log('='.repeat(50))
+
+      // Check if it's a rate limit error
+      if (error.message && (
+        error.message.includes('rate limit') ||
+        error.message.includes('too many') ||
+        error.message.includes('Email rate limit exceeded')
+      )) {
+        return {
+          success: false,
+          error: 'Слишком много писем отправлено на этот адрес. Подождите 1 час и попробуйте снова.'
+        }
       }
-      return { success: false, error: 'Не удалось отправить email. Свяжитесь с поддержкой.' }
+
+      return {
+        success: false,
+        error: 'Не удалось отправить email. Попробуйте позже или свяжитесь с поддержкой.'
+      }
     }
 
     return { success: true }
   } catch (err: any) {
     console.error('Exception sending verification email:', err)
-    // ✅ SECURITY FIX: Only log in development mode, and mask the code
-    if (import.meta.env.DEV) {
-      console.log('='.repeat(50))
-      console.log('📧 VERIFICATION CODE FOR:', email)
-      console.log('🔢 CODE:', code.substring(0, 2) + '****') // Показываем только первые 2 цифры
-      console.log('⚠️  DEV MODE: Полный код:', code) // Полный код только в dev
-      console.log('='.repeat(50))
+
+    // Check if it's a rate limit error
+    if (err.message && (
+      err.message.includes('rate limit') ||
+      err.message.includes('too many') ||
+      err.message.includes('Email rate limit exceeded')
+    )) {
+      return {
+        success: false,
+        error: 'Слишком много писем отправлено на этот адрес. Подождите 1 час и попробуйте снова.'
+      }
     }
-    return { success: false, error: 'Ошибка отправки email. Свяжитесь с поддержкой.' }
+
+    return {
+      success: false,
+      error: 'Ошибка отправки email. Попробуйте позже или свяжитесь с поддержкой.'
+    }
   }
 }
 

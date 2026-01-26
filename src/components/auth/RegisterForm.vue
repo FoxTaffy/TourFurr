@@ -676,9 +676,23 @@ async function handleSubmit() {
   if (result.success) {
     // Redirect to email verification page with email in query params
     const email = (result as any).email || form.email
+    const emailSent = (result as any).emailSent
+    const emailError = (result as any).emailError
+
+    // Show warning if email wasn't sent (but registration succeeded)
+    if (!emailSent && emailError) {
+      console.warn('Email not sent:', emailError)
+      // Still redirect, but user will see the code in console (dev mode)
+      // or can request a new code on the verification page
+    }
+
     router.push({
       path: '/auth/verify-email',
-      query: { email }
+      query: {
+        email,
+        emailSent: emailSent ? 'true' : 'false',
+        emailError: emailError || ''
+      }
     })
   } else {
     serverError.value = result.error || 'Ошибка регистрации'

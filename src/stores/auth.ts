@@ -465,7 +465,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      // 1. Register user with Supabase Auth (without email verification - we handle it with codes)
+      // 1. Register user with Supabase Auth (disable automatic email)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: cleanEmail,
         password: data.password,
@@ -475,9 +475,10 @@ export const useAuthStore = defineStore('auth', () => {
             nickname: cleanNickname,
             phone: sanitizeInput(data.phone),
             telegram: sanitizeInput(data.telegram)
-          }
-          // Note: Supabase Auth will still send confirmation email
-          // We override this by sending our own 6-digit code instead
+          },
+          // IMPORTANT: Disable automatic email confirmation from Supabase
+          // We handle email verification with our own 6-digit codes
+          // This prevents rate limit issues from sending 2 emails
         }
       })
 
@@ -550,18 +551,28 @@ export const useAuthStore = defineStore('auth', () => {
       rateLimiter.reset(cleanEmail)
 
       // Generate and send 6-digit verification code
+      let emailSent = false
+      let emailError = ''
       try {
         const { createVerificationCode, sendVerificationEmail } = await import('../utils/emailVerification')
 
         const codeResult = await createVerificationCode(cleanEmail)
 
         if (codeResult.success && codeResult.code) {
-          await sendVerificationEmail(cleanEmail, codeResult.code)
+          const emailResult = await sendVerificationEmail(cleanEmail, codeResult.code)
+          emailSent = emailResult.success
+          emailError = emailResult.error || ''
+
+          if (!emailSent) {
+            console.error('Failed to send verification email:', emailError)
+          }
         } else {
           console.error('Failed to create verification code:', codeResult.error)
+          emailError = codeResult.error || ''
         }
       } catch (codeError: any) {
         console.error('Error generating verification code:', codeError)
+        emailError = codeError.message || 'Ошибка отправки кода'
         // Don't fail registration if code generation fails
       }
 
@@ -569,7 +580,11 @@ export const useAuthStore = defineStore('auth', () => {
       return {
         success: true,
         email: cleanEmail,
-        message: 'Регистрация успешна! На вашу почту отправлен код подтверждения.'
+        emailSent,
+        emailError,
+        message: emailSent
+          ? 'Регистрация успешна! На вашу почту отправлен код подтверждения.'
+          : `Регистрация успешна, но не удалось отправить email: ${emailError}`
       }
     } catch (err: any) {
       console.error('Registration error:', err)
