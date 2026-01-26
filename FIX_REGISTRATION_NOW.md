@@ -4,6 +4,8 @@
 - ❌ Ошибка 403 при регистрации
 - ❌ "Database error saving new user"
 - ❌ Rate limit 429 (слишком много попыток)
+- ❌ 401 Unauthorized при проверке email кода
+- ❌ "Неправильный код" даже если код верный
 
 ## Причина
 RLS политики слишком строгие - не разрешают:
@@ -49,9 +51,23 @@ database/fix_rls_for_registration.sql
 - ✅ Разрешает проверку email/nickname
 - ✅ Разрешает регистрацию новых пользователей
 
+### Шаг 3: Выполните ТРЕТИЙ скрипт (ВАЖНО!)
+
+Скопируйте содержимое файла:
+```
+database/fix_email_verification_rls.sql
+```
+
+Вставьте в SQL Editor и нажмите **RUN**
+
+Этот скрипт:
+- ✅ Исправляет RLS для email verification codes
+- ✅ Разрешает проверку кодов без авторизации
+- ✅ Создает функцию verify_email_code() для безопасной проверки
+
 ### Шаг 4: Проверьте результат
 
-После выполнения обоих скриптов вы должны увидеть:
+После выполнения ВСЕХ ТРЁХ скриптов вы должны увидеть:
 ```
 ✅ Исправления применены успешно!
 ✅ RLS политики обновлены! Теперь регистрация должна работать.
@@ -132,6 +148,29 @@ WHERE table_name = 'users' AND column_name = 'password_hash';
 ```
 
 Должно показать: `is_nullable = YES`
+
+### Ошибка 401 при проверке email кода
+
+**Симптомы:**
+```
+401 Unauthorized
+Error creating verification code
+Неправильный код (даже если код верный)
+```
+
+**Причина:** RLS не разрешает неавторизованным пользователям читать verification codes
+
+**Решение:**
+1. Выполните `fix_email_verification_rls.sql`
+2. Проверьте политики
+
+**Диагностика:**
+```sql
+SELECT * FROM pg_policies
+WHERE tablename = 'email_verification_codes';
+```
+
+Должно показать политику: `Anyone can read verification codes for validation`
 
 ---
 
