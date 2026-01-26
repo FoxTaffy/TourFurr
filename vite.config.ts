@@ -3,8 +3,26 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath, URL } from 'node:url'
 
+// Simple plugin to remove console.* in production
+const removeConsolePlugin = () => {
+  return {
+    name: 'remove-console',
+    transform(code: string, id: string) {
+      if (process.env.NODE_ENV === 'production' && /\.(js|ts|vue)$/.test(id)) {
+        return {
+          code: code
+            .replace(/console\.(log|debug|info|warn)\s*\([^)]*\)\s*;?/g, '')
+            .replace(/console\.(log|debug|info|warn)\s*\([^)]*\)/g, 'void 0'),
+          map: null
+        }
+      }
+      return null
+    }
+  }
+}
+
 export default defineConfig({
-  plugins: [vue(), tailwindcss()],
+  plugins: [vue(), tailwindcss(), removeConsolePlugin()],
   server: {
     port: 2100
   },
@@ -15,16 +33,7 @@ export default defineConfig({
   },
   build: {
     // Production optimizations
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        // Remove console.* in production
-        drop_console: true,
-        drop_debugger: true,
-        // Remove unused code
-        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn']
-      }
-    },
+    minify: 'esbuild', // Use built-in esbuild instead of terser
     // Chunk size optimization
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
