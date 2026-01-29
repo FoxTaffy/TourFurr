@@ -1,6 +1,15 @@
 @import "tailwindcss";
 @import "./common-components.css";
 
+/* Custom Font */
+@font-face {
+  font-family: 'CustomFont';
+  src: url('/fonts/9327.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -26,7 +35,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'CustomFont', 'Inter', sans-serif;
   color: var(--cream);
   background: var(--forest-deep);
   overflow-x: hidden;
@@ -199,7 +208,7 @@ section {
 }
 
 .section-title {
-  font-family: 'Merriweather', serif;
+  font-family: 'CustomFont', 'Merriweather', serif;
   font-size: clamp(2rem, 4vw, 3rem);
   color: var(--fire-glow);
   text-align: center;
