@@ -61,13 +61,34 @@
         organizers: [
           {
             id: 1,
-            name: 'Kesaran',
-            role: 'Главный организатор',
+            name: 'Кеса',
+            role: 'Мастер над геральдикой и украшениями',
             avatar: 'https://gczgcatmsrlncjbqdghu.supabase.co/storage/v1/object/public/avatars/Kesaran.jpg',
             link: 'https://t.me/Kesaran_Pasaran'
           },
           {
             id: 2,
+            name: 'Алар',
+            role: 'Верховный Лорд',
+            avatar: 'https://gczgcatmsrlncjbqdghu.supabase.co/storage/v1/object/public/avatars/Alar.jpg',
+            link: 'https://t.me/Alar_Neigeux'
+          },
+          {
+            id: 3,
+            name: 'Рафф',
+            role: 'Мастер над монетой',
+            avatar: 'https://gczgcatmsrlncjbqdghu.supabase.co/storage/v1/object/public/avatars/Raff.jpg',
+            link: 'https://t.me/DontCoffeeRaff'
+          },
+          {
+            id: 4,
+            name: 'Диеро',
+            role: 'Мейстор - архивариус',
+            avatar: 'https://gczgcatmsrlncjbqdghu.supabase.co/storage/v1/object/public/avatars/Diero.jpg',
+            link: 'https://t.me/Tai_Lung4'
+          },
+          {
+            id: 5,
             name: 'Морда',
             role: 'Координатор мероприятий',
             avatar: 'https://gczgcatmsrlncjbqdghu.supabase.co/storage/v1/object/public/avatars/morderhurr.jpg',
