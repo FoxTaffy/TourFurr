@@ -56,7 +56,7 @@
           name: 'TourFurr News',
           description: 'Официальный канал события',
           icon: 'fab fa-telegram',
-          link: '#'
+          link: 'https://t.me/+kUEOJ68BbxZkZmRi'
         },
         organizers: [
           {
@@ -86,13 +86,6 @@
             role: 'Мейстор - архивариус',
             avatar: 'https://gczgcatmsrlncjbqdghu.supabase.co/storage/v1/object/public/avatars/Diero.jpg',
             link: 'https://t.me/Tai_Lung4'
-          },
-          {
-            id: 5,
-            name: 'Морда',
-            role: 'Координатор мероприятий',
-            avatar: 'https://gczgcatmsrlncjbqdghu.supabase.co/storage/v1/object/public/avatars/morderhurr.jpg',
-            link: 'https://t.me/morderhurr'
           }
         ]
       }
