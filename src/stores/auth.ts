@@ -632,7 +632,7 @@ export const useAuthStore = defineStore('auth', () => {
       .from('users')
       .select('id')
       .eq('nickname', sanitizedNickname)
-      .single()
+      .maybeSingle()
     return !data
   }
 
