@@ -170,12 +170,19 @@ export async function sendVerificationEmail(email: string, code: string): Promis
     // DEVELOPMENT MODE: Just log the code without sending email
     // This prevents rate limit issues during testing
     if (DISABLE_EMAIL) {
-      logger.log('='.repeat(60))
-      logger.log('📧 DEV MODE: Email sending disabled')
-      logger.log('📨 Email:', email)
-      logger.log('🔢 Verification Code:', code)
-      logger.log('⏰ Expires in: 15 minutes')
-      logger.log('='.repeat(60))
+      // Output to console with highly visible styling
+      console.log('\n' + '='.repeat(80))
+      console.log('%c🚀 РЕЖИМ РАЗРАБОТКИ: Email отправка отключена', 'color: #60a5fa; font-size: 16px; font-weight: bold;')
+      console.log('='.repeat(80))
+      console.log('%c📧 Email:', 'color: #fbbf24; font-weight: bold;', email)
+      console.log('%c🔑 КОД ПОДТВЕРЖДЕНИЯ:', 'color: #22c55e; font-size: 20px; font-weight: bold;', code)
+      console.log('%c⏰ Действителен:', 'color: #fbbf24; font-weight: bold;', '15 минут')
+      console.log('%c💡 Инструкция:', 'color: #60a5fa; font-weight: bold;', 'Скопируйте код выше и вставьте на странице подтверждения')
+      console.log('='.repeat(80) + '\n')
+
+      // Also log to internal logger
+      logger.log(`[DEV MODE] Verification code for ${email}: ${code}`)
+
       return { success: true }
     }
 
