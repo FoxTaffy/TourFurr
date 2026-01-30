@@ -63,28 +63,28 @@
             id: 1,
             name: 'Кеса',
             role: 'Мастер над геральдикой и украшениями',
-            avatar: '/avatars/Kesaran.svg',
+            avatar: '/avatars/Kesaran.jpg',
             link: 'https://t.me/Kesaran_Pasaran'
           },
           {
             id: 2,
             name: 'Алар',
             role: 'Верховный Лорд',
-            avatar: '/avatars/Alar.svg',
+            avatar: '/avatars/Alar.jpg',
             link: 'https://t.me/Alar_Neigeux'
           },
           {
             id: 3,
             name: 'Рафф',
             role: 'Мастер над монетой',
-            avatar: '/avatars/Raff.svg',
+            avatar: '/avatars/Raff.jpg',
             link: 'https://t.me/DontCoffeeRaff'
           },
           {
             id: 4,
             name: 'Диеро',
             role: 'Мейстор - архивариус',
-            avatar: '/avatars/Diero.svg',
+            avatar: '/avatars/Diero.jpg',
             link: 'https://t.me/Tai_Lung4'
           }
         ]
