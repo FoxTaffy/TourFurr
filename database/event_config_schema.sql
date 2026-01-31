@@ -36,11 +36,13 @@ CREATE TABLE IF NOT EXISTS event_config (
     -- Status
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-
-    -- Only one active event at a time
-    UNIQUE(event_year, is_active) WHERE is_active = true
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Partial unique index: Only one active event per year
+CREATE UNIQUE INDEX IF NOT EXISTS idx_event_config_one_active_per_year
+    ON event_config(event_year)
+    WHERE is_active = true;
 
 -- Index for faster queries
 CREATE INDEX IF NOT EXISTS idx_event_config_active ON event_config(is_active) WHERE is_active = true;
