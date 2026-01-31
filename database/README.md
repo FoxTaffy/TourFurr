@@ -1,8 +1,26 @@
 # Database Setup Guide
 
-## 📋 Setup Order
+## ⚡ Quick Setup (Recommended)
 
-Execute the SQL files in **this exact order** in Supabase SQL Editor:
+**Want to set up everything at once?**
+
+Use **`SETUP_ALL_IN_ONE.sql`** - it contains all schemas in the correct order!
+
+```sql
+-- 1. Open Supabase Dashboard → SQL Editor
+-- 2. Copy and paste the entire contents of:
+--    database/SETUP_ALL_IN_ONE.sql
+-- 3. Click "Run"
+-- 4. Grant yourself admin (see below)
+```
+
+Then jump to **Step 5** in the manual instructions below to grant yourself admin privileges.
+
+---
+
+## 📋 Manual Setup Order (Advanced)
+
+If you prefer to run schemas individually, execute the SQL files in **this exact order** in Supabase SQL Editor:
 
 ### 1. **PRODUCTION_SECURE_RLS_FIXED.sql** ✅ (Already applied)
 - Fixes RLS infinite recursion
