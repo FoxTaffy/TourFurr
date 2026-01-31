@@ -23,6 +23,32 @@
 
     <!-- Main Content -->
     <main class="admin-content">
+      <!-- Tabs -->
+      <div class="tabs">
+        <button
+          @click="activeTab = 'users'"
+          class="tab-btn"
+          :class="{ active: activeTab === 'users' }"
+        >
+          <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+          Пользователи
+        </button>
+        <button
+          @click="activeTab = 'applications'"
+          class="tab-btn"
+          :class="{ active: activeTab === 'applications' }"
+        >
+          <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Заявки на участие
+        </button>
+      </div>
+
+      <!-- Users Tab -->
+      <div v-show="activeTab === 'users'">
       <!-- Stats -->
       <div class="stats-grid">
         <div class="stat-card">
@@ -151,6 +177,12 @@
           </div>
         </div>
       </div>
+      </div>
+
+      <!-- Applications Tab -->
+      <div v-show="activeTab === 'applications'">
+        <ApplicationsManagement />
+      </div>
     </main>
   </div>
 </template>
@@ -160,10 +192,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../services/supabase'
 import { useAuthStore } from '../stores/auth'
+import ApplicationsManagement from '../components/ApplicationsManagement.vue'
 import logoImg from '../assets/logo.png'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+const activeTab = ref('users')
 
 // Check if user is admin on mount
 async function checkAdminAndLoad() {
@@ -669,6 +704,45 @@ onMounted(() => {
   color: var(--sage);
 }
 
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid rgba(97, 137, 108, 0.2);
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--sage);
+  font-family: 'Lora', serif;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: var(--fire-glow);
+}
+
+.tab-btn.active {
+  color: var(--fire-glow);
+  border-bottom-color: var(--fire-glow);
+}
+
+.tab-icon {
+  width: 20px;
+  height: 20px;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .stats-grid {
@@ -705,6 +779,15 @@ onMounted(() => {
 
   .user-actions {
     flex-wrap: wrap;
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    flex: 1;
+    min-width: 150px;
   }
 }
 </style>
