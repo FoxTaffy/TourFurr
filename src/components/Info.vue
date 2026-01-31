@@ -65,13 +65,13 @@
             icon: 'fas fa-ruble-sign',
             label: 'Стоимость участия',
             value: '9000',
-            detail: 'Полная оплата до события'
+            detail: 'Полная оплата до 30 мая'
           },
           {
             id: 3,
             icon: 'fas fa-users',
             label: 'Количество мест',
-            value: '150',
+            value: '121',
             detail: 'Участников'
           }
         ],
