@@ -224,7 +224,7 @@ const isLoadingConfig = ref(true)
 const registrationStatus = ref<'not_open' | 'open' | 'closed' | 'full'>('not_open')
 
 // Cloudflare Turnstile state
-const turnstilesiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAACQmENl2nYwq4ELx'
+const turnstilesiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
 const turnstileToken = ref<string | null>(null)
 const turnstileError = ref('')
 const turnstileRef = ref<InstanceType<typeof CloudflareTurnstile> | null>(null)
