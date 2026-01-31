@@ -5,6 +5,51 @@
 -- Secure policies for event registration system
 -- ====================================================================
 
+-- ========================
+-- PREREQUISITE CHECK
+-- ========================
+-- This file requires applications table to exist first
+-- Please run database/applications_schema.sql before this file
+
+DO $$
+BEGIN
+    -- Check if applications table exists
+    IF NOT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_name = 'applications'
+    ) THEN
+        RAISE EXCEPTION '
+        ❌ ERROR: Applications table does not exist!
+
+        You must run database/applications_schema.sql FIRST before running this file.
+
+        Setup order:
+        1. database/applications_schema.sql (creates applications table)
+        2. database/applications_rls.sql (this file - RLS policies)
+
+        See database/README.md for detailed setup instructions.
+        ';
+    END IF;
+
+    -- Check if event_config table exists
+    IF NOT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_name = 'event_config'
+    ) THEN
+        RAISE EXCEPTION '
+        ❌ ERROR: event_config table does not exist!
+
+        You must run database/event_config_schema.sql FIRST before running this file.
+
+        See database/README.md for detailed setup instructions.
+        ';
+    END IF;
+
+    RAISE NOTICE '✅ Prerequisite check passed: applications and event_config tables exist';
+END $$;
+
 -- Enable RLS on applications table
 ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE event_config ENABLE ROW LEVEL SECURITY;
