@@ -76,7 +76,7 @@
 
 - [ ] **Настроить кастомный домен в Vercel**
   - Settings → Domains
-  - Add your domain (например: tourfurr.com)
+  - Add your domain (например: fourfurr.camp)
   - Настроить DNS записи
 
 - [ ] **Проверить SSL сертификат**
@@ -85,8 +85,8 @@
 
 - [ ] **Обновить Supabase Site URL**
   - Authentication → URL Configuration
-  - Site URL: `https://tourfurr.com` (ваш домен)
-  - Redirect URLs: добавьте `https://tourfurr.com/**`
+  - Site URL: `https://fourfurr.camp` (ваш домен)
+  - Redirect URLs: добавьте `https://fourfurr.camp/**`
 
 ### 5. 🧪 Тестирование
 
@@ -257,7 +257,7 @@
 
 Если возникли проблемы:
 - GitHub Issues: https://github.com/FoxTaffy/TourFurr/issues
-- Email: support@tourfurr.com (замените на реальный)
+- Email: support@fourfurr.camp (замените на реальный)
 
 ---
 

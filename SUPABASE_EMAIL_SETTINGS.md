@@ -117,7 +117,7 @@ serve(async (req) => {
           to: [{ email }],
           subject: 'Код подтверждения TourFurr'
         }],
-        from: { email: 'noreply@tourfurr.com', name: 'TourFurr' },
+        from: { email: 'noreply@fourfurr.camp', name: 'TourFurr' },
         content: [{
           type: 'text/html',
           value: `

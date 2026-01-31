@@ -17,7 +17,7 @@
 ### 2.1 Добавить домен
 
 1. В dashboard Resend нажмите **Domains** → **Add Domain**
-2. Введите ваш домен (например: `tourfurr.com`)
+2. Введите ваш домен (например: `fourfurr.camp`)
 3. **Add Domain**
 
 ### 2.2 Настроить DNS записи
@@ -43,14 +43,14 @@ p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC...
 ```
 Type: TXT
 Name: _dmarc
-Value: v=DMARC1; p=none; rua=mailto:dmarc@tourfurr.com
+Value: v=DMARC1; p=none; rua=mailto:dmarc@fourfurr.camp
 ```
 
 ### 2.3 Добавить DNS записи
 
 **Если используете Vercel для домена:**
 
-1. Vercel Dashboard → Domains → tourfurr.com → DNS Records
+1. Vercel Dashboard → Domains → fourfurr.camp → DNS Records
 2. Add Record для каждой из 3 записей выше
 
 **Если используете Cloudflare:**
@@ -133,7 +133,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'TourFurr <noreply@tourfurr.com>', // Замените на ваш домен
+        from: 'TourFurr <noreply@fourfurr.camp>', // Замените на ваш домен
         to: [email],
         subject: 'Подтверждение email - TourFurr 2026',
         html: `
@@ -332,9 +332,9 @@ curl -X POST 'https://gczgcatmsrlncjbqdghu.supabase.co/functions/v1/send-verific
 
 1. **Проверьте DNS записи:**
    ```bash
-   dig TXT tourfurr.com
-   dig TXT resend._domainkey.tourfurr.com
-   dig TXT _dmarc.tourfurr.com
+   dig TXT fourfurr.camp
+   dig TXT resend._domainkey.fourfurr.camp
+   dig TXT _dmarc.fourfurr.camp
    ```
 
 2. **Проверьте Resend Dashboard:**
@@ -363,7 +363,7 @@ curl -X POST 'https://gczgcatmsrlncjbqdghu.supabase.co/functions/v1/send-verific
 ## 🎯 Best Practices
 
 1. **Используйте субдомен для email:**
-   - `noreply@mail.tourfurr.com` вместо `noreply@tourfurr.com`
+   - `noreply@mail.fourfurr.camp` вместо `noreply@fourfurr.camp`
    - Защищает основной домен от spam репутации
 
 2. **Добавьте unsubscribe link** (для mass emails)

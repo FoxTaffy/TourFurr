@@ -284,7 +284,7 @@ SELECT * FROM email_verification_codes; -- Только свои коды
 
 ## 📞 Контакты
 
-**Security Team:** security@tourfurr.com (замените)
+**Security Team:** security@fourfurr.camp (замените)
 **Bug Bounty:** https://github.com/FoxTaffy/TourFurr/security
 
 ---
