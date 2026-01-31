@@ -14,7 +14,7 @@ export const SUPABASE_URL: string = viteSupabaseUrl || ''
 export const SUPABASE_ANON_KEY: string = viteSupabaseAnonKey || ''
 
 // Cloudflare Turnstile
-export const TURNSTILE_SITE_KEY: string = viteTurnstileSiteKey || '0x4AAAAAACQmENl2nYwq4ELx'
+export const TURNSTILE_SITE_KEY: string = viteTurnstileSiteKey || '1x00000000000000000000AA'
 
 // Email Configuration
 const disableEmailValue = viteDisableEmail || 'false'

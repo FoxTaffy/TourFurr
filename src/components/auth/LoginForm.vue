@@ -187,7 +187,7 @@ const isLoading = ref(false)
 const serverError = ref('')
 
 // Cloudflare Turnstile state
-const turnstilesiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAACQmENl2nYwq4ELx'
+const turnstilesiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
 const captchaToken = ref<string | null>(null)
 const captchaError = ref('')
 const loginAttempts = ref(0)
