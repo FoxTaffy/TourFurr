@@ -7,6 +7,50 @@
 -- ====================================================================
 
 -- ========================
+-- PREREQUISITE CHECK
+-- ========================
+-- This schema requires applications table to exist first
+-- Please run database/applications_schema.sql before this file
+
+DO $$
+BEGIN
+    -- Check if applications table exists
+    IF NOT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_name = 'applications'
+    ) THEN
+        RAISE EXCEPTION '
+        ❌ ERROR: Applications table does not exist!
+
+        You must run database/applications_schema.sql FIRST before running this file.
+
+        Setup order:
+        1. database/applications_schema.sql (creates applications table)
+        2. database/voting_system_schema.sql (this file)
+
+        See database/README.md for detailed setup instructions.
+        ';
+    END IF;
+
+    -- Check if required columns exist
+    IF NOT EXISTS (
+        SELECT FROM information_schema.columns
+        WHERE table_name = 'applications'
+        AND column_name = 'motivation'
+    ) THEN
+        RAISE EXCEPTION '
+        ❌ ERROR: Applications table is missing required columns!
+
+        Please ensure you have run the complete applications_schema.sql file.
+        The applications table must have: motivation, experience_level, status columns.
+        ';
+    END IF;
+
+    RAISE NOTICE '✅ Prerequisite check passed: applications table exists with required columns';
+END $$;
+
+-- ========================
 -- ТАБЛИЦА: admin_votes
 -- ========================
 -- Хранит голоса каждого админа по каждой заявке
