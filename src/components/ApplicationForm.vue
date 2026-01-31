@@ -7,6 +7,55 @@
         После проверки вы получите уведомление на email.
       </p>
 
+      <!-- Event Status Info -->
+      <div v-if="!isLoadingConfig && eventConfig" class="event-status-info">
+        <div class="status-row">
+          <span class="status-label">Регистрация открыта:</span>
+          <span class="status-value">{{ new Date(eventConfig.registration_open_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label">Дедлайн оплаты:</span>
+          <span class="status-value">{{ new Date(eventConfig.payment_deadline).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label">Доступных мест:</span>
+          <span class="status-value" :class="{ 'text-warning': approvedCount >= eventConfig.max_participants * 0.8 }">
+            {{ eventConfig.max_participants - approvedCount }} из {{ eventConfig.max_participants }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Registration Status Banner -->
+      <div v-if="registrationStatus === 'not_open'" class="status-banner status-not-open">
+        <svg class="status-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <div>
+          <h3>Регистрация откроется 1 марта 2026 года</h3>
+          <p>Следите за обновлениями в наших социальных сетях</p>
+        </div>
+      </div>
+
+      <div v-else-if="registrationStatus === 'full'" class="status-banner status-full">
+        <svg class="status-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <div>
+          <h3>Все места заняты</h3>
+          <p>К сожалению, все {{ eventConfig?.max_participants }} мест уже забронированы. Следите за новостями на случай освобождения мест.</p>
+        </div>
+      </div>
+
+      <div v-else-if="registrationStatus === 'closed'" class="status-banner status-closed">
+        <svg class="status-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+        <div>
+          <h3>Регистрация закрыта</h3>
+          <p>Прием заявок на это мероприятие завершен</p>
+        </div>
+      </div>
+
       <!-- Success Message -->
       <div v-if="submitSuccess" class="success-message">
         <svg class="success-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -19,7 +68,7 @@
       </div>
 
       <!-- Application Form -->
-      <form v-else @submit.prevent="handleSubmit" class="application-form">
+      <form v-else-if="registrationStatus === 'open'" @submit.prevent="handleSubmit" class="application-form">
         <!-- Motivation -->
         <div class="form-group">
           <label for="motivation" class="form-label">
@@ -50,7 +99,7 @@
             :class="{ error: errors.experience }"
           >
             <option value="">Выберите вариант</option>
-            <option value="newcomer">Новичок (менее 1 года)</option>
+            <option value="beginner">Новичок (менее 1 года)</option>
             <option value="intermediate">Средний опыт (1-3 года)</option>
             <option value="experienced">Опытный (3-5 лет)</option>
             <option value="veteran">Ветеран (более 5 лет)</option>
@@ -142,7 +191,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
@@ -167,6 +216,12 @@ const errors = reactive({
 const isLoading = ref(false)
 const serverError = ref('')
 const submitSuccess = ref(false)
+
+// Event configuration state
+const eventConfig = ref<any>(null)
+const approvedCount = ref(0)
+const isLoadingConfig = ref(true)
+const registrationStatus = ref<'not_open' | 'open' | 'closed' | 'full'>('not_open')
 
 // Cloudflare Turnstile state
 const turnstilesiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAACQmENl2nYwq4ELx'
@@ -203,12 +258,94 @@ function handleTurnstileExpired() {
   console.warn('⏰ Turnstile expired')
 }
 
+// Load event configuration and check registration status
+async function loadEventConfig() {
+  try {
+    isLoadingConfig.value = true
+
+    // Get active event config
+    const { data: config, error: configError } = await supabase
+      .from('event_config')
+      .select('*')
+      .eq('is_active', true)
+      .order('event_year', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (configError) {
+      console.error('❌ Error loading event config:', configError)
+      serverError.value = 'Не удалось загрузить информацию о конвенте'
+      return
+    }
+
+    eventConfig.value = config
+
+    // Get approved applications count
+    const { data: countData, error: countError } = await supabase.rpc('get_approved_count')
+
+    if (countError) {
+      console.error('❌ Error getting approved count:', countError)
+    } else {
+      approvedCount.value = countData || 0
+    }
+
+    // Check registration status
+    const now = new Date()
+    const openDate = new Date(config.registration_open_date)
+    const closeDate = config.registration_close_date ? new Date(config.registration_close_date) : null
+
+    if (now < openDate) {
+      registrationStatus.value = 'not_open'
+    } else if (closeDate && now > closeDate) {
+      registrationStatus.value = 'closed'
+    } else if (approvedCount.value >= config.max_participants) {
+      registrationStatus.value = 'full'
+    } else {
+      registrationStatus.value = 'open'
+    }
+
+    console.log('📊 Event config loaded:', {
+      status: registrationStatus.value,
+      approvedCount: approvedCount.value,
+      maxParticipants: config.max_participants,
+      openDate: config.registration_open_date
+    })
+
+  } catch (err) {
+    console.error('❌ Error in loadEventConfig:', err)
+    serverError.value = 'Произошла ошибка при загрузке данных'
+  } finally {
+    isLoadingConfig.value = false
+  }
+}
+
+// Load config on mount
+onMounted(() => {
+  loadEventConfig()
+})
+
 async function handleSubmit() {
   // Reset errors
   errors.motivation = ''
   errors.experience = ''
   serverError.value = ''
   turnstileError.value = ''
+
+  // Check registration status
+  if (registrationStatus.value === 'not_open') {
+    serverError.value = 'Регистрация еще не открыта. Открытие 1 марта 2026 года'
+    return
+  }
+
+  if (registrationStatus.value === 'closed') {
+    serverError.value = 'Регистрация закрыта'
+    return
+  }
+
+  if (registrationStatus.value === 'full') {
+    serverError.value = `Все ${eventConfig.value?.max_participants || 121} мест заняты. Следите за обновлениями в случае освобождения мест`
+    return
+  }
 
   // Validate form
   try {
@@ -232,6 +369,18 @@ async function handleSubmit() {
   if (!authStore.isAuthenticated || !authStore.user) {
     serverError.value = 'Пожалуйста, войдите в систему для подачи заявки'
     router.push('/auth/login')
+    return
+  }
+
+  // Check if user is approved
+  if (authStore.user.status !== 'approved') {
+    serverError.value = 'Ваш аккаунт должен быть одобрен администратором перед подачей заявки'
+    return
+  }
+
+  // Check if email is verified
+  if (!authStore.user.emailVerified) {
+    serverError.value = 'Пожалуйста, подтвердите ваш email перед подачей заявки'
     return
   }
 
@@ -259,7 +408,7 @@ async function handleSubmit() {
       .insert({
         user_id: authStore.user.id,
         motivation: form.motivation.trim(),
-        experience: form.experience,
+        experience_level: form.experience,
         skills: form.skills.trim() || null,
         additional_info: form.additionalInfo.trim() || null,
         status: 'pending'
@@ -334,6 +483,92 @@ async function handleSubmit() {
   font-size: 0.95rem;
   line-height: 1.6;
   margin-bottom: 2rem;
+}
+
+/* Event Status Info */
+.event-status-info {
+  background: rgba(97, 137, 108, 0.1);
+  border: 1px solid rgba(97, 137, 108, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(97, 137, 108, 0.2);
+}
+
+.status-row:last-child {
+  border-bottom: none;
+}
+
+.status-label {
+  color: var(--sage);
+  font-size: 0.95rem;
+}
+
+.status-value {
+  color: var(--fire-glow);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.text-warning {
+  color: #ff9800 !important;
+}
+
+/* Status Banners */
+.status-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.status-banner .status-icon {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.status-banner h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.status-banner p {
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.status-not-open {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+}
+
+.status-full {
+  background: rgba(255, 152, 0, 0.1);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  color: #ffb74d;
+}
+
+.status-closed {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
 }
 
 .application-form {
