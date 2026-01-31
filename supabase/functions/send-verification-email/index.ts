@@ -176,7 +176,7 @@ TourFurr 2026 - Подтверждение регистрации
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'TourFurr 2026 <noreply@tourfurr.ru>',
+        from: 'TourFurr 2026 <onboarding@resend.dev>',
         to: [email],
         subject: `Код подтверждения TourFurr: ${code}`,
         html: htmlContent,
