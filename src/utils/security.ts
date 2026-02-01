@@ -142,9 +142,24 @@ export function sanitizeInput(input: string, maxLength: number = 1000): string {
 
   return input
     .trim()
-    .replace(/[<>]/g, '') // Remove potential HTML tags
-    .replace(/javascript:/gi, '') // Remove javascript: protocol
-    .replace(/on\w+\s*=/gi, '') // Remove event handlers
+    // Remove ALL HTML tags (not just < >)
+    .replace(/<[^>]*>/g, '')
+    // Remove HTML entities
+    .replace(/&[a-zA-Z]+;/g, '')
+    // Remove javascript: protocol
+    .replace(/javascript:/gi, '')
+    // Remove data: protocol
+    .replace(/data:/gi, '')
+    // Remove vbscript: protocol
+    .replace(/vbscript:/gi, '')
+    // Remove event handlers (onclick, onload, etc)
+    .replace(/on\w+\s*=/gi, '')
+    // Remove common SQL injection patterns
+    .replace(/(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|SCRIPT)\b)/gi, '')
+    // Remove SQL comments
+    .replace(/(--|\/\*|\*\/|#)/g, '')
+    // Remove multiple spaces
+    .replace(/\s+/g, ' ')
     .substring(0, maxLength) // Limit length
 }
 
