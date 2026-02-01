@@ -33,9 +33,9 @@ INSERT INTO event_info (
   recipient,
   payment_note
 ) VALUES (
-  'Московская область, Дмитровский район',
+  'Владимирская область',
   'Точные координаты будут отправлены за неделю до мероприятия',
-  '37.5200,56.3400',  -- Example: Dmitrov area coordinates
+  '39.108398,56.905351',  -- Владимирская область
   3500,
   'Сбербанк',
   '2202 2061 7891 2345',
@@ -45,4 +45,4 @@ INSERT INTO event_info (
 
 -- If table already exists, add coordinates column:
 -- ALTER TABLE event_info ADD COLUMN coordinates TEXT;
--- UPDATE event_info SET coordinates = '37.5200,56.3400';
+-- UPDATE event_info SET coordinates = '39.108398,56.905351';
