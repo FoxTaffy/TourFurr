@@ -332,16 +332,17 @@ const formattedCoordinates = computed(() => {
 // Yandex Static API map URL
 const staticMapUrl = computed(() => {
   if (!approvedInfo.value?.coordinates) return ''
-  const coords = approvedInfo.value.coordinates // format: "lon,lat"
+  const [lon, lat] = approvedInfo.value.coordinates.split(',') // format: "lon,lat" from DB
   const apiKey = '416860b0-d8bd-4c81-a388-08df6fbf6466'
 
-  // Static API parameters
-  const ll = coords // center of map
-  const pt = `${coords}~pm2rdl` // point with red marker
-  const z = 12 // zoom level
+  // Static API parameters (lon,lat format for Yandex)
+  const ll = `${lon},${lat}` // center of map
+  const pt = `${lon},${lat},pm2rdm` // point with red marker (medium size)
+  const z = 13 // zoom level
   const size = '650,350' // image size
+  const lang = 'ru_RU' // language
 
-  return `https://static-maps.yandex.ru/1.x/?ll=${ll}&pt=${pt}&z=${z}&size=${size}&apikey=${apiKey}&l=map`
+  return `https://static-maps.yandex.ru/1.x/?ll=${ll}&pt=${pt}&z=${z}&size=${size}&l=map&lang=${lang}&apikey=${apiKey}`
 })
 
 // Copy coordinates to clipboard
