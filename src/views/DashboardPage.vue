@@ -247,13 +247,8 @@
               </div>
             </div>
 
-            <div v-if="staticMapUrl" class="map-container">
-              <img
-                :src="staticMapUrl"
-                alt="Карта локации"
-                class="static-map"
-                @click="openYandexMaps"
-              />
+            <div v-if="approvedInfo.coordinates" class="map-container">
+              <div ref="mapContainer" class="leaflet-map"></div>
             </div>
           </div>
         </div>
@@ -272,11 +267,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
-import { YANDEX_MAPS_API_KEY } from '../utils/env'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import Header from '../components/Header.vue'
 
 const router = useRouter()
@@ -297,18 +293,52 @@ interface ApprovedInfo {
 const approvedInfo = ref<ApprovedInfo | null>(null)
 const infoError = ref<string | null>(null)
 
-// Yandex Maps Static API URL
-const staticMapUrl = computed(() => {
-  if (!approvedInfo.value?.coordinates || !YANDEX_MAPS_API_KEY) return ''
+// Leaflet map
+const mapContainer = ref<HTMLDivElement | null>(null)
+let map: L.Map | null = null
+
+// Initialize Leaflet map
+function initMap() {
+  if (!approvedInfo.value?.coordinates || !mapContainer.value || map) return
 
   const [lon, lat] = approvedInfo.value.coordinates.split(',')
-  // Yandex Static API parameters
-  const ll = `${lon},${lat}` // Center coordinates
-  const pt = `${lon},${lat},pm2rdm` // Marker (pm2rdm = red marker)
-  const size = '650,350' // Image size
-  const z = '13' // Zoom level
+  const latitude = parseFloat(lat)
+  const longitude = parseFloat(lon)
 
-  return `https://static-maps.yandex.ru/1.x/?ll=${ll}&pt=${pt}&size=${size}&z=${z}&l=map&apikey=${YANDEX_MAPS_API_KEY}`
+  // Create map
+  map = L.map(mapContainer.value, {
+    center: [latitude, longitude],
+    zoom: 13,
+    zoomControl: true,
+    scrollWheelZoom: false,
+    doubleClickZoom: false,
+    dragging: true
+  })
+
+  // Add OpenStreetMap tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19
+  }).addTo(map)
+
+  // Add marker
+  const marker = L.marker([latitude, longitude]).addTo(map)
+
+  // Make map clickable to open Yandex Maps
+  map.on('click', () => {
+    openYandexMaps()
+  })
+  marker.on('click', () => {
+    openYandexMaps()
+  })
+}
+
+// Cleanup map on unmount
+onUnmounted(() => {
+  if (map) {
+    map.remove()
+    map = null
+  }
 })
 
 // Open Yandex Maps for navigation
@@ -436,6 +466,9 @@ async function fetchApprovedInfo() {
     if (data) {
       approvedInfo.value = data
       infoError.value = null
+      // Initialize map after data is loaded
+      await nextTick()
+      initMap()
     } else {
       infoError.value = 'Данные не найдены'
     }
@@ -993,18 +1026,11 @@ function handleLogout() {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-.static-map {
+.leaflet-map {
   width: 100%;
   height: 350px;
-  object-fit: cover;
   border-radius: 8px;
   cursor: pointer;
-  transition: opacity 0.2s ease;
-  display: block;
-}
-
-.static-map:hover {
-  opacity: 0.9;
 }
 
 /* Error Card */
