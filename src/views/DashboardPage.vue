@@ -247,8 +247,13 @@
               </div>
             </div>
 
-            <div v-if="approvedInfo.coordinates" class="map-container">
-              <div ref="mapContainer" class="leaflet-map"></div>
+            <div v-if="yandexMapUrl" class="map-container">
+              <iframe
+                :src="yandexMapUrl"
+                class="yandex-map"
+                allowfullscreen
+                frameborder="0"
+              ></iframe>
             </div>
           </div>
         </div>
@@ -267,12 +272,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 import Header from '../components/Header.vue'
 
 const router = useRouter()
@@ -293,52 +296,13 @@ interface ApprovedInfo {
 const approvedInfo = ref<ApprovedInfo | null>(null)
 const infoError = ref<string | null>(null)
 
-// Leaflet map
-const mapContainer = ref<HTMLDivElement | null>(null)
-let map: L.Map | null = null
-
-// Initialize Leaflet map
-function initMap() {
-  if (!approvedInfo.value?.coordinates || !mapContainer.value || map) return
+// Yandex Maps iframe URL
+const yandexMapUrl = computed(() => {
+  if (!approvedInfo.value?.coordinates) return ''
 
   const [lon, lat] = approvedInfo.value.coordinates.split(',')
-  const latitude = parseFloat(lat)
-  const longitude = parseFloat(lon)
-
-  // Create map
-  map = L.map(mapContainer.value, {
-    center: [latitude, longitude],
-    zoom: 13,
-    zoomControl: true,
-    scrollWheelZoom: false,
-    doubleClickZoom: false,
-    dragging: true
-  })
-
-  // Add OpenStreetMap tiles
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors',
-    maxZoom: 19
-  }).addTo(map)
-
-  // Add marker
-  const marker = L.marker([latitude, longitude]).addTo(map)
-
-  // Make map clickable to open Yandex Maps
-  map.on('click', () => {
-    openYandexMaps()
-  })
-  marker.on('click', () => {
-    openYandexMaps()
-  })
-}
-
-// Cleanup map on unmount
-onUnmounted(() => {
-  if (map) {
-    map.remove()
-    map = null
-  }
+  // Яндекс.Карты с меткой
+  return `https://yandex.ru/map-widget/v1/?ll=${lon},${lat}&z=13&l=map&pt=${lon},${lat},pm2rdm`
 })
 
 // Open Yandex Maps for navigation
@@ -466,9 +430,6 @@ async function fetchApprovedInfo() {
     if (data) {
       approvedInfo.value = data
       infoError.value = null
-      // Initialize map after data is loaded
-      await nextTick()
-      initMap()
     } else {
       infoError.value = 'Данные не найдены'
     }
@@ -1026,11 +987,11 @@ function handleLogout() {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-.leaflet-map {
+.yandex-map {
   width: 100%;
   height: 350px;
+  border: none;
   border-radius: 8px;
-  cursor: pointer;
 }
 
 /* Error Card */
