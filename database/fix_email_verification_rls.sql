@@ -26,6 +26,7 @@ DROP POLICY IF EXISTS "Admins can manage all verification codes" ON email_verifi
 -- 2. Коды одноразовые и истекают через 15 минут
 -- 3. Максимум 3 попытки проверки
 -- 4. После использования код помечается как used
+DROP POLICY IF EXISTS "Anyone can read verification codes for validation" ON email_verification_codes;
 CREATE POLICY "Anyone can read verification codes for validation" ON email_verification_codes
   FOR SELECT
   USING (true);
@@ -42,6 +43,7 @@ CREATE POLICY "Anyone can read verification codes for validation" ON email_verif
 -- ========================
 
 -- ✅ Разрешаем создавать коды без авторизации (для регистрации)
+DROP POLICY IF EXISTS "Anyone can insert verification codes" ON email_verification_codes;
 CREATE POLICY "Anyone can insert verification codes" ON email_verification_codes
   FOR INSERT
   WITH CHECK (true);
@@ -55,6 +57,7 @@ CREATE POLICY "Anyone can insert verification codes" ON email_verification_codes
 -- 1. В коде мы проверяем, что код соответствует email
 -- 2. Обновляется только поле "used" и "attempts"
 -- 3. После пометки код нельзя использовать повторно
+DROP POLICY IF EXISTS "Anyone can update verification codes" ON email_verification_codes;
 CREATE POLICY "Anyone can update verification codes" ON email_verification_codes
   FOR UPDATE
   USING (true)
@@ -77,6 +80,7 @@ CREATE POLICY "Anyone can update verification codes" ON email_verification_codes
 
 -- Только система может удалять старые коды (через cron или Edge Function)
 -- Обычные пользователи не должны удалять коды
+DROP POLICY IF EXISTS "Service role can delete expired codes" ON email_verification_codes;
 CREATE POLICY "Service role can delete expired codes" ON email_verification_codes
   FOR DELETE
   USING (

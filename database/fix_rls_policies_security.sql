@@ -16,11 +16,13 @@ DROP POLICY IF EXISTS "Users can update own data" ON users;
 DROP POLICY IF EXISTS "Anyone can register" ON users;
 
 -- ✅ НОВАЯ ПОЛИТИКА: Пользователи могут читать ТОЛЬКО свои данные
+DROP POLICY IF EXISTS "Users can view own data" ON users;
 CREATE POLICY "Users can view own data" ON users
     FOR SELECT
     USING (id::text = current_setting('request.jwt.claims', true)::json->>'sub');
 
 -- ✅ ПОЛИТИКА: Админы могут читать все данные (для модерации)
+DROP POLICY IF EXISTS "Admins can view all users" ON users;
 CREATE POLICY "Admins can view all users" ON users
     FOR SELECT
     USING (
@@ -28,6 +30,7 @@ CREATE POLICY "Admins can view all users" ON users
     );
 
 -- ✅ ПОЛИТИКА: Пользователи могут обновлять ТОЛЬКО свои данные
+DROP POLICY IF EXISTS "Users can update own data" ON users;
 CREATE POLICY "Users can update own data" ON users
     FOR UPDATE
     USING (id::text = current_setting('request.jwt.claims', true)::json->>'sub')
@@ -35,11 +38,13 @@ CREATE POLICY "Users can update own data" ON users
 
 -- ✅ ПОЛИТИКА: Регистрация доступна всем (без аутентификации)
 -- ВАЖНО: Используется только при первичной регистрации через Supabase Auth
+DROP POLICY IF EXISTS "Anyone can register" ON users;
 CREATE POLICY "Anyone can register" ON users
     FOR INSERT
     WITH CHECK (true);
 
 -- ✅ ПОЛИТИКА: Только админы могут удалять пользователей
+DROP POLICY IF EXISTS "Admins can delete users" ON users;
 CREATE POLICY "Admins can delete users" ON users
     FOR DELETE
     USING (
@@ -57,6 +62,7 @@ DROP POLICY IF EXISTS "Anyone can update verification codes" ON email_verificati
 
 -- ✅ ПОЛИТИКА: Пользователи могут читать только свои коды верификации
 -- Проверяем по email, так как при регистрации user_id еще нет
+DROP POLICY IF EXISTS "Users can read own verification codes" ON email_verification_codes;
 CREATE POLICY "Users can read own verification codes" ON email_verification_codes
   FOR SELECT
   USING (
@@ -68,12 +74,14 @@ CREATE POLICY "Users can read own verification codes" ON email_verification_code
 
 -- ✅ ПОЛИТИКА: Коды верификации можно создавать без аутентификации
 -- Нужно для регистрации новых пользователей
+DROP POLICY IF EXISTS "Anyone can insert verification codes" ON email_verification_codes;
 CREATE POLICY "Anyone can insert verification codes" ON email_verification_codes
   FOR INSERT
   WITH CHECK (true);
 
 -- ✅ ПОЛИТИКА: Обновлять коды могут только сами пользователи (для своего email)
 -- Это нужно для пометки кода как "использованного" после верификации
+DROP POLICY IF EXISTS "Users can update own verification codes" ON email_verification_codes;
 CREATE POLICY "Users can update own verification codes" ON email_verification_codes
   FOR UPDATE
   USING (
@@ -92,6 +100,7 @@ CREATE POLICY "Users can update own verification codes" ON email_verification_co
   );
 
 -- ✅ ПОЛИТИКА: Админы могут управлять всеми кодами верификации
+DROP POLICY IF EXISTS "Admins can manage all verification codes" ON email_verification_codes;
 CREATE POLICY "Admins can manage all verification codes" ON email_verification_codes
   FOR ALL
   USING (
