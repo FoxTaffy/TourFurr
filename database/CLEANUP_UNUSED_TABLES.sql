@@ -15,16 +15,14 @@
 -- Система голосования НЕ ИСПОЛЬЗУЕТСЯ, поэтому таблица бесполезна
 
 -- Удаляем связанные объекты
-DROP TRIGGER IF EXISTS applications_updated_at_trigger ON applications CASCADE;
+-- Сначала удаляем таблицы (чтобы триггеры удалились автоматически)
+DROP TABLE IF EXISTS admin_votes CASCADE;
+DROP TABLE IF EXISTS applications CASCADE;
+
+-- Теперь удаляем функции (если остались)
 DROP FUNCTION IF EXISTS update_applications_updated_at() CASCADE;
 DROP FUNCTION IF EXISTS get_pending_applications_for_admin(UUID) CASCADE;
 DROP FUNCTION IF EXISTS cast_vote_on_application(UUID, UUID, BOOLEAN) CASCADE;
-
--- Удаляем таблицу голосов (если есть)
-DROP TABLE IF EXISTS admin_votes CASCADE;
-
--- Удаляем саму таблицу applications
-DROP TABLE IF EXISTS applications CASCADE;
 
 COMMENT ON SCHEMA public IS 'Applications table removed - registration happens directly through users table';
 
