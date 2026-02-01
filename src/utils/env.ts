@@ -2,6 +2,7 @@
 const viteSupabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const viteSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const viteTurnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
+const viteYandexMapsApiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY
 const viteDisableEmail = import.meta.env.VITE_DISABLE_EMAIL
 const viteRegistrationOpenDate = import.meta.env.VITE_REGISTRATION_OPEN_DATE
 const viteAdminPin = import.meta.env.VITE_ADMIN_PIN
@@ -15,6 +16,9 @@ export const SUPABASE_ANON_KEY: string = viteSupabaseAnonKey || ''
 
 // Cloudflare Turnstile
 export const TURNSTILE_SITE_KEY: string = viteTurnstileSiteKey || '1x00000000000000000000AA'
+
+// Yandex Maps Static API
+export const YANDEX_MAPS_API_KEY: string = viteYandexMapsApiKey || ''
 
 // Email Configuration
 const disableEmailValue = viteDisableEmail || 'false'
