@@ -272,13 +272,12 @@
             </div>
 
             <div v-if="approvedInfo.coordinates" class="map-container">
-              <iframe
-                src="https://yandex.ru/map-widget/v1/?um=constructor%3Ae12699530c46d993c13d269b087a258d8c4e0f4dc05f5799d4307172331604bb&source=constructor"
-                width="100%"
-                height="350"
-                frameborder="0"
-                allowfullscreen
-              ></iframe>
+              <img
+                :src="staticMapUrl"
+                :alt="`Карта: ${approvedInfo.location}`"
+                @click="openFullMap"
+                class="static-map"
+              />
             </div>
           </div>
         </div>
@@ -330,6 +329,21 @@ const formattedCoordinates = computed(() => {
   return `${parseFloat(lat).toFixed(6)}°, ${parseFloat(lon).toFixed(6)}°`
 })
 
+// Yandex Static API map URL
+const staticMapUrl = computed(() => {
+  if (!approvedInfo.value?.coordinates) return ''
+  const coords = approvedInfo.value.coordinates // format: "lon,lat"
+  const apiKey = '416860b0-d8bd-4c81-a388-08df6fbf6466'
+
+  // Static API parameters
+  const ll = coords // center of map
+  const pt = `${coords}~pm2rdl` // point with red marker
+  const z = 12 // zoom level
+  const size = '650,350' // image size
+
+  return `https://static-maps.yandex.ru/1.x/?ll=${ll}&pt=${pt}&z=${z}&size=${size}&apikey=${apiKey}&l=map`
+})
+
 // Copy coordinates to clipboard
 async function copyCoordinates() {
   if (!approvedInfo.value?.coordinates) return
@@ -361,6 +375,15 @@ async function copyCardNumber() {
   } catch (err) {
     console.error('Failed to copy:', err)
   }
+}
+
+// Open full Yandex Map in new tab
+function openFullMap() {
+  if (!approvedInfo.value?.coordinates) return
+
+  const coords = approvedInfo.value.coordinates
+  const url = `https://yandex.ru/maps/?pt=${coords}&z=12&l=map`
+  window.open(url, '_blank')
 }
 
 // Edit mode
@@ -1087,6 +1110,20 @@ function handleLogout() {
 
 .map-container:hover {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.static-map {
+  width: 100%;
+  height: 350px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  display: block;
+}
+
+.static-map:hover {
+  opacity: 0.9;
 }
 
 /* Card Number Row */
