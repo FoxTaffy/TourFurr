@@ -197,19 +197,9 @@
               <span class="detail-label">Банк</span>
               <span class="detail-value">{{ approvedInfo.bank }}</span>
             </div>
-            <div class="detail-row card-number-row">
+            <div class="detail-row">
               <span class="detail-label">Номер карты</span>
-              <div class="card-number-value">
-                <span class="detail-value mono">{{ approvedInfo.card_number }}</span>
-                <button @click="copyCardNumber" class="copy-btn" :class="{ copied: cardNumberCopied }">
-                  <svg v-if="!cardNumberCopied" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                  </svg>
-                  <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                </button>
-              </div>
+              <span class="detail-value mono">{{ approvedInfo.card_number }}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Получатель</span>
@@ -255,30 +245,15 @@
                 <span class="info-label">Регион</span>
                 <span class="info-value">{{ approvedInfo.location }}</span>
               </div>
-              <div v-if="approvedInfo.coordinates" class="info-row coordinates-row">
-                <span class="info-label">Координаты</span>
-                <div class="coordinates-value">
-                  <span class="info-value">{{ formattedCoordinates }}</span>
-                  <button @click="copyCoordinates" class="copy-btn" :class="{ copied: coordinatesCopied }">
-                    <svg v-if="!coordinatesCopied" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                    </svg>
-                    <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
             </div>
 
-            <div v-if="approvedInfo.coordinates" class="map-container">
-              <img
-                :src="staticMapUrl"
-                :alt="`Карта: ${approvedInfo.location}`"
-                @click="openFullMap"
-                class="static-map"
-              />
-            </div>
+            <button v-if="approvedInfo.coordinates" @click="openYandexMaps" class="navigate-btn">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              Построить маршрут в Яндекс.Картах
+            </button>
           </div>
         </div>
 
@@ -319,69 +294,14 @@ interface ApprovedInfo {
 
 const approvedInfo = ref<ApprovedInfo | null>(null)
 const infoError = ref<string | null>(null)
-const coordinatesCopied = ref(false)
-const cardNumberCopied = ref(false)
 
-// Computed properties for coordinates
-const formattedCoordinates = computed(() => {
-  if (!approvedInfo.value?.coordinates) return ''
-  const [lon, lat] = approvedInfo.value.coordinates.split(',')
-  return `${parseFloat(lat).toFixed(6)}°, ${parseFloat(lon).toFixed(6)}°`
-})
-
-// OpenStreetMap static map URL (works without API key!)
-const staticMapUrl = computed(() => {
-  if (!approvedInfo.value?.coordinates) return ''
-  const [lon, lat] = approvedInfo.value.coordinates.split(',') // format: "lon,lat" from DB
-
-  // OpenStreetMap static map via staticmap service
-  const zoom = 13
-  const width = 650
-  const height = 350
-
-  // Using OpenStreetMap static map service (no API key needed!)
-  return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=${zoom}&size=${width}x${height}&markers=${lat},${lon},red-pushpin`
-})
-
-// Copy coordinates to clipboard
-async function copyCoordinates() {
-  if (!approvedInfo.value?.coordinates) return
-
-  try {
-    const [lon, lat] = approvedInfo.value.coordinates.split(',')
-    await navigator.clipboard.writeText(`${lat}, ${lon}`)
-    coordinatesCopied.value = true
-    setTimeout(() => {
-      coordinatesCopied.value = false
-    }, 2000)
-  } catch (err) {
-    console.error('Failed to copy:', err)
-  }
-}
-
-// Copy card number to clipboard
-async function copyCardNumber() {
-  if (!approvedInfo.value?.card_number) return
-
-  try {
-    // Remove spaces from card number for easier pasting
-    const cardNumber = approvedInfo.value.card_number.replace(/\s+/g, '')
-    await navigator.clipboard.writeText(cardNumber)
-    cardNumberCopied.value = true
-    setTimeout(() => {
-      cardNumberCopied.value = false
-    }, 2000)
-  } catch (err) {
-    console.error('Failed to copy:', err)
-  }
-}
-
-// Open full OpenStreetMap in new tab
-function openFullMap() {
+// Open Yandex Maps for navigation
+function openYandexMaps() {
   if (!approvedInfo.value?.coordinates) return
 
   const [lon, lat] = approvedInfo.value.coordinates.split(',')
-  const url = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=13/${lat}/${lon}`
+  // Yandex Maps URL with marker
+  const url = `https://yandex.ru/maps/?pt=${lon},${lat}&z=13&l=map`
   window.open(url, '_blank')
 }
 
@@ -1043,60 +963,6 @@ function handleLogout() {
   color: rgba(219, 205, 179, 0.8);
 }
 
-/* Coordinates Row */
-.coordinates-row {
-  background: rgba(139, 111, 71, 0.1);
-  border: 1px solid rgba(139, 111, 71, 0.2);
-}
-
-.coordinates-value {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex: 1;
-  justify-content: flex-end;
-}
-
-.copy-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  background: rgba(139, 111, 71, 0.2);
-  border: 1px solid rgba(139, 111, 71, 0.3);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.copy-btn svg {
-  width: 18px;
-  height: 18px;
-  color: var(--sage);
-  transition: color 0.2s ease;
-}
-
-.copy-btn:hover {
-  background: rgba(139, 111, 71, 0.3);
-  border-color: rgba(139, 111, 71, 0.5);
-  transform: translateY(-1px);
-}
-
-.copy-btn:active {
-  transform: translateY(0);
-}
-
-.copy-btn.copied {
-  background: rgba(34, 197, 94, 0.2);
-  border-color: rgba(34, 197, 94, 0.4);
-}
-
-.copy-btn.copied svg {
-  color: #22c55e;
-}
-
 /* Map Container */
 .map-container {
   border-radius: 12px;
@@ -1109,34 +975,6 @@ function handleLogout() {
 
 .map-container:hover {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
-.static-map {
-  width: 100%;
-  height: 350px;
-  object-fit: cover;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-  display: block;
-}
-
-.static-map:hover {
-  opacity: 0.9;
-}
-
-/* Card Number Row */
-.card-number-row {
-  background: rgba(139, 111, 71, 0.1);
-  border: 1px solid rgba(139, 111, 71, 0.2);
-}
-
-.card-number-value {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex: 1;
-  justify-content: flex-end;
 }
 
 /* Error Card */
@@ -1272,19 +1110,6 @@ function handleLogout() {
   .info-value {
     text-align: left;
     font-size: 0.9rem;
-  }
-
-  .coordinates-value,
-  .card-number-value {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-    width: 100%;
-  }
-
-  .copy-btn {
-    width: 100%;
-    height: 38px;
   }
 
   .map-container {
