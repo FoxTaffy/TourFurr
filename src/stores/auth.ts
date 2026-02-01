@@ -319,23 +319,10 @@ export const useAuthStore = defineStore('auth', () => {
         return { success: false, error: error.value }
       }
 
-      // 4. Check if email is verified (skip for migrated old users)
-      const isMigratedUser = authData.data.user.user_metadata?.migrated
-      if (!isMigratedUser && !authData.data.user.email_confirmed_at) {
-        logger.log('Email not confirmed')
-        securityLogger.log({
-          type: 'login_failure',
-          identifier: cleanEmail,
-          details: { reason: 'email_not_verified', fingerprint }
-        })
-        await supabase.auth.signOut() // Sign out immediately
-        error.value = 'Пожалуйста, подтвердите ваш email. Проверьте вашу почту.'
-        return { success: false, error: error.value }
-      }
+      logger.log('Fetching user data...')
 
-      logger.log('Email verified, fetching user data...')
-
-      // 5. Get user profile from users table
+      // 4. Get user profile from users table first to check email_verified
+      // We use our own email verification system with 6-digit codes
       const { data: userData, error: dbError } = await supabase
         .from('users')
         .select('*')
@@ -351,6 +338,44 @@ export const useAuthStore = defineStore('auth', () => {
         })
         error.value = 'Ошибка получения данных пользователя'
         return { success: false, error: error.value }
+      }
+
+      // 5. Check if email is verified in OUR system (not Supabase Auth)
+      // We use our own email verification with 6-digit codes
+      const isMigratedUser = authData.data.user.user_metadata?.migrated
+      if (!isMigratedUser && !userData.email_verified) {
+        logger.log('Email not verified in our system')
+        securityLogger.log({
+          type: 'login_failure',
+          identifier: cleanEmail,
+          details: { reason: 'email_not_verified', fingerprint }
+        })
+        await supabase.auth.signOut() // Sign out immediately
+
+        // Try to send a new verification code
+        try {
+          const { createVerificationCode, sendVerificationEmail, invalidateOldCodes } = await import('../utils/emailVerification')
+
+          // Invalidate old codes first
+          await invalidateOldCodes(cleanEmail)
+
+          // Create new code
+          const codeResult = await createVerificationCode(cleanEmail)
+
+          if (codeResult.success && codeResult.code) {
+            await sendVerificationEmail(cleanEmail, codeResult.code)
+          }
+        } catch (codeError: any) {
+          logger.error('Error generating verification code:', codeError)
+        }
+
+        error.value = 'Email не подтверждён. Новый код отправлен на вашу почту.'
+        return {
+          success: false,
+          error: error.value,
+          needsVerification: true,
+          email: cleanEmail
+        }
       }
 
       logger.log('Login successful')
@@ -451,6 +476,12 @@ export const useAuthStore = defineStore('auth', () => {
         // Security: Generate secure filename based on MIME type
         const fileName = generateSecureFileName(data.avatar)
 
+        logger.log('Uploading avatar:', {
+          fileName,
+          type: data.avatar.type,
+          size: data.avatar.size
+        })
+
         const { error: uploadError } = await supabase.storage
           .from('avatars')
           .upload(fileName, data.avatar, {
@@ -458,11 +489,16 @@ export const useAuthStore = defineStore('auth', () => {
             upsert: false
           })
 
-        if (!uploadError) {
+        if (uploadError) {
+          logger.error('Avatar upload failed:', uploadError)
+          // Don't fail registration, but warn user
+          logger.warn('Registration will continue without avatar')
+        } else {
           const { data: urlData } = supabase.storage
             .from('avatars')
             .getPublicUrl(fileName)
           avatarUrl = urlData.publicUrl
+          logger.log('Avatar uploaded successfully:', avatarUrl)
         }
       }
 
@@ -742,6 +778,12 @@ export const useAuthStore = defineStore('auth', () => {
         // Security: Generate secure filename based on MIME type
         const fileName = generateSecureFileName(updates.avatar)
 
+        logger.log('Uploading new avatar:', {
+          fileName,
+          type: updates.avatar.type,
+          size: updates.avatar.size
+        })
+
         const { error: uploadError } = await supabase.storage
           .from('avatars')
           .upload(fileName, updates.avatar, {
@@ -749,11 +791,16 @@ export const useAuthStore = defineStore('auth', () => {
             upsert: false
           })
 
-        if (!uploadError) {
+        if (uploadError) {
+          logger.error('Avatar upload failed:', uploadError)
+          error.value = `Ошибка загрузки аватара: ${uploadError.message}`
+          return { success: false, error: error.value }
+        } else {
           const { data: urlData } = supabase.storage
             .from('avatars')
             .getPublicUrl(fileName)
           updateData.avatar_url = urlData.publicUrl
+          logger.log('Avatar uploaded successfully:', urlData.publicUrl)
         }
       }
 

@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 /**
- * Vercel Serverless Function для удаления неподтвержденных аккаунтов старше 24 часов
+ * Vercel Serverless Function для удаления неподтвержденных аккаунтов старше 15 минут
  * Запускается по расписанию (cron) или вручную через API
  */
 export default async function handler(
@@ -34,18 +34,18 @@ export default async function handler(
       }
     })
 
-    // Вычисляем временную метку 24 часа назад
-    const twentyFourHoursAgo = new Date()
-    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24)
+    // Вычисляем временную метку 15 минут назад
+    const fifteenMinutesAgo = new Date()
+    fifteenMinutesAgo.setMinutes(fifteenMinutesAgo.getMinutes() - 15)
 
-    console.log(`[Cleanup] Checking for unverified accounts older than ${twentyFourHoursAgo.toISOString()}`)
+    console.log(`[Cleanup] Checking for unverified accounts older than ${fifteenMinutesAgo.toISOString()}`)
 
-    // Находим неподтвержденные аккаунты старше 24 часов
+    // Находим неподтвержденные аккаунты старше 15 минут
     const { data: unverifiedUsers, error: fetchError } = await supabase
       .from('users')
       .select('id, email, created_at, email_verified')
       .eq('email_verified', false)
-      .lt('created_at', twentyFourHoursAgo.toISOString())
+      .lt('created_at', fifteenMinutesAgo.toISOString())
 
     if (fetchError) {
       console.error('Error fetching unverified users:', fetchError)
