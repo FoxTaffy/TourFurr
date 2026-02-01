@@ -272,7 +272,13 @@
             </div>
 
             <div v-if="approvedInfo.coordinates" class="map-container">
-              <div id="yandex-map-container" ref="yandexMapContainer"></div>
+              <iframe
+                src="https://yandex.ru/map-widget/v1/?um=constructor%3Ae12699530c46d993c13d269b087a258d8c4e0f4dc05f5799d4307172331604bb&source=constructor"
+                width="100%"
+                height="350"
+                frameborder="0"
+                allowfullscreen
+              ></iframe>
             </div>
           </div>
         </div>
@@ -291,7 +297,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
@@ -316,7 +322,6 @@ const approvedInfo = ref<ApprovedInfo | null>(null)
 const infoError = ref<string | null>(null)
 const coordinatesCopied = ref(false)
 const cardNumberCopied = ref(false)
-const yandexMapContainer = ref<HTMLElement | null>(null)
 
 // Computed properties for coordinates
 const formattedCoordinates = computed(() => {
@@ -324,27 +329,6 @@ const formattedCoordinates = computed(() => {
   const [lon, lat] = approvedInfo.value.coordinates.split(',')
   return `${parseFloat(lat).toFixed(6)}°, ${parseFloat(lon).toFixed(6)}°`
 })
-
-// Load Yandex Map script dynamically
-function loadYandexMap() {
-  if (!approvedInfo.value?.coordinates) return
-
-  // Check if script is already loaded
-  const existingScript = document.querySelector('script[src*="api-maps.yandex.ru"]')
-  if (existingScript) {
-    existingScript.remove()
-  }
-
-  const script = document.createElement('script')
-  script.type = 'text/javascript'
-  script.charset = 'utf-8'
-  script.async = true
-  script.src = 'https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3Ae12699530c46d993c13d269b087a258d8c4e0f4dc05f5799d4307172331604bb&width=100%25&height=350&lang=ru_RU&scroll=true'
-
-  if (yandexMapContainer.value) {
-    yandexMapContainer.value.appendChild(script)
-  }
-}
 
 // Copy coordinates to clipboard
 async function copyCoordinates() {
@@ -494,9 +478,6 @@ async function fetchApprovedInfo() {
     if (data) {
       approvedInfo.value = data
       infoError.value = null
-      // Load Yandex Map after data is set
-      await nextTick()
-      loadYandexMap()
     } else {
       infoError.value = 'Данные не найдены'
     }
@@ -1108,11 +1089,6 @@ function handleLogout() {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-#yandex-map-container {
-  width: 100%;
-  height: 350px;
-}
-
 /* Card Number Row */
 .card-number-row {
   background: rgba(139, 111, 71, 0.1);
@@ -1277,10 +1253,6 @@ function handleLogout() {
 
   .map-container {
     border-radius: 8px;
-  }
-
-  #yandex-map-container {
-    height: 300px;
   }
 }
 
