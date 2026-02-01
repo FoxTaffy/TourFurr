@@ -248,11 +248,21 @@
 
           <p class="location-note">{{ approvedInfo.location_note }}</p>
 
+          <div v-if="approvedInfo.coordinates" class="map-security-warning">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+            <div>
+              <strong>Конфиденциальная информация!</strong>
+              <p>Эта карта доступна только одобренным участникам. Не распространяйте координаты — их разглашение может привести к серьезным последствиям для мероприятия.</p>
+            </div>
+          </div>
+
           <div v-if="approvedInfo.coordinates" class="map-container">
             <iframe
-              :src="`https://yandex.ru/map-widget/v1/?pt=${approvedInfo.coordinates}&z=12&l=map`"
+              src="https://yandex.ru/map-widget/v1/?um=constructor%3Ae12699530c46d993c13d269b087a258d8c4e0f4dc05f5799d4307172331604bb&source=constructor"
               width="100%"
-              height="200"
+              height="300"
               frameborder="0"
             ></iframe>
           </div>
@@ -891,6 +901,38 @@ function handleLogout() {
   font-size: 0.9rem;
   font-style: italic;
   margin-bottom: 1rem;
+}
+
+.map-security-warning {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(217, 119, 6, 0.1);
+  border: 1px solid rgba(217, 119, 6, 0.3);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.map-security-warning svg {
+  width: 24px;
+  height: 24px;
+  color: #d97706;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.map-security-warning strong {
+  display: block;
+  color: #d97706;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.map-security-warning p {
+  color: var(--sage);
+  font-size: 0.85rem;
+  margin: 0;
+  line-height: 1.5;
 }
 
 .map-container {
