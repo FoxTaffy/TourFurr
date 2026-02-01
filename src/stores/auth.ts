@@ -523,6 +523,12 @@ export const useAuthStore = defineStore('auth', () => {
       if (dbError) {
         logger.error('Database error:', dbError)
 
+        // CRITICAL CLEANUP: If users record creation fails, Supabase Auth account is orphaned
+        // admin.deleteUser() requires Service Role Key (only available in Edge Functions)
+        // Orphaned accounts will be cleaned up by cleanup-unverified-accounts cron job
+        // This runs every 15 minutes and deletes unverified accounts without users record
+        logger.warn('Orphaned auth account created (will be cleaned by cron):', authData.user.id)
+
         // Security: Cleanup uploaded avatar if DB insert failed
         if (avatarUrl) {
           try {
