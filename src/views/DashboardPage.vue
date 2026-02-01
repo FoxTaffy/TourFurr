@@ -150,10 +150,6 @@
               <span class="detail-label">Дата регистрации</span>
               <span class="detail-value">{{ formatDate(user?.createdAt) }}</span>
             </div>
-            <div class="detail-row">
-              <span class="detail-label">Email подписка</span>
-              <span class="detail-value">{{ user?.emailSubscribed ? 'Да' : 'Нет' }}</span>
-            </div>
           </div>
 
           <div v-if="user?.description" class="description-block">
@@ -174,14 +170,6 @@
           </div>
 
           <p class="status-message">{{ statusDescriptions[user?.status || 'pending'] }}</p>
-
-          <!-- Email Notification Info -->
-          <div class="email-notice">
-            <svg class="notice-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-            </svg>
-            <p>На ваш email ({{ user?.email }}) будет отправлен статус подтверждения заявки</p>
-          </div>
         </div>
 
         <!-- Right Column - Payment Info (only for approved) -->
@@ -209,9 +197,19 @@
               <span class="detail-label">Банк</span>
               <span class="detail-value">{{ approvedInfo.bank }}</span>
             </div>
-            <div class="detail-row">
+            <div class="detail-row card-number-row">
               <span class="detail-label">Номер карты</span>
-              <span class="detail-value mono">{{ approvedInfo.card_number }}</span>
+              <div class="card-number-value">
+                <span class="detail-value mono">{{ approvedInfo.card_number }}</span>
+                <button @click="copyCardNumber" class="copy-btn" :class="{ copied: cardNumberCopied }">
+                  <svg v-if="!cardNumberCopied" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                  <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </button>
+              </div>
             </div>
             <div class="detail-row">
               <span class="detail-label">Получатель</span>
@@ -257,10 +255,6 @@
                 <span class="info-label">Регион</span>
                 <span class="info-value">{{ approvedInfo.location }}</span>
               </div>
-              <div v-if="approvedInfo.location_note" class="info-row">
-                <span class="info-label">Примечание</span>
-                <span class="info-value info-note">{{ approvedInfo.location_note }}</span>
-              </div>
               <div v-if="approvedInfo.coordinates" class="info-row coordinates-row">
                 <span class="info-label">Координаты</span>
                 <div class="coordinates-value">
@@ -278,13 +272,7 @@
             </div>
 
             <div v-if="approvedInfo.coordinates" class="map-container">
-              <iframe
-                :src="mapUrl"
-                width="100%"
-                height="350"
-                frameborder="0"
-                allowfullscreen
-              ></iframe>
+              <div id="yandex-map-container" ref="yandexMapContainer"></div>
             </div>
           </div>
         </div>
@@ -303,7 +291,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
@@ -316,7 +304,6 @@ const user = computed(() => authStore.user)
 
 interface ApprovedInfo {
   location: string
-  location_note: string
   coordinates: string | null
   price: number
   bank: string
@@ -328,28 +315,36 @@ interface ApprovedInfo {
 const approvedInfo = ref<ApprovedInfo | null>(null)
 const infoError = ref<string | null>(null)
 const coordinatesCopied = ref(false)
+const cardNumberCopied = ref(false)
+const yandexMapContainer = ref<HTMLElement | null>(null)
 
-// Computed properties for map and coordinates
+// Computed properties for coordinates
 const formattedCoordinates = computed(() => {
   if (!approvedInfo.value?.coordinates) return ''
   const [lon, lat] = approvedInfo.value.coordinates.split(',')
   return `${parseFloat(lat).toFixed(6)}°, ${parseFloat(lon).toFixed(6)}°`
 })
 
-const mapUrl = computed(() => {
-  if (!approvedInfo.value?.coordinates) return ''
-  const [lon, lat] = approvedInfo.value.coordinates.split(',')
-  const lonNum = parseFloat(lon)
-  const latNum = parseFloat(lat)
+// Load Yandex Map script dynamically
+function loadYandexMap() {
+  if (!approvedInfo.value?.coordinates) return
 
-  // Create bbox (bounding box) with ±0.05 degrees
-  const bbox = [
-    lonNum - 0.05, latNum - 0.05,
-    lonNum + 0.05, latNum + 0.05
-  ].join(',')
+  // Check if script is already loaded
+  const existingScript = document.querySelector('script[src*="api-maps.yandex.ru"]')
+  if (existingScript) {
+    existingScript.remove()
+  }
 
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${latNum},${lonNum}`
-})
+  const script = document.createElement('script')
+  script.type = 'text/javascript'
+  script.charset = 'utf-8'
+  script.async = true
+  script.src = 'https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3Ae12699530c46d993c13d269b087a258d8c4e0f4dc05f5799d4307172331604bb&width=100%25&height=350&lang=ru_RU&scroll=true'
+
+  if (yandexMapContainer.value) {
+    yandexMapContainer.value.appendChild(script)
+  }
+}
 
 // Copy coordinates to clipboard
 async function copyCoordinates() {
@@ -361,6 +356,23 @@ async function copyCoordinates() {
     coordinatesCopied.value = true
     setTimeout(() => {
       coordinatesCopied.value = false
+    }, 2000)
+  } catch (err) {
+    console.error('Failed to copy:', err)
+  }
+}
+
+// Copy card number to clipboard
+async function copyCardNumber() {
+  if (!approvedInfo.value?.card_number) return
+
+  try {
+    // Remove spaces from card number for easier pasting
+    const cardNumber = approvedInfo.value.card_number.replace(/\s+/g, '')
+    await navigator.clipboard.writeText(cardNumber)
+    cardNumberCopied.value = true
+    setTimeout(() => {
+      cardNumberCopied.value = false
     }, 2000)
   } catch (err) {
     console.error('Failed to copy:', err)
@@ -482,6 +494,9 @@ async function fetchApprovedInfo() {
     if (data) {
       approvedInfo.value = data
       infoError.value = null
+      // Load Yandex Map after data is set
+      await nextTick()
+      loadYandexMap()
     } else {
       infoError.value = 'Данные не найдены'
     }
@@ -822,33 +837,6 @@ function handleLogout() {
   margin-bottom: 1rem;
 }
 
-/* Email Notice */
-.email-notice {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 10px;
-  margin-top: 1rem;
-}
-
-.email-notice .notice-icon {
-  width: 20px;
-  height: 20px;
-  color: #60a5fa;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.email-notice p {
-  color: var(--sage);
-  font-size: 0.85rem;
-  line-height: 1.5;
-  margin: 0;
-}
-
 /* Visual Card */
 .visual-card {
   background: linear-gradient(135deg, var(--fire) 0%, var(--fire-glow) 100%);
@@ -1113,10 +1101,30 @@ function handleLogout() {
   border: 2px solid rgba(139, 111, 71, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: box-shadow 0.3s ease;
+  min-height: 350px;
 }
 
 .map-container:hover {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+#yandex-map-container {
+  width: 100%;
+  height: 350px;
+}
+
+/* Card Number Row */
+.card-number-row {
+  background: rgba(139, 111, 71, 0.1);
+  border: 1px solid rgba(139, 111, 71, 0.2);
+}
+
+.card-number-value {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  justify-content: flex-end;
 }
 
 /* Error Card */
@@ -1254,7 +1262,8 @@ function handleLogout() {
     font-size: 0.9rem;
   }
 
-  .coordinates-value {
+  .coordinates-value,
+  .card-number-value {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
@@ -1268,6 +1277,10 @@ function handleLogout() {
 
   .map-container {
     border-radius: 8px;
+  }
+
+  #yandex-map-container {
+    height: 300px;
   }
 }
 

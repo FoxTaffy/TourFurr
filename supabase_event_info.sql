@@ -2,7 +2,6 @@
 CREATE TABLE IF NOT EXISTS event_info (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   location TEXT NOT NULL,
-  location_note TEXT,
   coordinates TEXT,  -- Format: "longitude,latitude" for Yandex Maps
   price INTEGER NOT NULL,
   bank TEXT NOT NULL,
@@ -25,7 +24,6 @@ CREATE POLICY "Allow read event info"
 -- Coordinates format: "longitude,latitude" (e.g., "37.6173,55.7558" for Moscow)
 INSERT INTO event_info (
   location,
-  location_note,
   coordinates,
   price,
   bank,
@@ -34,7 +32,6 @@ INSERT INTO event_info (
   payment_note
 ) VALUES (
   'Ярославская область',
-  'Точные координаты будут отправлены за неделю до мероприятия',
   '39.108398,56.905351',  -- Ярославская область
   3500,
   'Сбербанк',
