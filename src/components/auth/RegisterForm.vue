@@ -504,7 +504,8 @@ const step1Schema = yup.object({
     .required('Пароль обязателен')
     .min(8, 'Минимум 8 символов')
     .matches(/[a-zA-Z]/, 'Должен содержать буквы')
-    .matches(/\d/, 'Должен содержать цифры'),
+    .matches(/\d/, 'Должен содержать цифры')
+    .matches(/[^a-zA-Z0-9]/, 'Должен содержать специальный символ'),
   confirmPassword: yup.string()
     .required('Подтвердите пароль')
     .oneOf([yup.ref('password')], 'Пароли не совпадают')
