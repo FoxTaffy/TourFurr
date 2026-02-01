@@ -239,32 +239,53 @@
             <h3>Локация</h3>
           </div>
 
-          <div class="details-list">
-            <div class="detail-row">
-              <span class="detail-label">Место</span>
-              <span class="detail-value">{{ approvedInfo.location }}</span>
-            </div>
-          </div>
-
-          <p class="location-note">{{ approvedInfo.location_note }}</p>
-
           <div v-if="approvedInfo.coordinates" class="map-security-warning">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-            </svg>
-            <div>
+            <div class="warning-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+            </div>
+            <div class="warning-content">
               <strong>Конфиденциальная информация!</strong>
-              <p>Эта карта доступна только одобренным участникам. Не распространяйте координаты — их разглашение может привести к серьезным последствиям для мероприятия.</p>
+              <p>Данные доступны только одобренным участникам. Разглашение координат может привести к серьезным последствиям для мероприятия.</p>
             </div>
           </div>
 
-          <div v-if="approvedInfo.coordinates" class="map-container">
-            <iframe
-              src="https://yandex.ru/map-widget/v1/?um=constructor%3Ae12699530c46d993c13d269b087a258d8c4e0f4dc05f5799d4307172331604bb&source=constructor"
-              width="100%"
-              height="300"
-              frameborder="0"
-            ></iframe>
+          <div class="location-details">
+            <div class="location-info">
+              <div class="info-row">
+                <span class="info-label">Регион</span>
+                <span class="info-value">{{ approvedInfo.location }}</span>
+              </div>
+              <div v-if="approvedInfo.location_note" class="info-row">
+                <span class="info-label">Примечание</span>
+                <span class="info-value info-note">{{ approvedInfo.location_note }}</span>
+              </div>
+              <div v-if="approvedInfo.coordinates" class="info-row coordinates-row">
+                <span class="info-label">Координаты</span>
+                <div class="coordinates-value">
+                  <span class="info-value">{{ formattedCoordinates }}</span>
+                  <button @click="copyCoordinates" class="copy-btn" :class="{ copied: coordinatesCopied }">
+                    <svg v-if="!coordinatesCopied" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="approvedInfo.coordinates" class="map-container">
+              <iframe
+                :src="mapUrl"
+                width="100%"
+                height="350"
+                frameborder="0"
+                allowfullscreen
+              ></iframe>
+            </div>
           </div>
         </div>
 
@@ -306,6 +327,45 @@ interface ApprovedInfo {
 
 const approvedInfo = ref<ApprovedInfo | null>(null)
 const infoError = ref<string | null>(null)
+const coordinatesCopied = ref(false)
+
+// Computed properties for map and coordinates
+const formattedCoordinates = computed(() => {
+  if (!approvedInfo.value?.coordinates) return ''
+  const [lon, lat] = approvedInfo.value.coordinates.split(',')
+  return `${parseFloat(lat).toFixed(6)}°, ${parseFloat(lon).toFixed(6)}°`
+})
+
+const mapUrl = computed(() => {
+  if (!approvedInfo.value?.coordinates) return ''
+  const [lon, lat] = approvedInfo.value.coordinates.split(',')
+  const lonNum = parseFloat(lon)
+  const latNum = parseFloat(lat)
+
+  // Create bbox (bounding box) with ±0.05 degrees
+  const bbox = [
+    lonNum - 0.05, latNum - 0.05,
+    lonNum + 0.05, latNum + 0.05
+  ].join(',')
+
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${latNum},${lonNum}`
+})
+
+// Copy coordinates to clipboard
+async function copyCoordinates() {
+  if (!approvedInfo.value?.coordinates) return
+
+  try {
+    const [lon, lat] = approvedInfo.value.coordinates.split(',')
+    await navigator.clipboard.writeText(`${lat}, ${lon}`)
+    coordinatesCopied.value = true
+    setTimeout(() => {
+      coordinatesCopied.value = false
+    }, 2000)
+  } catch (err) {
+    console.error('Failed to copy:', err)
+  }
+}
 
 // Edit mode
 const isEditing = ref(false)
@@ -896,49 +956,167 @@ function handleLogout() {
   grid-column: span 2;
 }
 
-.location-note {
-  color: var(--sage);
-  font-size: 0.9rem;
-  font-style: italic;
-  margin-bottom: 1rem;
-}
-
+/* Security Warning Banner */
 .map-security-warning {
   display: flex;
+  align-items: flex-start;
   gap: 1rem;
-  padding: 1rem;
-  background: rgba(217, 119, 6, 0.1);
-  border: 1px solid rgba(217, 119, 6, 0.3);
-  border-radius: 8px;
-  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.15) 0%, rgba(217, 119, 6, 0.08) 100%);
+  border: 2px solid rgba(217, 119, 6, 0.4);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.15);
 }
 
-.map-security-warning svg {
+.warning-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(217, 119, 6, 0.2);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.warning-icon svg {
   width: 24px;
   height: 24px;
   color: #d97706;
-  flex-shrink: 0;
-  margin-top: 2px;
 }
 
-.map-security-warning strong {
+.warning-content {
+  flex: 1;
+}
+
+.warning-content strong {
   display: block;
   color: #d97706;
-  font-size: 0.95rem;
-  margin-bottom: 0.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.01em;
 }
 
-.map-security-warning p {
+.warning-content p {
   color: var(--sage);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
+/* Location Details Section */
+.location-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.location-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.75rem;
+  background: rgba(139, 111, 71, 0.05);
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.info-row:hover {
+  background: rgba(139, 111, 71, 0.08);
+}
+
+.info-label {
+  color: var(--sage);
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.info-value {
+  color: var(--parchment);
+  font-size: 0.95rem;
+  flex: 1;
+  text-align: right;
+}
+
+.info-note {
+  font-style: italic;
+  color: rgba(219, 205, 179, 0.8);
+}
+
+/* Coordinates Row */
+.coordinates-row {
+  background: rgba(139, 111, 71, 0.1);
+  border: 1px solid rgba(139, 111, 71, 0.2);
+}
+
+.coordinates-value {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: rgba(139, 111, 71, 0.2);
+  border: 1px solid rgba(139, 111, 71, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-btn svg {
+  width: 18px;
+  height: 18px;
+  color: var(--sage);
+  transition: color 0.2s ease;
+}
+
+.copy-btn:hover {
+  background: rgba(139, 111, 71, 0.3);
+  border-color: rgba(139, 111, 71, 0.5);
+  transform: translateY(-1px);
+}
+
+.copy-btn:active {
+  transform: translateY(0);
+}
+
+.copy-btn.copied {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.copy-btn.copied svg {
+  color: #22c55e;
+}
+
+/* Map Container */
 .map-container {
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(139, 111, 71, 0.3);
+  border: 2px solid rgba(139, 111, 71, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.3s ease;
+}
+
+.map-container:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 /* Error Card */
@@ -1034,6 +1212,62 @@ function handleLogout() {
 
   .card-number {
     font-size: 1rem;
+  }
+
+  /* Location Card Mobile Styles */
+  .map-security-warning {
+    padding: 0.875rem 1rem;
+    gap: 0.75rem;
+  }
+
+  .warning-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .warning-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .warning-content strong {
+    font-size: 0.9rem;
+  }
+
+  .warning-content p {
+    font-size: 0.85rem;
+  }
+
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .info-label {
+    min-width: auto;
+    font-size: 0.85rem;
+  }
+
+  .info-value {
+    text-align: left;
+    font-size: 0.9rem;
+  }
+
+  .coordinates-value {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .copy-btn {
+    width: 100%;
+    height: 38px;
+  }
+
+  .map-container {
+    border-radius: 8px;
   }
 }
 
