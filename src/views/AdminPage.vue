@@ -45,16 +45,6 @@
           </svg>
           Заявки на участие
         </button>
-        <button
-          @click="activeTab = 'voting'"
-          class="tab-btn"
-          :class="{ active: activeTab === 'voting' }"
-        >
-          <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-          Голосование (9/9)
-        </button>
       </div>
 
       <!-- Users Tab -->
@@ -193,11 +183,6 @@
       <div v-show="activeTab === 'applications'">
         <ApplicationsManagement />
       </div>
-
-      <!-- Voting Tab -->
-      <div v-show="activeTab === 'voting'">
-        <VotingPanel />
-      </div>
     </main>
   </div>
 </template>
@@ -208,7 +193,6 @@ import { useRouter } from 'vue-router'
 import { supabase } from '../services/supabase'
 import { useAuthStore } from '../stores/auth'
 import ApplicationsManagement from '../components/ApplicationsManagement.vue'
-import VotingPanel from '../components/VotingPanel.vue'
 import logoImg from '../assets/logo.png'
 
 const router = useRouter()
@@ -283,17 +267,61 @@ async function loadUsers() {
 async function updateStatus(userId: string, status: string) {
   isUpdating.value = userId
 
-  const { error } = await supabase
-    .from('users')
-    .update({ status })
-    .eq('id', userId)
+  try {
+    // Update status in database
+    const { error } = await supabase
+      .from('users')
+      .update({ status })
+      .eq('id', userId)
 
-  if (!error) {
+    if (error) {
+      console.error('Error updating status:', error)
+      alert('Ошибка обновления статуса')
+      return
+    }
+
+    // Update local state
     const user = users.value.find(u => u.id === userId)
-    if (user) user.status = status
-  }
+    if (user) {
+      user.status = status
 
-  isUpdating.value = null
+      // Send approval/rejection email
+      if (status === 'approved' || status === 'rejected') {
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          const token = session?.access_token
+
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-approval-email`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token || import.meta.env.VITE_SUPABASE_ANON_KEY}`
+            },
+            body: JSON.stringify({
+              email: user.email,
+              nickname: user.nickname,
+              status: status
+            })
+          })
+
+          if (!response.ok) {
+            console.error('Failed to send approval email:', await response.text())
+            // Don't fail the whole operation if email fails
+          } else {
+            console.log('Approval email sent successfully')
+          }
+        } catch (emailError) {
+          console.error('Error sending approval email:', emailError)
+          // Don't fail the whole operation if email fails
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error in updateStatus:', err)
+    alert('Произошла ошибка')
+  } finally {
+    isUpdating.value = null
+  }
 }
 
 function formatDate(dateStr: string) {
