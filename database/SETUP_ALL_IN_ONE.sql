@@ -7,12 +7,22 @@
 --
 -- ⚠️ IMPORTANT: Make sure PRODUCTION_SECURE_RLS_FIXED.sql was already applied!
 --
+-- ⚠️ WARNING: This will DROP existing applications and admin_votes tables!
+--             All application and voting data will be lost!
+--
 -- After running this file, you still need to:
 -- 1. Grant yourself admin privileges (see bottom of this file)
 -- 2. Set RESEND_API_KEY in Supabase secrets
 -- 3. Set TURNSTILE_SECRET_KEY in Supabase secrets
 --
 -- ====================================================================
+
+-- ====================================================================
+-- CLEANUP: Drop existing tables to avoid schema conflicts
+-- ====================================================================
+
+DROP TABLE IF EXISTS admin_votes CASCADE;
+DROP TABLE IF EXISTS applications CASCADE;
 
 -- ====================================================================
 -- PART 1: EVENT CONFIG SCHEMA
@@ -60,7 +70,7 @@ COMMENT ON TABLE event_config IS 'Event-wide configuration for TourFurr 2026';
 -- PART 2: APPLICATIONS SCHEMA
 -- ====================================================================
 
-CREATE TABLE IF NOT EXISTS applications (
+CREATE TABLE applications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
@@ -178,7 +188,7 @@ CREATE POLICY "Only admins can modify event config" ON event_config
 -- PART 4: VOTING SYSTEM SCHEMA
 -- ====================================================================
 
-CREATE TABLE IF NOT EXISTS admin_votes (
+CREATE TABLE admin_votes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
     admin_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
