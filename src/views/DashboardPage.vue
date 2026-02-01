@@ -247,13 +247,14 @@
               </div>
             </div>
 
-            <button v-if="approvedInfo.coordinates" @click="openYandexMaps" class="navigate-btn">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-              </svg>
-              Построить маршрут в Яндекс.Картах
-            </button>
+            <div v-if="staticMapUrl" class="map-container">
+              <img
+                :src="staticMapUrl"
+                alt="Карта локации"
+                class="static-map"
+                @click="openYandexMaps"
+              />
+            </div>
           </div>
         </div>
 
@@ -275,6 +276,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
+import { YANDEX_MAPS_API_KEY } from '../utils/env'
 import Header from '../components/Header.vue'
 
 const router = useRouter()
@@ -294,6 +296,20 @@ interface ApprovedInfo {
 
 const approvedInfo = ref<ApprovedInfo | null>(null)
 const infoError = ref<string | null>(null)
+
+// Yandex Maps Static API URL
+const staticMapUrl = computed(() => {
+  if (!approvedInfo.value?.coordinates || !YANDEX_MAPS_API_KEY) return ''
+
+  const [lon, lat] = approvedInfo.value.coordinates.split(',')
+  // Yandex Static API parameters
+  const ll = `${lon},${lat}` // Center coordinates
+  const pt = `${lon},${lat},pm2rdm` // Marker (pm2rdm = red marker)
+  const size = '650,350' // Image size
+  const z = '13' // Zoom level
+
+  return `https://static-maps.yandex.ru/1.x/?ll=${ll}&pt=${pt}&size=${size}&z=${z}&l=map&apikey=${YANDEX_MAPS_API_KEY}`
+})
 
 // Open Yandex Maps for navigation
 function openYandexMaps() {
@@ -975,6 +991,20 @@ function handleLogout() {
 
 .map-container:hover {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.static-map {
+  width: 100%;
+  height: 350px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  display: block;
+}
+
+.static-map:hover {
+  opacity: 0.9;
 }
 
 /* Error Card */
