@@ -46,6 +46,7 @@ END $$;
 -- 3. ФУНКЦИЯ АВТОУДАЛЕНИЯ НЕВЕРИФИЦИРОВАННЫХ АККАУНТОВ
 -- ========================================
 
+DROP FUNCTION IF EXISTS cleanup_unverified_users();
 CREATE OR REPLACE FUNCTION cleanup_unverified_users()
 RETURNS INTEGER
 SECURITY DEFINER

@@ -254,6 +254,7 @@ GRANT EXECUTE ON FUNCTION get_pending_applications_for_admin(UUID) TO authentica
 -- ФУНКЦИЯ: Force Approve (только для super admin)
 -- ========================
 
+DROP FUNCTION IF EXISTS force_approve_application(UUID, UUID);
 CREATE OR REPLACE FUNCTION force_approve_application(
     app_id UUID,
     super_admin_id UUID
