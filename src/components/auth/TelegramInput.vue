@@ -70,6 +70,11 @@ function convertTelegramUsername(value: string): string {
   // Remove @ prefix
   username = username.replace(/^@/, '')
 
+  // Validate: only English letters, numbers, and underscores (Telegram username rules)
+  if (username && !/^[a-zA-Z0-9_]+$/.test(username)) {
+    return '' // Invalid characters - return empty
+  }
+
   // Return formatted as t.me/username
   if (username) {
     return `t.me/${username}`

@@ -288,20 +288,18 @@ async function handleResetSubmit() {
   isResetLoading.value = true
 
   try {
-    // Check if user exists
-    const { data, error } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', resetEmail.value)
-      .single()
+    // Send password reset email using Supabase Auth
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.value, {
+      redirectTo: `${window.location.origin}/auth/reset-password`
+    })
 
-    if (error || !data) {
-      // Don't reveal if user exists for security
-      resetSubmitted.value = true
-    } else {
-      // User exists - in a real app, send password reset email here
-      resetSubmitted.value = true
+    if (error) {
+      console.error('Password reset error:', error)
+      // Don't reveal if user exists for security - show success anyway
     }
+
+    // Always show success message (don't reveal if email exists)
+    resetSubmitted.value = true
   } catch (err) {
     console.error('Reset error:', err)
     resetSubmitted.value = true
