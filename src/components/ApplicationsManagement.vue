@@ -284,7 +284,7 @@ async function loadApplications() {
       .from('applications')
       .select(`
         *,
-        user:users!applications_user_id_fkey (
+        user:user_id (
           id,
           email,
           nickname,
