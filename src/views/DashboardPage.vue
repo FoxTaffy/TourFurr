@@ -76,6 +76,14 @@
               </svg>
               Редактировать
             </button>
+
+            <!-- Admin Panel Button -->
+            <button v-if="user?.isAdmin" class="admin-btn" @click="router.push('/admin')">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+              </svg>
+              Админ-панель
+            </button>
           </template>
 
           <template v-else>
@@ -1047,6 +1055,37 @@ function handleLogout() {
 }
 
 .edit-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.admin-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  margin-top: 0.75rem;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(167, 139, 250, 0.15));
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 12px;
+  color: #a78bfa;
+  font-family: 'Lora', serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.admin-btn:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(167, 139, 250, 0.25));
+  border-color: rgba(139, 92, 246, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.admin-btn svg {
   width: 18px;
   height: 18px;
 }
