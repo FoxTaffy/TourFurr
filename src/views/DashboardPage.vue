@@ -329,20 +329,18 @@ const formattedCoordinates = computed(() => {
   return `${parseFloat(lat).toFixed(6)}°, ${parseFloat(lon).toFixed(6)}°`
 })
 
-// Yandex Static API map URL
+// OpenStreetMap static map URL (works without API key!)
 const staticMapUrl = computed(() => {
   if (!approvedInfo.value?.coordinates) return ''
   const [lon, lat] = approvedInfo.value.coordinates.split(',') // format: "lon,lat" from DB
-  const apiKey = '416860b0-d8bd-4c81-a388-08df6fbf6466'
 
-  // Static API parameters (lon,lat format for Yandex)
-  const ll = `${lon},${lat}` // center of map
-  const pt = `${lon},${lat},pm2rdm` // point with red marker (medium size)
-  const z = 13 // zoom level
-  const size = '650,350' // image size
-  const lang = 'ru_RU' // language
+  // OpenStreetMap static map via staticmap service
+  const zoom = 13
+  const width = 650
+  const height = 350
 
-  return `https://static-maps.yandex.ru/1.x/?ll=${ll}&pt=${pt}&z=${z}&size=${size}&l=map&lang=${lang}&apikey=${apiKey}`
+  // Using OpenStreetMap static map service (no API key needed!)
+  return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=${zoom}&size=${width}x${height}&markers=${lat},${lon},red-pushpin`
 })
 
 // Copy coordinates to clipboard
@@ -378,12 +376,12 @@ async function copyCardNumber() {
   }
 }
 
-// Open full Yandex Map in new tab
+// Open full OpenStreetMap in new tab
 function openFullMap() {
   if (!approvedInfo.value?.coordinates) return
 
-  const coords = approvedInfo.value.coordinates
-  const url = `https://yandex.ru/maps/?pt=${coords}&z=12&l=map`
+  const [lon, lat] = approvedInfo.value.coordinates.split(',')
+  const url = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=13/${lat}/${lon}`
   window.open(url, '_blank')
 }
 
