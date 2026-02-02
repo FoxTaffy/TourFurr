@@ -16,15 +16,18 @@
         type="text"
         :placeholder="placeholder"
         class="form-input telegram-input"
-        :class="{ error: hasError }"
+        :class="{ error: hasError || hasInvalidChars }"
         @input="handleInput"
         @blur="handleBlur"
       />
     </div>
-    <p v-if="convertedValue && showConverted" class="converted-hint">
+    <p v-if="convertedValue && showConverted && !hasInvalidChars" class="converted-hint">
       Будет сохранено как: <span class="converted-value">{{ convertedValue }}</span>
     </p>
-    <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
+    <p v-if="hasInvalidChars" class="error-text">
+      Telegram должен содержать только латинские буквы (a-z), цифры и подчеркивание
+    </p>
+    <p v-else-if="errorMessage" class="error-text">{{ errorMessage }}</p>
   </div>
 </template>
 
@@ -51,6 +54,22 @@ const emit = defineEmits<{
 
 const inputId = `telegram-${Math.random().toString(36).substr(2, 9)}`
 const inputValue = ref(props.modelValue)
+
+// Check if input contains invalid (non-English) characters
+const hasInvalidChars = computed(() => {
+  if (!inputValue.value) return false
+
+  let username = inputValue.value.trim()
+  // Remove common prefixes to check only the username part
+  username = username.replace(/^https?:\/\//, '')
+  username = username.replace(/^t\.me\//, '')
+  username = username.replace(/^@/, '')
+
+  if (!username) return false
+
+  // Check if contains characters other than English letters, numbers, underscores
+  return !/^[a-zA-Z0-9_]+$/.test(username)
+})
 
 const convertedValue = computed(() => {
   return convertTelegramUsername(inputValue.value)

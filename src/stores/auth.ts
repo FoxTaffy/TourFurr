@@ -16,23 +16,60 @@ import { logger } from '@/utils/logger'
 
 // Security: Allowed file types for avatar
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp']
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
-// Security: Validate file
-function validateFile(file: File): { valid: boolean; error?: string } {
-  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-    return { valid: false, error: 'Недопустимый тип файла' }
+// Get file extension from filename
+function getFileExtension(filename: string): string {
+  const lastDot = filename.lastIndexOf('.')
+  if (lastDot === -1) return ''
+  return filename.slice(lastDot).toLowerCase()
+}
+
+// Determine actual file type from MIME type or extension
+function getActualFileType(file: File): { mimeType: string; extension: string } | null {
+  const ext = getFileExtension(file.name)
+
+  // First check MIME type
+  if (ALLOWED_MIME_TYPES.includes(file.type)) {
+    const extFromMime = file.type === 'image/jpeg' ? '.jpg' : file.type === 'image/png' ? '.png' : '.webp'
+    return { mimeType: file.type, extension: extFromMime }
   }
+
+  // Fallback to extension check (some files may have wrong MIME type)
+  if (ALLOWED_EXTENSIONS.includes(ext)) {
+    const mimeFromExt = ext === '.png' ? 'image/png'
+      : (ext === '.jpg' || ext === '.jpeg') ? 'image/jpeg'
+      : 'image/webp'
+    return { mimeType: mimeFromExt, extension: ext }
+  }
+
+  return null
+}
+
+// Security: Validate file
+function validateFile(file: File): { valid: boolean; error?: string; fileType?: { mimeType: string; extension: string } } {
+  // Check file size first
   if (file.size > MAX_FILE_SIZE) {
     return { valid: false, error: 'Файл слишком большой (макс. 5MB)' }
   }
-  return { valid: true }
+
+  // Check MIME type OR extension
+  const fileType = getActualFileType(file)
+  if (!fileType) {
+    return { valid: false, error: 'Недопустимый тип файла. Разрешены: JPG, PNG, WebP' }
+  }
+
+  return { valid: true, fileType }
 }
 
 // Security: Generate secure file name
 function generateSecureFileName(file: File): string {
-  const ext = file.type === 'image/jpeg' ? 'jpg' : file.type === 'image/png' ? 'png' : 'webp'
-  return `${crypto.randomUUID()}.${ext}`
+  const fileType = getActualFileType(file)
+  const ext = fileType
+    ? (fileType.extension === '.jpeg' ? '.jpg' : fileType.extension)
+    : '.jpg'  // Fallback
+  return `${crypto.randomUUID()}${ext}`
 }
 
 // Security: Safe JSON parse
@@ -475,17 +512,20 @@ export const useAuthStore = defineStore('auth', () => {
 
         // Security: Generate secure filename based on MIME type
         const fileName = generateSecureFileName(data.avatar)
+        // Use detected MIME type (may be different from file.type if extension was used)
+        const actualMimeType = fileValidation.fileType?.mimeType || data.avatar.type
 
         logger.log('Uploading avatar:', {
           fileName,
-          type: data.avatar.type,
+          originalType: data.avatar.type,
+          detectedType: actualMimeType,
           size: data.avatar.size
         })
 
         const { error: uploadError } = await supabase.storage
           .from('avatars')
           .upload(fileName, data.avatar, {
-            contentType: data.avatar.type,
+            contentType: actualMimeType,
             upsert: false
           })
 
@@ -777,17 +817,20 @@ export const useAuthStore = defineStore('auth', () => {
 
         // Security: Generate secure filename based on MIME type
         const fileName = generateSecureFileName(updates.avatar)
+        // Use detected MIME type (may be different from file.type if extension was used)
+        const actualMimeType = fileValidation.fileType?.mimeType || updates.avatar.type
 
         logger.log('Uploading new avatar:', {
           fileName,
-          type: updates.avatar.type,
+          originalType: updates.avatar.type,
+          detectedType: actualMimeType,
           size: updates.avatar.size
         })
 
         const { error: uploadError } = await supabase.storage
           .from('avatars')
           .upload(fileName, updates.avatar, {
-            contentType: updates.avatar.type,
+            contentType: actualMimeType,
             upsert: false
           })
 

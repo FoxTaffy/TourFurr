@@ -706,14 +706,24 @@ function handleDrop(event: DragEvent) {
 }
 
 function processFile(file: File) {
-  // Validate file
-  const validTypes = ['image/jpeg', 'image/png', 'image/webp']
-  if (!validTypes.includes(file.type)) {
-    errors.avatar = 'Недопустимый формат файла'
-    return
-  }
+  // Validate file size first
   if (file.size > 5 * 1024 * 1024) {
     errors.avatar = 'Файл слишком большой (макс. 5MB)'
+    return
+  }
+
+  // Check MIME type OR extension (some files may have incorrect MIME type)
+  const validTypes = ['image/jpeg', 'image/png', 'image/webp']
+  const validExtensions = ['.jpg', '.jpeg', '.png', '.webp']
+  const ext = file.name.lastIndexOf('.') > -1
+    ? file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
+    : ''
+
+  const hasValidMime = validTypes.includes(file.type)
+  const hasValidExt = validExtensions.includes(ext)
+
+  if (!hasValidMime && !hasValidExt) {
+    errors.avatar = 'Недопустимый формат файла. Разрешены: JPG, PNG, WebP'
     return
   }
 
