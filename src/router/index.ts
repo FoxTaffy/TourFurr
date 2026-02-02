@@ -37,6 +37,11 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresGuest: true }
   },
   {
+    path: '/auth/update-password',
+    name: 'UpdatePassword',
+    component: () => import('../views/UpdatePasswordPage.vue')
+  },
+  {
     path: '/admin',
     name: 'Admin',
     component: () => import('../views/AdminPage.vue'),
@@ -60,10 +65,60 @@ router.beforeEach(async (to, _from, next) => {
     return
   }
 
-  // Check auth routes
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: 'Auth' })
-    return
+  // Check auth routes - verify token AND email_verified status
+  if (to.meta.requiresAuth) {
+    if (!isAuthenticated) {
+      next({ name: 'Auth' })
+      return
+    }
+
+    // CRITICAL: Verify email is confirmed before allowing access to protected routes
+    try {
+      const storedUser = localStorage.getItem('current_user')
+      if (storedUser) {
+        const userData = JSON.parse(storedUser)
+        // Check if email is verified
+        if (!userData.emailVerified) {
+          // Clear auth data and redirect to verification
+          localStorage.removeItem('auth_token')
+          localStorage.removeItem('current_user')
+          await supabase.auth.signOut()
+          next({
+            name: 'VerifyEmail',
+            query: { email: userData.email }
+          })
+          return
+        }
+      } else {
+        // No user data stored - check from Supabase
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: dbUser } = await supabase
+            .from('users')
+            .select('email, email_verified')
+            .eq('id', user.id)
+            .single()
+
+          if (dbUser && !dbUser.email_verified) {
+            localStorage.removeItem('auth_token')
+            localStorage.removeItem('current_user')
+            await supabase.auth.signOut()
+            next({
+              name: 'VerifyEmail',
+              query: { email: dbUser.email }
+            })
+            return
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Email verification check error:', err)
+      // On error, clear auth and redirect to login
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('current_user')
+      next({ name: 'Auth' })
+      return
+    }
   }
 
   // Check admin routes - CRITICAL SECURITY CHECK

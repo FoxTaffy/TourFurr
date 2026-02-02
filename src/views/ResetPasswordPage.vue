@@ -51,12 +51,12 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
             </svg>
           </div>
-          <h3 class="text-lg font-semibold text-white mb-2">Email подтвержден!</h3>
+          <h3 class="text-lg font-semibold text-white mb-2">Письмо отправлено!</h3>
           <p class="text-sm text-gray-400 mb-3">
-            Пользователь с email {{ email }} найден.
+            На адрес <span class="text-amber-400">{{ email }}</span> отправлена ссылка для сброса пароля.
           </p>
-          <p class="text-xs text-amber-400">
-            Функция отправки письма для сброса пароля будет реализована позже. Обратитесь к администратору для сброса пароля.
+          <p class="text-xs text-gray-500">
+            Проверьте папку «Спам», если письмо не пришло в течение нескольких минут.
           </p>
         </div>
       </div>
@@ -102,11 +102,13 @@ async function handleSubmit() {
   isLoading.value = true
 
   try {
-    // Check if user exists
+    const cleanEmail = email.value.trim().toLowerCase()
+
+    // Check if user exists in our database first
     const { data: user, error: dbError } = await supabase
       .from('users')
       .select('id, email')
-      .eq('email', email.value.trim().toLowerCase())
+      .eq('email', cleanEmail)
       .single()
 
     if (dbError || !user) {
@@ -114,10 +116,21 @@ async function handleSubmit() {
       return
     }
 
-    // For now, just show success message
-    // TODO: Implement actual password reset with email sending
+    // Send password reset email via Supabase Auth
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+      redirectTo: `${window.location.origin}/auth/update-password`
+    })
+
+    if (resetError) {
+      console.error('Password reset error:', resetError)
+      // Don't expose detailed error to user
+      error.value = 'Ошибка отправки письма. Попробуйте позже.'
+      return
+    }
+
     submitted.value = true
   } catch (err: any) {
+    console.error('Unexpected error:', err)
     error.value = 'Ошибка отправки. Попробуйте позже.'
   } finally {
     isLoading.value = false
