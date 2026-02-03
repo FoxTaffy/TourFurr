@@ -322,89 +322,242 @@
 
   <!-- Rules Modal -->
   <Teleport to="body">
-    <div v-if="showRulesModal" class="privacy-overlay" @click="showRulesModal = false">
-      <div class="privacy-modal" @click.stop>
-        <div class="modal-header">
-          <h3>Правила конвента TourFurr 2026</h3>
-          <button @click="showRulesModal = false" class="close-btn">
+    <div v-if="showRulesModal" class="rules-overlay" @click="showRulesModal = false">
+      <div class="rules-modal" @click.stop>
+        <div class="rules-header">
+          <div class="rules-header-content">
+            <div class="rules-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <div>
+              <h3>Правила конвента TourFurr 2026</h3>
+              <p class="rules-subtitle">Пожалуйста, ознакомьтесь перед участием</p>
+            </div>
+          </div>
+          <button @click="showRulesModal = false" class="rules-close-btn">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
           </button>
         </div>
-        <div class="modal-content">
-          <p class="policy-date">г. Москва<br>Версия от «01» января 2026 г.</p>
 
-          <h4>1. Общие положения</h4>
-          <p>1.1. Настоящие Правила регулируют порядок участия в мероприятии TourFurr 2026 (далее — Конвент).</p>
-          <p>1.2. Участие в Конвенте означает полное и безоговорочное согласие участника с настоящими Правилами.</p>
-          <p>1.3. Организаторы вправе отказать в участии или удалить участника с мероприятия при нарушении настоящих Правил без возврата оплаты.</p>
+        <div class="rules-content">
+          <div class="rules-date-card">
+            <svg class="date-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <div>
+              <strong>г. Москва</strong>
+              <span>Версия от «01» января 2026 г.</span>
+            </div>
+          </div>
 
-          <h4>2. Возрастные ограничения</h4>
-          <p>2.1. К участию в Конвенте допускаются лица, достигшие 18 лет на момент начала мероприятия.</p>
-          <p>2.2. При регистрации и на входе может быть запрошен документ, удостоверяющий личность.</p>
+          <div class="rule-card">
+            <div class="rule-card-header">
+              <div class="rule-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <h4>1. Общие положения</h4>
+            </div>
+            <div class="rule-card-content">
+              <p>1.1. Настоящие Правила регулируют порядок участия в мероприятии TourFurr 2026 (далее — Конвент).</p>
+              <p>1.2. Участие в Конвенте означает полное и безоговорочное согласие участника с настоящими Правилами.</p>
+              <p>1.3. Организаторы вправе отказать в участии или удалить участника с мероприятия при нарушении настоящих Правил без возврата оплаты.</p>
+            </div>
+          </div>
 
-          <h4>3. Правила поведения</h4>
-          <p>3.1. <strong>Уважение к участникам:</strong> Запрещены любые формы дискриминации, harassment, буллинга по признаку расы, национальности, пола, сексуальной ориентации, религии или иным признакам.</p>
-          <p>3.2. <strong>Фотографирование:</strong> Фото- и видеосъемка других участников разрешена только с их явного согласия. Запрещена съемка в раздевалках, душевых и туалетах.</p>
-          <p>3.3. <strong>Физический контакт:</strong> Любые прикосновения, объятия и физический контакт допустимы только с явного согласия другого участника.</p>
-          <p>3.4. <strong>Алкоголь и вещества:</strong> Запрещено появление на мероприятии в состоянии алкогольного или наркотического опьянения. Употребление алкоголя допускается только в отведенных местах и в умеренных количествах.</p>
-          <p>3.5. <strong>Безопасность:</strong> Соблюдайте правила пожарной безопасности, не блокируйте эвакуационные выходы.</p>
+          <div class="rule-card">
+            <div class="rule-card-header">
+              <div class="rule-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <h4>2. Возрастные ограничения</h4>
+            </div>
+            <div class="rule-card-content">
+              <p>2.1. К участию в Конвенте допускаются лица, достигшие 18 лет на момент начала мероприятия.</p>
+              <p>2.2. При регистрации и на входе может быть запрошен документ, удостоверяющий личность.</p>
+            </div>
+          </div>
 
-          <h4>4. Дресс-код и фурсьюты</h4>
-          <p>4.1. Участники могут носить фурсьюты, частичные костюмы (partial suits), маски и аксессуары.</p>
-          <p>4.2. Обязательно соблюдение правил гигиены при ношении костюмов.</p>
-          <p>4.3. В помещениях с повышенной температурой (сауна, бассейн) фурсьюты могут быть запрещены по соображениям безопасности.</p>
-          <p>4.4. Запрещено ношение костюмов и атрибутики, содержащих нацистскую, экстремистскую или оскорбительную символику.</p>
+          <div class="rule-card">
+            <div class="rule-card-header">
+              <div class="rule-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+              </div>
+              <h4>3. Правила поведения</h4>
+            </div>
+            <div class="rule-card-content">
+              <p>3.1. <strong>Уважение к участникам:</strong> Запрещены любые формы дискриминации, harassment, буллинга по признаку расы, национальности, пола, сексуальной ориентации, религии или иным признакам.</p>
+              <p>3.2. <strong>Фотографирование:</strong> Фото- и видеосъемка других участников разрешена только с их явного согласия. Запрещена съемка в раздевалках, душевых и туалетах.</p>
+              <p>3.3. <strong>Физический контакт:</strong> Любые прикосновения, объятия и физический контакт допустимы только с явного согласия другого участника.</p>
+              <p>3.4. <strong>Алкоголь и вещества:</strong> Запрещено появление на мероприятии в состоянии алкогольного или наркотического опьянения. Употребление алкоголя допускается только в отведенных местах и в умеренных количествах.</p>
+              <p>3.5. <strong>Безопасность:</strong> Соблюдайте правила пожарной безопасности, не блокируйте эвакуационные выходы.</p>
+            </div>
+          </div>
 
-          <h4>5. Животные-компаньоны (петы)</h4>
-          <p>5.1. Участники могут привозить домашних животных с обязательным указанием в регистрационной форме.</p>
-          <p>5.2. Животные должны быть привиты, иметь ветеринарный паспорт.</p>
-          <p>5.3. Владелец несет полную ответственность за поведение животного, его гигиену и возможный ущерб.</p>
-          <p>5.4. Животные должны находиться под присмотром владельца и не должны создавать дискомфорт другим участникам.</p>
+          <div class="rule-card">
+            <div class="rule-card-header">
+              <div class="rule-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <h4>4. Дресс-код и фурсьюты</h4>
+            </div>
+            <div class="rule-card-content">
+              <p>4.1. Участники могут носить фурсьюты, частичные костюмы (partial suits), маски и аксессуары.</p>
+              <p>4.2. Обязательно соблюдение правил гигиены при ношении костюмов.</p>
+              <p>4.3. В помещениях с повышенной температурой (сауна, бассейн) фурсьюты могут быть запрещены по соображениям безопасности.</p>
+              <p>4.4. Запрещено ношение костюмов и атрибутики, содержащих нацистскую, экстремистскую или оскорбительную символику.</p>
+            </div>
+          </div>
 
-          <h4>6. Контент и материалы</h4>
-          <p>6.1. Запрещено размещение, демонстрация или распространение материалов:</p>
-          <ul>
-            <li>Содержащих детскую порнографию или эксплуатацию несовершеннолетних</li>
-            <li>Пропагандирующих насилие, жестокость, экстремизм</li>
-            <li>Нарушающих авторские права</li>
-            <li>Порнографического содержания в общедоступных зонах (для 18+ контента предусмотрены специальные помещения)</li>
-          </ul>
+          <div class="rule-card">
+            <div class="rule-card-header">
+              <div class="rule-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+              </div>
+              <h4>5. Животные-компаньоны (петы)</h4>
+            </div>
+            <div class="rule-card-content">
+              <p>5.1. Участники могут привозить домашних животных с обязательным указанием в регистрационной форме.</p>
+              <p>5.2. Животные должны быть привиты, иметь ветеринарный паспорт.</p>
+              <p>5.3. Владелец несет полную ответственность за поведение животного, его гигиену и возможный ущерб.</p>
+              <p>5.4. Животные должны находиться под присмотром владельца и не должны создавать дискомфорт другим участникам.</p>
+            </div>
+          </div>
 
-          <h4>7. Коммерческая деятельность</h4>
-          <p>7.1. Продажа товаров и услуг на территории Конвента разрешена только в специально отведенных местах (Artist Alley, Dealers Den) и по согласованию с организаторами.</p>
-          <p>7.2. Запрещена несанкционированная реклама и промо-акции.</p>
+          <div class="rule-card">
+            <div class="rule-card-header">
+              <div class="rule-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <h4>6. Контент и материалы</h4>
+            </div>
+            <div class="rule-card-content">
+              <p>6.1. Запрещено размещение, демонстрация или распространение материалов:</p>
+              <ul>
+                <li>Содержащих детскую порнографию или эксплуатацию несовершеннолетних</li>
+                <li>Пропагандирующих насилие, жестокость, экстремизм</li>
+                <li>Нарушающих авторские права</li>
+                <li>Порнографического содержания в общедоступных зонах (для 18+ контента предусмотрены специальные помещения)</li>
+              </ul>
+            </div>
+          </div>
 
-          <h4>8. Ответственность и безопасность</h4>
-          <p>8.1. Организаторы не несут ответственности за утерю, кражу или порчу личного имущества участников.</p>
-          <p>8.2. Участник обязан бережно относиться к имуществу площадки проведения мероприятия.</p>
-          <p>8.3. В случае порчи имущества площадки участник обязан возместить причиненный ущерб.</p>
-          <p>8.4. При обнаружении подозрительных предметов, угроз безопасности немедленно сообщайте организаторам или службе безопасности.</p>
+          <div class="rule-card">
+            <div class="rule-card-header">
+              <div class="rule-icon" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                </svg>
+              </div>
+              <h4>7. Коммерческая деятельность</h4>
+            </div>
+            <div class="rule-card-content">
+              <p>7.1. Продажа товаров и услуг на территории Конвента разрешена только в специально отведенных местах (Artist Alley, Dealers Den) и по согласованию с организаторами.</p>
+              <p>7.2. Запрещена несанкционированная реклама и промо-акции.</p>
+            </div>
+          </div>
 
-          <h4>9. Санкции за нарушения</h4>
-          <p>9.1. В зависимости от серьезности нарушения организаторы имеют право:</p>
-          <ul>
-            <li>Вынести устное предупреждение</li>
-            <li>Временно ограничить доступ к отдельным активностям</li>
-            <li>Удалить участника с мероприятия без возврата средств</li>
-            <li>Запретить участие в будущих мероприятиях</li>
-            <li>Обратиться в правоохранительные органы (при серьезных правонарушениях)</li>
-          </ul>
+          <div class="rule-card">
+            <div class="rule-card-header">
+              <div class="rule-icon" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+              </div>
+              <h4>8. Ответственность и безопасность</h4>
+            </div>
+            <div class="rule-card-content">
+              <p>8.1. Организаторы не несут ответственности за утерю, кражу или порчу личного имущества участников.</p>
+              <p>8.2. Участник обязан бережно относиться к имуществу площадки проведения мероприятия.</p>
+              <p>8.3. В случае порчи имущества площадки участник обязан возместить причиненный ущерб.</p>
+              <p>8.4. При обнаружении подозрительных предметов, угроз безопасности немедленно сообщайте организаторам или службе безопасности.</p>
+            </div>
+          </div>
 
-          <h4>10. Прочие условия</h4>
-          <p>10.1. Организаторы вправе вносить изменения в Правила и программу мероприятия.</p>
-          <p>10.2. Организаторы могут производить фото- и видеосъемку мероприятия для публикации в открытых источниках. Если вы не хотите попасть в кадр, сообщите об этом оператору или организаторам.</p>
-          <p>10.3. В случае форс-мажорных обстоятельств (пандемия, стихийные бедствия и т.п.) мероприятие может быть отменено или перенесено. Условия возврата средств будут сообщены отдельно.</p>
+          <div class="rule-card">
+            <div class="rule-card-header">
+              <div class="rule-icon" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+              </div>
+              <h4>9. Санкции за нарушения</h4>
+            </div>
+            <div class="rule-card-content">
+              <p>9.1. В зависимости от серьезности нарушения организаторы имеют право:</p>
+              <ul>
+                <li>Вынести устное предупреждение</li>
+                <li>Временно ограничить доступ к отдельным активностям</li>
+                <li>Удалить участника с мероприятия без возврата средств</li>
+                <li>Запретить участие в будущих мероприятиях</li>
+                <li>Обратиться в правоохранительные органы (при серьезных правонарушениях)</li>
+              </ul>
+            </div>
+          </div>
 
-          <h4>11. Контакты</h4>
-          <p>11.1. При возникновении конфликтных ситуаций, вопросов или проблем обращайтесь к сотрудникам с бейджами "STAFF" или "ОРГАНИЗАТОР".</p>
-          <p>11.2. Контактный email: <a href="mailto:info@tourfurr.ru">info@tourfurr.ru</a></p>
+          <div class="rule-card">
+            <div class="rule-card-header">
+              <div class="rule-icon" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </div>
+              <h4>10. Прочие условия</h4>
+            </div>
+            <div class="rule-card-content">
+              <p>10.1. Организаторы вправе вносить изменения в Правила и программу мероприятия.</p>
+              <p>10.2. Организаторы могут производить фото- и видеосъемку мероприятия для публикации в открытых источниках. Если вы не хотите попасть в кадр, сообщите об этом оператору или организаторам.</p>
+              <p>10.3. В случае форс-мажорных обстоятельств (пандемия, стихийные бедствия и т.п.) мероприятие может быть отменено или перенесено. Условия возврата средств будут сообщены отдельно.</p>
+            </div>
+          </div>
 
-          <p class="policy-footer"><em>Приятного времяпрепровождения на TourFurr 2026! 🐾</em></p>
+          <div class="rule-card">
+            <div class="rule-card-header">
+              <div class="rule-icon" style="background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <h4>11. Контакты</h4>
+            </div>
+            <div class="rule-card-content">
+              <p>11.1. При возникновении конфликтных ситуаций, вопросов или проблем обращайтесь к сотрудникам с бейджами "STAFF" или "ОРГАНИЗАТОР".</p>
+              <p>11.2. Контактный email: <a href="mailto:info@tourfurr.ru">info@tourfurr.ru</a></p>
+            </div>
+          </div>
+
+          <div class="rules-footer-card">
+            <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+            </svg>
+            <p><em>Приятного времяпрепровождения на TourFurr 2026! 🐾</em></p>
+          </div>
         </div>
-        <div class="modal-footer">
-          <button @click="showRulesModal = false" class="privacy-btn">Закрыть</button>
+
+        <div class="rules-footer">
+          <button @click="showRulesModal = false" class="rules-close-button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span>Понятно, закрыть</span>
+          </button>
         </div>
       </div>
     </div>
@@ -1424,6 +1577,434 @@ function redirectToLogin() {
   height: 20px;
 }
 
+/* Rules Modal - Modern Design */
+.rules-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.rules-modal {
+  position: relative;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 28px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.rules-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 2.5rem;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 50%, #ffa366 100%);
+  border-bottom: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.rules-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+  animation: pulse 8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.rules-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.rules-icon {
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.rules-icon svg {
+  width: 32px;
+  height: 32px;
+  color: #ffffff;
+  stroke-width: 2.5;
+}
+
+.rules-header h3 {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.03em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.rules-subtitle {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0.25rem 0 0 0;
+  letter-spacing: 0.01em;
+}
+
+.rules-close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0.65rem;
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+}
+
+.rules-close-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.08) rotate(90deg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.rules-close-btn:active {
+  transform: scale(0.95) rotate(90deg);
+}
+
+.rules-close-btn svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2.5;
+}
+
+.rules-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 2.5rem;
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.rules-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.rules-content::-webkit-scrollbar-track {
+  background: #f1f3f5;
+  border-radius: 10px;
+  margin: 8px 0;
+}
+
+.rules-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+  border-radius: 10px;
+  border: 2px solid #f1f3f5;
+}
+
+.rules-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #ff8c42 0%, #ffa366 100%);
+}
+
+.rules-date-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #fff5f0 0%, #ffe8dc 100%);
+  border-radius: 16px;
+  border: 2px solid rgba(255, 107, 53, 0.15);
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.08);
+}
+
+.date-icon {
+  width: 40px;
+  height: 40px;
+  color: #ff6b35;
+  flex-shrink: 0;
+  stroke-width: 2;
+}
+
+.rules-date-card div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rules-date-card strong {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.rules-date-card span {
+  font-size: 0.875rem;
+  color: #718096;
+  font-style: italic;
+}
+
+.rule-card {
+  background: #ffffff;
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.rule-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border-color: rgba(255, 107, 53, 0.3);
+}
+
+.rule-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 1.75rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-bottom: 2px solid #f1f3f5;
+}
+
+.rule-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.rule-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 100%);
+}
+
+.rule-icon svg {
+  width: 26px;
+  height: 26px;
+  color: #ffffff;
+  stroke-width: 2.5;
+  position: relative;
+  z-index: 1;
+}
+
+.rule-card-header h4 {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.rule-card-content {
+  padding: 1.75rem;
+  line-height: 1.7;
+}
+
+.rule-card-content p {
+  margin-bottom: 1rem;
+  color: #4a5568;
+  font-size: 0.95rem;
+}
+
+.rule-card-content p:last-child {
+  margin-bottom: 0;
+}
+
+.rule-card-content p strong {
+  color: #2d3748;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.rule-card-content ul {
+  margin: 1rem 0 0 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.rule-card-content li {
+  margin-bottom: 0.875rem;
+  padding-left: 2rem;
+  position: relative;
+  color: #4a5568;
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.rule-card-content li:last-child {
+  margin-bottom: 0;
+}
+
+.rule-card-content li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(255, 107, 53, 0.3);
+}
+
+.rule-card-content a {
+  color: #ff6b35;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.rule-card-content a:hover {
+  color: #ff8c42;
+  border-bottom-color: #ff8c42;
+}
+
+.rules-footer-card {
+  background: linear-gradient(135deg, #fff5f0 0%, #ffe8dc 100%);
+  border: 2px solid rgba(255, 107, 53, 0.15);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-top: 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.08);
+}
+
+.footer-icon {
+  width: 48px;
+  height: 48px;
+  color: #ff6b35;
+  stroke-width: 2;
+}
+
+.rules-footer-card p {
+  font-size: 1.1rem;
+  color: #2d3748;
+  margin: 0;
+  font-weight: 500;
+}
+
+.rules-footer {
+  padding: 1.75rem 2.5rem 2rem;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+  border-top: 2px solid #e9ecef;
+}
+
+.rules-close-button {
+  width: 100%;
+  padding: 1.15rem 1.5rem;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 50%, #ffa366 100%);
+  border: none;
+  border-radius: 16px;
+  color: white;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  letter-spacing: 0.01em;
+}
+
+.rules-close-button svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 3;
+}
+
+.rules-close-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(255, 107, 53, 0.4);
+  background: linear-gradient(135deg, #ff8c42 0%, #ffa366 50%, #ffb380 100%);
+}
+
+.rules-close-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+}
+
 /* Privacy Modal */
 .privacy-overlay {
   position: fixed;
@@ -1651,6 +2232,235 @@ function redirectToLogin() {
 @media (max-width: 640px) {
   .captcha-wrapper > div {
     transform: scale(0.85);
+  }
+}
+
+/* Rules Modal Responsive Styles */
+@media (max-width: 768px) {
+  .rules-modal {
+    max-width: 95%;
+    border-radius: 24px;
+    max-height: 95vh;
+  }
+
+  .rules-header {
+    padding: 1.5rem 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .rules-header-content {
+    gap: 1rem;
+  }
+
+  .rules-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .rules-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .rules-header h3 {
+    font-size: 1.4rem;
+  }
+
+  .rules-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .rules-close-btn {
+    padding: 0.5rem;
+  }
+
+  .rules-close-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .rules-content {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .rules-date-card {
+    padding: 1rem 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .date-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .rules-date-card strong {
+    font-size: 0.9rem;
+  }
+
+  .rules-date-card span {
+    font-size: 0.8rem;
+  }
+
+  .rule-card {
+    border-radius: 16px;
+    margin-bottom: 1.25rem;
+  }
+
+  .rule-card-header {
+    padding: 1.25rem 1.25rem;
+    gap: 0.875rem;
+  }
+
+  .rule-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .rule-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .rule-card-header h4 {
+    font-size: 1.1rem;
+  }
+
+  .rule-card-content {
+    padding: 1.25rem;
+  }
+
+  .rule-card-content p,
+  .rule-card-content li {
+    font-size: 0.9rem;
+  }
+
+  .rule-card-content li {
+    padding-left: 1.5rem;
+  }
+
+  .rules-footer-card {
+    padding: 1.5rem;
+  }
+
+  .footer-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .rules-footer-card p {
+    font-size: 1rem;
+  }
+
+  .rules-footer {
+    padding: 1.25rem 1.25rem 1.5rem;
+  }
+
+  .rules-close-button {
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+  }
+
+  .rules-close-button svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rules-header {
+    padding: 1.25rem 1rem;
+  }
+
+  .rules-header-content {
+    gap: 0.75rem;
+  }
+
+  .rules-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .rules-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .rules-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .rules-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .rules-content {
+    padding: 1.25rem 1rem;
+  }
+
+  .rules-date-card {
+    padding: 0.875rem 1rem;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .date-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .rule-card-header {
+    padding: 1rem;
+  }
+
+  .rule-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .rule-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .rule-card-header h4 {
+    font-size: 1rem;
+  }
+
+  .rule-card-content {
+    padding: 1rem;
+  }
+
+  .rule-card-content p,
+  .rule-card-content li {
+    font-size: 0.875rem;
+  }
+
+  .rules-footer-card {
+    padding: 1.25rem;
+  }
+
+  .footer-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .rules-footer-card p {
+    font-size: 0.95rem;
+  }
+
+  .rules-footer {
+    padding: 1rem 1rem 1.25rem;
+  }
+
+  .rules-close-button {
+    padding: 0.875rem 1rem;
+    font-size: 0.9rem;
+    gap: 0.5rem;
+  }
+
+  .rules-close-button svg {
+    width: 18px;
+    height: 18px;
   }
 }
 </style>
