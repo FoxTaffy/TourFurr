@@ -95,6 +95,7 @@ export interface User {
   emailVerifiedAt?: string
   createdAt: string
   isAdmin: boolean
+  canApproveApplications: boolean
   bringingPet: boolean
   petDescription?: string
 }
@@ -128,6 +129,7 @@ function mapDbUserToUser(dbUser: any): User {
     emailVerifiedAt: dbUser.email_verified_at,
     createdAt: dbUser.created_at,
     isAdmin: dbUser.is_admin || false,
+    canApproveApplications: dbUser.can_approve_applications || false,
     bringingPet: dbUser.bringing_pet || false,
     petDescription: dbUser.pet_description
   }

@@ -135,23 +135,20 @@ serve(async (req) => {
               </div>
               ` : `
               <p style="margin: 0 0 30px; color: #C8B896; font-size: 16px; line-height: 1.6;">
-                К сожалению, ваша заявка на участие в TourFurr 2026 была отклонена. Спасибо за ваш интерес к нашему мероприятию.
+                К сожалению, Вам отказано в участии.
               </p>
 
-              <div style="padding: 20px; background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; border-radius: 8px; margin: 0 0 30px;">
+              <div style="padding: 20px; background: rgba(59, 130, 246, 0.1); border-left: 4px solid #60a5fa; border-radius: 8px; margin: 0 0 30px;">
                 <p style="margin: 0; color: #C8B896; font-size: 14px; line-height: 1.6;">
-                  Возможные причины отклонения:
+                  Если вы не согласны с решением, пожалуйста, напишите одному из организаторов в контактах на сайте.
                 </p>
-                <ul style="margin: 10px 0 0; padding-left: 20px; color: #C8B896; font-size: 14px; line-height: 1.6;">
-                  <li>Достигнут максимальный лимит участников</li>
-                  <li>Недостаточно информации в заявке</li>
-                  <li>Несоответствие требованиям мероприятия</li>
-                </ul>
               </div>
 
-              <p style="margin: 0; color: #C8B896; font-size: 14px; line-height: 1.6;">
-                Вы можете попробовать подать заявку на следующее мероприятие. Следите за нашими новостями!
-              </p>
+              <div style="text-align: center; padding: 20px 0;">
+                <a href="https://www.tourfurr.camp/#contacts" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #FF6B35, #FFB347); color: #1a1410; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);">
+                  Перейти к контактам
+                </a>
+              </div>
               `}
             </td>
           </tr>
@@ -202,14 +199,9 @@ TourFurr 2026 - Заявка отклонена
 
 Здравствуйте, ${nickname}!
 
-К сожалению, ваша заявка на участие в TourFurr 2026 была отклонена.
+К сожалению, Вам отказано в участии.
 
-Возможные причины:
-- Достигнут лимит участников
-- Недостаточно информации
-- Несоответствие требованиям
-
-Попробуйте подать заявку на следующее мероприятие!
+Если вы не согласны с решением, пожалуйста, напишите одному из организаторов в контактах на сайте: https://www.tourfurr.camp/#contacts
 
 С уважением,
 Команда TourFurr 2026

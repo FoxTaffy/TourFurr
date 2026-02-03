@@ -12,6 +12,10 @@
         <span class="stat-value">{{ pendingApplicationsCount }}</span>
         <span class="stat-label">На рассмотрении</span>
       </div>
+      <div class="stat-card deferred">
+        <span class="stat-value">{{ deferredApplicationsCount }}</span>
+        <span class="stat-label">Отложенные</span>
+      </div>
       <div class="stat-card approved">
         <span class="stat-value">{{ approvedApplicationsCount }}</span>
         <span class="stat-label">Одобрено</span>
@@ -121,7 +125,49 @@
             <strong>Примечания администратора:</strong> {{ app.admin_notes }}
           </div>
 
-          <div v-if="app.status === 'pending'" class="action-buttons">
+          <!-- Show warning if user doesn't have approval permissions -->
+          <div v-if="!canApproveApplications && (app.status === 'pending' || app.status === 'deferred')" class="no-permission-warning">
+            <svg class="warning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            У вас нет прав для одобрения заявок. Только Алар, Кеса и Диеро могут управлять заявками.
+          </div>
+
+          <div v-if="app.status === 'pending' && canApproveApplications" class="action-buttons">
+            <button
+              @click="updateApplicationStatus(app.id, 'approved')"
+              class="action-btn approve"
+              :disabled="isUpdating === app.id"
+            >
+              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Одобрить
+            </button>
+            <button
+              @click="updateApplicationStatus(app.id, 'deferred')"
+              class="action-btn deferred"
+              :disabled="isUpdating === app.id"
+            >
+              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Отложить
+            </button>
+            <button
+              @click="updateApplicationStatus(app.id, 'rejected')"
+              class="action-btn reject"
+              :disabled="isUpdating === app.id"
+            >
+              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              Отклонить
+            </button>
+          </div>
+
+          <!-- Actions for deferred applications -->
+          <div v-if="app.status === 'deferred' && canApproveApplications" class="action-buttons">
             <button
               @click="updateApplicationStatus(app.id, 'approved')"
               class="action-btn approve"
@@ -190,7 +236,7 @@ interface Application {
   experience_level: string
   skills: string | null
   additional_info: string | null
-  status: 'pending' | 'approved' | 'rejected' | 'waitlist'
+  status: 'pending' | 'approved' | 'rejected' | 'waitlist' | 'deferred'
   admin_notes: string | null
   reviewed_by: string | null
   reviewed_at: string | null
@@ -218,6 +264,7 @@ const maxParticipants = ref(121)
 const filters = [
   { label: 'Все', value: 'all' },
   { label: 'На рассмотрении', value: 'pending' },
+  { label: 'Отложенные', value: 'deferred' },
   { label: 'Одобренные', value: 'approved' },
   { label: 'Лист ожидания', value: 'waitlist' },
   { label: 'Отклоненные', value: 'rejected' }
@@ -227,7 +274,8 @@ const statusLabels: Record<string, string> = {
   pending: 'На рассмотрении',
   approved: 'Одобрена',
   rejected: 'Отклонена',
-  waitlist: 'Лист ожидания'
+  waitlist: 'Лист ожидания',
+  deferred: 'Отложена'
 }
 
 const experienceLabels: Record<string, string> = {
@@ -244,6 +292,11 @@ const paymentLabels: Record<string, string> = {
   refunded: 'Возврат средств'
 }
 
+// Check if current user can approve applications
+const canApproveApplications = computed(() =>
+  authStore.user?.canApproveApplications || false
+)
+
 const filteredApplications = computed(() => {
   if (activeFilter.value === 'all') {
     return applications.value
@@ -253,6 +306,10 @@ const filteredApplications = computed(() => {
 
 const pendingApplicationsCount = computed(() =>
   applications.value.filter(app => app.status === 'pending').length
+)
+
+const deferredApplicationsCount = computed(() =>
+  applications.value.filter(app => app.status === 'deferred').length
 )
 
 const approvedApplicationsCount = computed(() =>
@@ -432,6 +489,11 @@ onMounted(() => {
 .stat-card.rejected {
   border-color: rgba(239, 68, 68, 0.3);
   background: rgba(239, 68, 68, 0.1);
+}
+
+.stat-card.deferred {
+  border-color: rgba(251, 191, 36, 0.3);
+  background: rgba(251, 191, 36, 0.1);
 }
 
 .stat-card.available {
@@ -628,6 +690,12 @@ onMounted(() => {
   border: 1px solid rgba(168, 85, 247, 0.3);
 }
 
+.application-status.deferred {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
 .application-details {
   display: flex;
   flex-direction: column;
@@ -775,6 +843,17 @@ onMounted(() => {
   transform: translateY(-2px);
 }
 
+.action-btn.deferred {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.action-btn.deferred:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.3);
+  transform: translateY(-2px);
+}
+
 .action-btn.reject {
   background: rgba(239, 68, 68, 0.2);
   color: #f87171;
@@ -784,6 +863,25 @@ onMounted(() => {
 .action-btn.reject:hover:not(:disabled) {
   background: rgba(239, 68, 68, 0.3);
   transform: translateY(-2px);
+}
+
+.no-permission-warning {
+  padding: 1rem;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 8px;
+  color: #fbbf24;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.warning-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
 }
 
 .payment-actions {
