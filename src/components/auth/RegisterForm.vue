@@ -1439,43 +1439,51 @@ function redirectToLogin() {
 
 .privacy-modal {
   position: relative;
-  background: linear-gradient(135deg, rgba(42, 31, 26, 0.98), rgba(26, 17, 14, 0.98));
-  border: 1px solid var(--moss);
-  border-radius: 20px;
-  max-width: 700px;
+  background: #ffffff;
+  border-radius: 24px;
+  max-width: 800px;
   width: 100%;
-  max-height: 85vh;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid rgba(139, 111, 71, 0.3);
+  padding: 2rem 2.5rem;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+  border-bottom: none;
 }
 
 .modal-header h3 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.25rem;
-  color: var(--cream);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .close-btn {
-  background: none;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  color: var(--sage);
+  color: #ffffff;
   cursor: pointer;
-  padding: 0.25rem;
-  transition: color 0.3s ease;
+  padding: 0.5rem;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .close-btn:hover {
-  color: var(--cream);
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
 }
 
 .close-btn svg {
@@ -1486,18 +1494,41 @@ function redirectToLogin() {
 .modal-content {
   flex: 1;
   overflow-y: auto;
-  padding: 1.5rem;
-  color: var(--sage);
-  font-size: 0.9rem;
-  line-height: 1.6;
+  padding: 2.5rem;
+  color: #2d3748;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  background: #ffffff;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
 }
 
 .modal-content h4 {
-  font-family: 'Playfair Display', serif;
-  color: var(--fire-glow);
-  font-size: 1rem;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #2d3748;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #ff6b35;
+  display: inline-block;
 }
 
 .modal-content h4:first-child {
@@ -1505,94 +1536,103 @@ function redirectToLogin() {
 }
 
 .modal-content p {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  color: #4a5568;
 }
 
-.modal-content ul {
-  margin-left: 1.5rem;
-  margin-bottom: 0.75rem;
-  list-style: disc;
-}
-
-.modal-content li {
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
-}
-
-.modal-content strong {
-  color: var(--cream);
+.modal-content p strong {
+  color: #2d3748;
   font-weight: 600;
 }
 
+.modal-content ul {
+  margin-left: 0;
+  margin-bottom: 1.25rem;
+  list-style: none;
+  padding-left: 0;
+}
+
+.modal-content li {
+  margin-bottom: 0.75rem;
+  padding-left: 1.75rem;
+  position: relative;
+  color: #4a5568;
+  line-height: 1.6;
+}
+
+.modal-content li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #ff6b35;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
 .modal-content a {
-  color: var(--fire-glow);
+  color: #ff6b35;
   text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
 }
 
 .modal-content a:hover {
+  color: #ff8c42;
   text-decoration: underline;
 }
 
 .policy-date {
   text-align: center;
   font-style: italic;
-  color: var(--sage);
-  opacity: 0.8;
-  margin-bottom: 1.5rem;
+  color: #718096;
+  font-size: 0.85rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: #f7fafc;
+  border-radius: 8px;
+  border-left: 3px solid #ff6b35;
 }
 
 .policy-footer {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(139, 111, 71, 0.3);
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e2e8f0;
   text-align: center;
-  font-size: 0.85rem;
-  color: var(--sage);
-  opacity: 0.8;
+  font-size: 0.9rem;
+  color: #718096;
 }
 
 .modal-footer {
-  padding: 1.5rem;
-  border-top: 1px solid rgba(139, 111, 71, 0.3);
+  padding: 1.5rem 2.5rem 2rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
 }
 
 .privacy-btn {
   width: 100%;
-  padding: 0.75rem;
-  background: linear-gradient(135deg, var(--fire), var(--fire-glow));
+  padding: 1rem;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   color: white;
-  font-family: 'Lora', serif;
-  font-size: 0.95rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
 }
 
 .privacy-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.3);
 }
 
-/* Scrollbar Styles for Modal Content */
-.modal-content::-webkit-scrollbar {
-  width: 8px;
+.privacy-btn:active {
+  transform: translateY(0);
 }
 
-.modal-content::-webkit-scrollbar-track {
-  background: rgba(26, 17, 14, 0.4);
-  border-radius: 4px;
-}
-
-.modal-content::-webkit-scrollbar-thumb {
-  background: var(--moss);
-  border-radius: 4px;
-}
-
-.modal-content::-webkit-scrollbar-thumb:hover {
-  background: var(--sage);
-}
+/* Modal overlay background - clean modern design */
 
 /* Cloudflare Turnstile Styles */
 .captcha-wrapper {
