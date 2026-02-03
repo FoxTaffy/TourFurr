@@ -129,11 +129,11 @@ const errors = reactive({
 })
 
 onMounted(async () => {
-  // Check if we have a valid session from the reset link
-  const { data: { session } } = await supabase.auth.getSession()
+  // Check if we have a valid reset email from code verification
+  const resetEmail = sessionStorage.getItem('reset_email')
 
-  if (!session) {
-    // No session - redirect to reset password page
+  if (!resetEmail) {
+    // No reset email - redirect to reset password page
     router.push('/reset-password')
   }
 })
@@ -178,8 +178,21 @@ async function handleSubmit() {
   isLoading.value = true
 
   try {
-    const { error } = await supabase.auth.updateUser({
-      password: password.value
+    // Get email from sessionStorage
+    const resetEmail = sessionStorage.getItem('reset_email')
+
+    if (!resetEmail) {
+      serverError.value = 'Сессия истекла. Запросите сброс пароля заново.'
+      router.push('/reset-password')
+      return
+    }
+
+    // Update password via Edge Function
+    const { data, error } = await supabase.functions.invoke('update-password', {
+      body: {
+        email: resetEmail,
+        newPassword: password.value
+      }
     })
 
     if (error) {
@@ -188,9 +201,17 @@ async function handleSubmit() {
       return
     }
 
+    if (!data?.success) {
+      serverError.value = data?.error || 'Ошибка обновления пароля'
+      return
+    }
+
+    // Clear reset email from sessionStorage
+    sessionStorage.removeItem('reset_email')
+
     success.value = true
 
-    // Sign out so user can log in with new password
+    // Sign out if user was logged in
     await supabase.auth.signOut()
     localStorage.removeItem('auth_token')
     localStorage.removeItem('current_user')

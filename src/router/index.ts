@@ -42,6 +42,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../views/UpdatePasswordPage.vue')
   },
   {
+    path: '/auth/verify-reset-code',
+    name: 'VerifyResetCode',
+    component: () => import('../views/VerifyResetCodePage.vue')
+  },
+  {
     path: '/admin',
     name: 'Admin',
     component: () => import('../views/AdminPage.vue'),

@@ -168,6 +168,7 @@ import { useAuthStore } from '../../stores/auth'
 import { supabase } from '../../services/supabase'
 import CloudflareTurnstile from '../common/CloudflareTurnstile.vue'
 import * as yup from 'yup'
+import { createPasswordResetCode, sendPasswordResetEmail, invalidateOldResetCodes } from '../../utils/passwordReset'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -288,18 +289,51 @@ async function handleResetSubmit() {
   isResetLoading.value = true
 
   try {
-    // Send password reset email using Supabase Auth
-    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.value, {
-      redirectTo: `${window.location.origin}/auth/reset-password`
-    })
+    const cleanEmail = resetEmail.value.trim().toLowerCase()
 
-    if (error) {
-      console.error('Password reset error:', error)
-      // Don't reveal if user exists for security - show success anyway
-    }
+    // Check if user exists (optional - for better UX)
+    const { data: user } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', cleanEmail)
+      .single()
 
-    // Always show success message (don't reveal if email exists)
+    // Always show success for security
     resetSubmitted.value = true
+
+    if (user) {
+      // Invalidate old codes first
+      await invalidateOldResetCodes(cleanEmail)
+
+      // Create password reset code
+      const result = await createPasswordResetCode(cleanEmail)
+
+      if (result.success && result.code) {
+        // Send password reset email via resend.com
+        await sendPasswordResetEmail(cleanEmail, result.code)
+      }
+
+      // Redirect to verify code page after short delay
+      setTimeout(() => {
+        router.push({
+          path: '/auth/verify-reset-code',
+          query: { email: cleanEmail }
+        })
+      }, 2000)
+    } else {
+      // User doesn't exist, but don't reveal this for security
+      // Just show success and redirect with error flag
+      setTimeout(() => {
+        router.push({
+          path: '/auth/verify-reset-code',
+          query: {
+            email: cleanEmail,
+            emailSent: 'false',
+            emailError: 'Пользователь с таким email не найден'
+          }
+        })
+      }, 2000)
+    }
   } catch (err) {
     console.error('Reset error:', err)
     resetSubmitted.value = true
