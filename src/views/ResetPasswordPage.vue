@@ -15,7 +15,7 @@
       <div class="bg-gray-900/80 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 shadow-2xl">
         <h2 class="text-xl font-bold text-white mb-2">Восстановление пароля</h2>
         <p class="text-gray-400 text-sm mb-6">
-          Введите email, указанный при регистрации, и мы отправим ссылку для сброса пароля.
+          Введите email, указанный при регистрации, и мы отправим код для сброса пароля.
         </p>
 
         <form v-if="!submitted" @submit.prevent="handleSubmit" class="space-y-4">
@@ -40,7 +40,7 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
             </svg>
-            {{ isLoading ? 'Отправка...' : 'Отправить ссылку' }}
+            {{ isLoading ? 'Отправка...' : 'Отправить код' }}
           </button>
         </form>
 
@@ -51,12 +51,12 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
             </svg>
           </div>
-          <h3 class="text-lg font-semibold text-white mb-2">Письмо отправлено!</h3>
+          <h3 class="text-lg font-semibold text-white mb-2">Код отправлен!</h3>
           <p class="text-sm text-gray-400 mb-3">
-            На адрес <span class="text-amber-400">{{ email }}</span> отправлена ссылка для сброса пароля.
+            На адрес <span class="text-amber-400">{{ email }}</span> отправлен код для сброса пароля.
           </p>
           <p class="text-xs text-gray-500">
-            Проверьте папку «Спам», если письмо не пришло в течение нескольких минут.
+            Код действителен 15 минут. Проверьте папку «Спам», если письмо не пришло.
           </p>
         </div>
       </div>
@@ -79,8 +79,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { supabase } from '../services/supabase'
+import { createPasswordResetCode, sendPasswordResetEmail, invalidateOldResetCodes } from '../utils/passwordReset'
 
+const router = useRouter()
 const email = ref('')
 const error = ref('')
 const isLoading = ref(false)
@@ -112,23 +115,60 @@ async function handleSubmit() {
       .single()
 
     if (dbError || !user) {
-      error.value = 'Пользователь с таким email не найден'
+      // Don't reveal if user exists or not for security
+      submitted.value = true
+      // Still redirect to code page but with email not sent flag
+      setTimeout(() => {
+        router.push({
+          path: '/auth/verify-reset-code',
+          query: {
+            email: cleanEmail,
+            emailSent: 'false',
+            emailError: 'Пользователь с таким email не найден'
+          }
+        })
+      }, 1500)
       return
     }
 
-    // Send password reset email via Supabase Auth
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-      redirectTo: `${window.location.origin}/auth/update-password`
-    })
+    // Invalidate old codes first
+    await invalidateOldResetCodes(cleanEmail)
 
-    if (resetError) {
-      console.error('Password reset error:', resetError)
-      // Don't expose detailed error to user
-      error.value = 'Ошибка отправки письма. Попробуйте позже.'
+    // Create password reset code
+    const result = await createPasswordResetCode(cleanEmail)
+
+    if (!result.success || !result.code) {
+      error.value = result.error || 'Ошибка создания кода сброса пароля'
       return
     }
 
+    // Send password reset email via resend.com
+    const sendResult = await sendPasswordResetEmail(cleanEmail, result.code)
+
+    if (!sendResult.success) {
+      // Show success message anyway for security, but pass error to verify page
+      submitted.value = true
+      setTimeout(() => {
+        router.push({
+          path: '/auth/verify-reset-code',
+          query: {
+            email: cleanEmail,
+            emailSent: 'false',
+            emailError: sendResult.error || 'Ошибка отправки письма'
+          }
+        })
+      }, 1500)
+      return
+    }
+
+    // Success - show message and redirect
     submitted.value = true
+    setTimeout(() => {
+      router.push({
+        path: '/auth/verify-reset-code',
+        query: { email: cleanEmail }
+      })
+    }, 2000)
   } catch (err: any) {
     console.error('Unexpected error:', err)
     error.value = 'Ошибка отправки. Попробуйте позже.'
