@@ -20,6 +20,11 @@ CREATE INDEX IF NOT EXISTS idx_password_reset_codes_expires ON password_reset_co
 -- RLS Policies
 ALTER TABLE password_reset_codes ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (for idempotency)
+DROP POLICY IF EXISTS "Users can read own reset codes" ON password_reset_codes;
+DROP POLICY IF EXISTS "Anyone can insert reset codes" ON password_reset_codes;
+DROP POLICY IF EXISTS "Anyone can update reset codes" ON password_reset_codes;
+
 -- Allow users to read their own reset codes (for validation)
 CREATE POLICY "Users can read own reset codes" ON password_reset_codes
   FOR SELECT
