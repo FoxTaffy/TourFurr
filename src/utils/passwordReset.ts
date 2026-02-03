@@ -23,9 +23,23 @@ export function generateResetCode(): string {
 }
 
 /**
+ * Hash a code using SHA-256 for secure storage
+ * Only hashed codes are stored in the database
+ */
+async function hashCode(code: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(code)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  return hashHex
+}
+
+/**
  * Create and store a new password reset code
  * @param email - User's email address
- * @returns The generated code and expiration time
+ * @returns The generated code (unhashed for email) and expiration time
+ * Note: Only the hashed code is stored in the database
  */
 export async function createPasswordResetCode(email: string): Promise<{
   success: boolean
@@ -35,13 +49,14 @@ export async function createPasswordResetCode(email: string): Promise<{
 }> {
   try {
     const code = generateResetCode()
+    const hashedCode = await hashCode(code)
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes from now
 
     const { data, error } = await supabase
       .from('password_reset_codes')
       .insert({
         email: email.toLowerCase(),
-        code,
+        code: hashedCode, // Store hashed code
         expires_at: expiresAt.toISOString()
       })
       .select()
@@ -54,7 +69,7 @@ export async function createPasswordResetCode(email: string): Promise<{
 
     return {
       success: true,
-      code,
+      code, // Return plain code for email
       expiresAt
     }
   } catch (err: any) {
@@ -68,6 +83,7 @@ export async function createPasswordResetCode(email: string): Promise<{
  * @param email - User's email address
  * @param code - 6-digit code entered by user
  * @returns Success status and error message if any
+ * Note: The code is hashed before comparison with the stored hashed code
  */
 export async function verifyResetCode(email: string, code: string): Promise<{
   success: boolean
@@ -112,8 +128,10 @@ export async function verifyResetCode(email: string, code: string): Promise<{
       }
     }
 
-    // Check if code matches
-    if (resetRecord.code !== code) {
+    // Hash the provided code and compare with stored hash
+    const hashedProvidedCode = await hashCode(code)
+
+    if (resetRecord.code !== hashedProvidedCode) {
       // Increment attempts for wrong code
       await supabase
         .from('password_reset_codes')
