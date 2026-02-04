@@ -449,13 +449,15 @@ watch(() => user.value?.status, (newStatus) => {
 const statusLabels: Record<string, string> = {
   pending: 'На рассмотрении',
   approved: 'Одобрено',
-  rejected: 'Отклонено'
+  rejected: 'Отклонено',
+  deferred: 'На рассмотрении'
 }
 
 const statusDescriptions = {
-  pending: 'Ваша заявка на рассмотрении. Вы получите уведомление на почту, когда статус изменится.',
+  pending: 'Ваша заявка на рассмотрении. Вы получите уведомление на почту, когда статус изменится. Если Вы ранее не были на ТурФурр - админ может написать вам для знакомства.',
+  deferred: 'Ваша заявка на рассмотрении. Вы получите уведомление на почту, когда статус изменится. Если Вы ранее не были на ТурФурр - админ может написать вам для знакомства.',
   approved: 'Поздравляем! Ваша заявка одобрена. Оплатите участие по реквизитам справа.',
-  rejected: 'К сожалению, ваша заявка отклонена. Свяжитесь с нами в Telegram.'
+  rejected: 'К сожалению, Вам отказано в участии. Если вы не согласны, пожалуйста, напишите одному из оргов в контактах.'
 }
 
 function formatDate(dateStr: string | undefined) {
@@ -601,6 +603,11 @@ function handleLogout() {
   color: var(--fire-glow);
 }
 
+.status-badge.deferred {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+
 .status-badge.approved {
   background: rgba(34, 197, 94, 0.2);
   color: #22c55e;
@@ -693,6 +700,7 @@ function handleLogout() {
 }
 
 .detail-value.pending { color: var(--fire-glow); }
+.detail-value.deferred { color: #fbbf24; }
 .detail-value.approved { color: #22c55e; }
 .detail-value.rejected { color: #ef4444; }
 .detail-value.price {
