@@ -105,7 +105,11 @@
       <div class="reset-header">
         <h3>Восстановление пароля</h3>
         <p class="reset-desc">
-          {{ resetStep === 'email' ? 'Введите ваш email для восстановления пароля' : 'Введите 6-цифровой код из письма' }}
+          {{
+            resetStep === 'email' ? 'Введите ваш email для восстановления пароля' :
+            resetStep === 'code' ? 'Введите 6-цифровой код из письма' :
+            'Установите новый пароль для вашего аккаунта'
+          }}
         </p>
       </div>
 
@@ -210,6 +214,97 @@
         </button>
       </div>
 
+      <!-- Step 3: New Password Input -->
+      <div v-else-if="resetStep === 'password'" class="password-step">
+        <!-- Success Message (if password updated) -->
+        <div v-if="passwordUpdateSuccess" class="success-message">
+          <svg class="success-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div>
+            <p class="success-title">Пароль обновлен!</p>
+            <p>Теперь вы можете войти с новым паролем.</p>
+          </div>
+        </div>
+
+        <!-- Password Inputs (if not success yet) -->
+        <template v-else>
+          <p class="code-sent-info">
+            Установите новый пароль для <strong>{{ resetEmail }}</strong>
+          </p>
+
+          <!-- New Password -->
+          <div class="form-group">
+            <label for="new-password" class="form-label">
+              Новый пароль <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+              <input
+                id="new-password"
+                v-model="newPassword"
+                :type="showNewPassword ? 'text' : 'password'"
+                placeholder="Минимум 8 символов"
+                class="form-input"
+                :class="{ error: passwordError }"
+              />
+              <button
+                type="button"
+                @click="showNewPassword = !showNewPassword"
+                class="toggle-password"
+              >
+                <svg v-if="showNewPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                </svg>
+                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </button>
+            </div>
+            <p v-if="passwordError" class="error-text">{{ passwordError }}</p>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="form-group">
+            <label for="confirm-password" class="form-label">
+              Подтверждение пароля <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+              <input
+                id="confirm-password"
+                v-model="confirmPassword"
+                :type="showNewPassword ? 'text' : 'password'"
+                placeholder="Повторите пароль"
+                class="form-input"
+                :class="{ error: confirmPasswordError }"
+              />
+            </div>
+            <p v-if="confirmPasswordError" class="error-text">{{ confirmPasswordError }}</p>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="button" @click="handlePasswordUpdate" :disabled="isUpdatingPassword" class="submit-btn">
+            <span class="btn-glow"></span>
+            <span class="btn-content">
+              <svg v-if="isUpdatingPassword" class="spinner" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+              </svg>
+              <svg v-else class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              {{ isUpdatingPassword ? 'Сохранение...' : 'Сохранить пароль' }}
+            </span>
+          </button>
+        </template>
+      </div>
+
       <!-- Back to Login -->
       <div class="forgot-link">
         <button type="button" @click="resetForgotForm" class="forgot-btn">
@@ -259,7 +354,7 @@ const resetEmail = ref('')
 const resetError = ref('')
 const isResetLoading = ref(false)
 const resetSubmitted = ref(false)
-const resetStep = ref<'email' | 'code'>('email')
+const resetStep = ref<'email' | 'code' | 'password'>('email')
 
 // Code verification state
 const resetCode = ref<string[]>(['', '', '', '', '', ''])
@@ -272,6 +367,15 @@ const canResend = ref(false)
 let resendTimer: number | null = null
 
 const isCodeComplete = computed(() => resetCode.value.every(digit => digit !== ''))
+
+// New password state
+const newPassword = ref('')
+const confirmPassword = ref('')
+const showNewPassword = ref(false)
+const passwordError = ref('')
+const confirmPasswordError = ref('')
+const isUpdatingPassword = ref(false)
+const passwordUpdateSuccess = ref(false)
 
 const schema = yup.object({
   email: yup.string().required('Email обязателен').email('Неверный формат email'),
@@ -427,6 +531,13 @@ function resetForgotForm() {
   codeError.value = ''
   isVerifying.value = false
   isResending.value = false
+  newPassword.value = ''
+  confirmPassword.value = ''
+  showNewPassword.value = false
+  passwordError.value = ''
+  confirmPasswordError.value = ''
+  isUpdatingPassword.value = false
+  passwordUpdateSuccess.value = false
   if (resendTimer) {
     clearInterval(resendTimer)
     resendTimer = null
@@ -535,11 +646,8 @@ async function handleCodeVerify() {
     const result = await verifyResetCode(resetEmail.value, codeString)
 
     if (result.success) {
-      // Store email in sessionStorage for password update page
-      sessionStorage.setItem('reset_email', resetEmail.value)
-
-      // Redirect to update password page
-      router.push('/auth/update-password')
+      // Move to password step
+      resetStep.value = 'password'
     } else {
       codeError.value = result.error || 'Неверный код'
       // Clear code on error
@@ -586,6 +694,86 @@ async function handleResendCode() {
     codeError.value = err.message || 'Ошибка отправки кода'
   } finally {
     isResending.value = false
+  }
+}
+
+function validatePassword(): boolean {
+  passwordError.value = ''
+  confirmPasswordError.value = ''
+  let isValid = true
+
+  if (!newPassword.value) {
+    passwordError.value = 'Введите пароль'
+    isValid = false
+  } else if (newPassword.value.length < 8) {
+    passwordError.value = 'Минимум 8 символов'
+    isValid = false
+  } else if (!/[a-zA-Z]/.test(newPassword.value)) {
+    passwordError.value = 'Должен содержать буквы'
+    isValid = false
+  } else if (!/\d/.test(newPassword.value)) {
+    passwordError.value = 'Должен содержать цифры'
+    isValid = false
+  } else if (!/[^a-zA-Z0-9]/.test(newPassword.value)) {
+    passwordError.value = 'Должен содержать специальный символ'
+    isValid = false
+  }
+
+  if (!confirmPassword.value) {
+    confirmPasswordError.value = 'Подтвердите пароль'
+    isValid = false
+  } else if (newPassword.value !== confirmPassword.value) {
+    confirmPasswordError.value = 'Пароли не совпадают'
+    isValid = false
+  }
+
+  return isValid
+}
+
+async function handlePasswordUpdate() {
+  if (!validatePassword()) return
+
+  isUpdatingPassword.value = true
+  passwordError.value = ''
+  confirmPasswordError.value = ''
+
+  try {
+    // Update password via Edge Function
+    const { data, error } = await supabase.functions.invoke('update-password', {
+      body: {
+        email: resetEmail.value,
+        newPassword: newPassword.value
+      }
+    })
+
+    if (error) {
+      console.error('Password update error:', error)
+      passwordError.value = 'Ошибка обновления пароля. Попробуйте снова.'
+      return
+    }
+
+    if (!data?.success) {
+      passwordError.value = data?.error || 'Ошибка обновления пароля'
+      return
+    }
+
+    // Show success
+    passwordUpdateSuccess.value = true
+
+    // Sign out if user was logged in
+    await supabase.auth.signOut()
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('current_user')
+
+    // After 2 seconds, reset form and show login
+    setTimeout(() => {
+      resetForgotForm()
+    }, 2000)
+  } catch (err: any) {
+    console.error('Unexpected error:', err)
+    passwordError.value = 'Произошла ошибка. Попробуйте позже.'
+  } finally {
+    isUpdatingPassword.value = false
   }
 }
 </script>
@@ -973,5 +1161,18 @@ async function handleResendCode() {
     height: 3rem;
     font-size: 1.25rem;
   }
+}
+
+/* Password Step Styles */
+.password-step {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.success-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
 }
 </style>
