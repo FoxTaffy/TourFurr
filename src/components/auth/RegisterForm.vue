@@ -806,6 +806,11 @@ async function validateStep(step: number) {
 
 async function nextStep() {
   if (await validateStep(currentStep.value)) {
+    // On step 1 → 2 transition, verify email uniqueness before proceeding
+    if (currentStep.value === 1 && form.email) {
+      await checkEmail()
+      if (errors.email) return
+    }
     currentStep.value++
   }
 }
