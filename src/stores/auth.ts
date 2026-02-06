@@ -584,28 +584,30 @@ export const useAuthStore = defineStore('auth', () => {
         return { success: false, error: error.value }
       }
 
-      // 2. Create user profile in users table
-      // NOTE: Do NOT chain .select().single() — the user is not authenticated yet
-      // (signUp with email confirmation does not create a session), so RLS
-      // SELECT policies will block reading back the inserted row (403).
-      const { error: dbError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id, // Important: use Supabase Auth user ID
-          email: cleanEmail,
-          password_hash: '', // Not needed anymore, Supabase Auth handles it
-          nickname: cleanNickname,
-          phone: sanitizeInput(data.phone, 20),
-          telegram: sanitizeInput(data.telegram, 100),
-          avatar_url: avatarUrl,
-          description: data.description ? sanitizeInput(data.description, 500) : null,
-          status: 'pending',
-          email_verified: false, // Will be updated when user confirms email
-          agree_rules: data.agreeRules,
-          agree_privacy: data.agreePrivacy,
-          bringing_pet: data.bringingPet,
-          pet_description: data.petDescription ? sanitizeInput(data.petDescription, 300) : null
+      // 2. Create user profile in users table via RPC (SECURITY DEFINER)
+      // Using RPC bypasses RLS completely — the user is not authenticated yet
+      // (signUp with email confirmation does not create a session), so direct
+      // INSERT/SELECT on the users table would be blocked by RLS (403).
+      const { data: rpcResult, error: rpcError } = await supabase
+        .rpc('register_user', {
+          p_id: authData.user.id,
+          p_email: cleanEmail,
+          p_nickname: cleanNickname,
+          p_phone: sanitizeInput(data.phone, 20),
+          p_telegram: sanitizeInput(data.telegram, 100),
+          p_avatar_url: avatarUrl,
+          p_description: data.description ? sanitizeInput(data.description, 500) : null,
+          p_agree_rules: data.agreeRules,
+          p_agree_privacy: data.agreePrivacy,
+          p_bringing_pet: data.bringingPet,
+          p_pet_description: data.petDescription ? sanitizeInput(data.petDescription, 300) : null
         })
+
+      // Check for RPC-level error (network, function not found, etc.)
+      const dbError = rpcError || (rpcResult && !rpcResult.success ? {
+        code: rpcResult.error === 'nickname_taken' || rpcResult.error === 'email_taken' || rpcResult.error === 'duplicate' ? '23505' : 'UNKNOWN',
+        message: rpcResult.error
+      } : null)
 
       if (dbError) {
         logger.error('Database error:', dbError)
@@ -629,8 +631,8 @@ export const useAuthStore = defineStore('auth', () => {
           }
         }
 
-        if (dbError.code === '23505') {
-          if (dbError.message.includes('nickname')) {
+        if (dbError.code === '23505' || dbError.message === 'nickname_taken' || dbError.message === 'email_taken' || dbError.message === 'duplicate') {
+          if (dbError.message.includes('nickname') || dbError.message === 'nickname_taken') {
             error.value = 'Этот никнейм уже занят'
           } else {
             error.value = 'Пользователь уже существует'
@@ -733,12 +735,27 @@ export const useAuthStore = defineStore('auth', () => {
   async function checkNicknameUnique(nickname: string): Promise<boolean> {
     // Security: Sanitize input
     const sanitizedNickname = sanitizeInput(nickname)
-    const { data } = await supabase
-      .from('users')
-      .select('id')
-      .eq('nickname', sanitizedNickname)
-      .maybeSingle()
-    return !data
+
+    try {
+      // Use RPC function with SECURITY DEFINER to bypass RLS
+      const { data, error: rpcError } = await supabase
+        .rpc('check_nickname_exists', { p_nickname: sanitizedNickname })
+
+      if (rpcError) {
+        logger.error('Nickname check RPC error:', rpcError)
+        // Fallback: try direct query
+        const { data: fallbackData } = await supabase
+          .from('users')
+          .select('id')
+          .eq('nickname', sanitizedNickname)
+          .maybeSingle()
+        return !fallbackData
+      }
+
+      return !data
+    } catch {
+      return true
+    }
   }
 
   async function fetchUser() {
