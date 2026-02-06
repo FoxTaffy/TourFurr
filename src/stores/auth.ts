@@ -585,7 +585,10 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       // 2. Create user profile in users table
-      const { data: newUser, error: dbError } = await supabase
+      // NOTE: Do NOT chain .select().single() — the user is not authenticated yet
+      // (signUp with email confirmation does not create a session), so RLS
+      // SELECT policies will block reading back the inserted row (403).
+      const { error: dbError } = await supabase
         .from('users')
         .insert({
           id: authData.user.id, // Important: use Supabase Auth user ID
@@ -603,8 +606,6 @@ export const useAuthStore = defineStore('auth', () => {
           bringing_pet: data.bringingPet,
           pet_description: data.petDescription ? sanitizeInput(data.petDescription, 300) : null
         })
-        .select()
-        .single()
 
       if (dbError) {
         logger.error('Database error:', dbError)
@@ -704,12 +705,24 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     try {
-      const { data } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', cleanEmail)
-        .maybeSingle()
+      // Use RPC function that checks BOTH users table AND auth.users table
+      // with SECURITY DEFINER (bypasses RLS). This catches orphaned auth
+      // accounts that a direct SELECT on users table would miss.
+      const { data, error: rpcError } = await supabase
+        .rpc('check_email_exists', { p_email: cleanEmail })
 
+      if (rpcError) {
+        logger.error('Email check RPC error:', rpcError)
+        // Fallback: try direct query on users table
+        const { data: fallbackData } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', cleanEmail)
+          .maybeSingle()
+        return !fallbackData
+      }
+
+      // RPC returns true if email exists, we need to return true if unique
       return !data
     } catch {
       // Return true to not reveal information on error
