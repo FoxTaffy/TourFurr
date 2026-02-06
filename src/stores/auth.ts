@@ -576,6 +576,14 @@ export const useAuthStore = defineStore('auth', () => {
         return { success: false, error: error.value }
       }
 
+      // Detect fake signUp success: when email already exists in auth.users,
+      // Supabase returns a user with empty identities instead of an error
+      // (anti-enumeration behavior when email confirmation is enabled)
+      if (!authData.user.identities || authData.user.identities.length === 0) {
+        error.value = 'Этот email уже зарегистрирован. Попробуйте войти или восстановить пароль.'
+        return { success: false, error: error.value }
+      }
+
       // 2. Create user profile in users table
       const { data: newUser, error: dbError } = await supabase
         .from('users')
