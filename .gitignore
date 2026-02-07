@@ -26,3 +26,11 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+# Supabase local
+supabase/.temp/
+
+# Secrets - never commit
+*СЕКРЕТНЫЕ*
+*SECRETS*
+*.http
