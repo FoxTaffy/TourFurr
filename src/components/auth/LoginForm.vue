@@ -65,11 +65,10 @@
         <p>{{ serverError }}</p>
       </div>
 
-      <!-- Cloudflare Turnstile (появляется после 2 неудачных попыток) -->
+      <!-- Yandex SmartCaptcha (появляется после 2 неудачных попыток) -->
       <div v-if="showCaptcha" class="captcha-wrapper">
-        <CloudflareTurnstile
-          :siteKey="turnstilesiteKey"
-          theme="dark"
+        <YandexSmartCaptcha
+          :siteKey="captchaSiteKey"
           @verify="handleCaptchaVerify"
           @error="handleCaptchaError"
           @expired="handleCaptchaExpired"
@@ -320,7 +319,7 @@ import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { supabase } from '../../services/supabase'
-import CloudflareTurnstile from '../common/CloudflareTurnstile.vue'
+import YandexSmartCaptcha from '../common/YandexSmartCaptcha.vue'
 import * as yup from 'yup'
 import { createPasswordResetCode, sendPasswordResetEmail, invalidateOldResetCodes } from '../../utils/passwordReset'
 
@@ -341,8 +340,8 @@ const showPassword = ref(false)
 const isLoading = ref(false)
 const serverError = ref('')
 
-// Cloudflare Turnstile state
-const turnstilesiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
+// Yandex SmartCaptcha state
+const captchaSiteKey = import.meta.env.VITE_SMARTCAPTCHA_SITE_KEY || ''
 const captchaToken = ref<string | null>(null)
 const captchaError = ref('')
 const loginAttempts = ref(0)
@@ -386,7 +385,7 @@ const resetSchema = yup.object({
   email: yup.string().required('Email обязателен').email('Неверный формат email')
 })
 
-// Cloudflare Turnstile handlers
+// SmartCaptcha handlers
 function handleCaptchaVerify(token: string) {
   captchaToken.value = token
   captchaError.value = ''

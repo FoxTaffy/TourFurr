@@ -147,21 +147,20 @@
           <p>{{ serverError }}</p>
         </div>
 
-        <!-- Cloudflare Turnstile -->
-        <div class="turnstile-wrapper">
-          <CloudflareTurnstile
-            ref="turnstileRef"
-            :siteKey="turnstilesiteKey"
-            theme="dark"
-            @verify="handleTurnstileVerify"
-            @error="handleTurnstileError"
-            @expired="handleTurnstileExpired"
+        <!-- Yandex SmartCaptcha -->
+        <div class="captcha-wrapper">
+          <YandexSmartCaptcha
+            ref="captchaRef"
+            :siteKey="captchaSiteKey"
+            @verify="handleCaptchaVerify"
+            @error="handleCaptchaError"
+            @expired="handleCaptchaExpired"
           />
-          <p v-if="turnstileError" class="error-text">{{ turnstileError }}</p>
+          <p v-if="captchaError" class="error-text">{{ captchaError }}</p>
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" :disabled="isLoading || !turnstileToken" class="submit-btn">
+        <button type="submit" :disabled="isLoading || !captchaToken" class="submit-btn">
           <span class="btn-glow"></span>
           <span class="btn-content">
             <svg v-if="isLoading" class="spinner" fill="none" viewBox="0 0 24 24">
@@ -195,7 +194,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
-import CloudflareTurnstile from './common/CloudflareTurnstile.vue'
+import YandexSmartCaptcha from './common/YandexSmartCaptcha.vue'
 import * as yup from 'yup'
 
 const router = useRouter()
@@ -223,11 +222,11 @@ const approvedCount = ref(0)
 const isLoadingConfig = ref(true)
 const registrationStatus = ref<'not_open' | 'open' | 'closed' | 'full'>('not_open')
 
-// Cloudflare Turnstile state
-const turnstilesiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
-const turnstileToken = ref<string | null>(null)
-const turnstileError = ref('')
-const turnstileRef = ref<InstanceType<typeof CloudflareTurnstile> | null>(null)
+// Yandex SmartCaptcha state
+const captchaSiteKey = import.meta.env.VITE_SMARTCAPTCHA_SITE_KEY || ''
+const captchaToken = ref<string | null>(null)
+const captchaError = ref('')
+const captchaRef = ref<InstanceType<typeof YandexSmartCaptcha> | null>(null)
 
 // Validation schema
 const schema = yup.object({
@@ -239,23 +238,20 @@ const schema = yup.object({
     .required('Пожалуйста, укажите ваш опыт')
 })
 
-// Cloudflare Turnstile handlers
-function handleTurnstileVerify(token: string) {
-  turnstileToken.value = token
-  turnstileError.value = ''
-  console.log('✅ Turnstile verified')
+// SmartCaptcha handlers
+function handleCaptchaVerify(token: string) {
+  captchaToken.value = token
+  captchaError.value = ''
 }
 
-function handleTurnstileError(error: string) {
-  turnstileToken.value = null
-  turnstileError.value = error || 'Ошибка проверки безопасности. Попробуйте еще раз'
-  console.error('❌ Turnstile error:', error)
+function handleCaptchaError(error: string) {
+  captchaToken.value = null
+  captchaError.value = error || 'Ошибка проверки безопасности. Попробуйте еще раз'
 }
 
-function handleTurnstileExpired() {
-  turnstileToken.value = null
-  turnstileError.value = 'Проверка истекла. Пожалуйста, пройдите проверку снова'
-  console.warn('⏰ Turnstile expired')
+function handleCaptchaExpired() {
+  captchaToken.value = null
+  captchaError.value = 'Проверка истекла. Пожалуйста, пройдите проверку снова'
 }
 
 // Load event configuration and check registration status
@@ -329,7 +325,7 @@ async function handleSubmit() {
   errors.motivation = ''
   errors.experience = ''
   serverError.value = ''
-  turnstileError.value = ''
+  captchaError.value = ''
 
   // Check registration status
   if (registrationStatus.value === 'not_open') {
@@ -359,9 +355,9 @@ async function handleSubmit() {
     return
   }
 
-  // Check Turnstile token
-  if (!turnstileToken.value) {
-    turnstileError.value = 'Пожалуйста, пройдите проверку безопасности'
+  // Check captcha token
+  if (!captchaToken.value) {
+    captchaError.value = 'Пожалуйста, пройдите проверку безопасности'
     return
   }
 
@@ -387,20 +383,19 @@ async function handleSubmit() {
   isLoading.value = true
 
   try {
-    // Step 1: Verify Turnstile token with Edge Function
-    console.log('🔐 Verifying Turnstile token...')
+    // Step 1: Verify captcha token with Edge Function
     const { data: verifyData, error: verifyError } = await supabase.functions.invoke('turnstile-verify', {
-      body: { token: turnstileToken.value }
+      body: { token: captchaToken.value }
     })
 
     if (verifyError || !verifyData?.success) {
-      console.error('❌ Turnstile verification failed:', verifyError || verifyData)
-      turnstileError.value = 'Проверка безопасности не пройдена. Попробуйте еще раз'
-      turnstileRef.value?.reset() // Reset Turnstile widget
+      console.error('Captcha verification failed:', verifyError || verifyData)
+      captchaError.value = 'Проверка безопасности не пройдена. Попробуйте еще раз'
+      captchaRef.value?.reset()
       return
     }
 
-    console.log('✅ Turnstile verification successful')
+    // Captcha verification successful
 
     // Step 2: Create application in database
     const { data, error } = await supabase
@@ -437,7 +432,7 @@ async function handleSubmit() {
     form.experience = ''
     form.skills = ''
     form.additionalInfo = ''
-    turnstileToken.value = null
+    captchaToken.value = null
 
   } catch (err: any) {
     console.error('❌ Submission error:', err)
@@ -692,7 +687,7 @@ async function handleSubmit() {
   line-height: 1.5;
 }
 
-.turnstile-wrapper {
+.captcha-wrapper {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -798,7 +793,7 @@ async function handleSubmit() {
     font-size: 1.5rem;
   }
 
-  .turnstile-wrapper :deep(> div) {
+  .captcha-wrapper :deep(> div) {
     transform: scale(0.85);
     transform-origin: center;
   }

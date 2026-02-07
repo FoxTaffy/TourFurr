@@ -1,7 +1,7 @@
 // Extract environment variables
 const viteSupabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const viteSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-const viteTurnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
+const viteSmartCaptchaSiteKey = import.meta.env.VITE_SMARTCAPTCHA_SITE_KEY
 const viteYandexMapsApiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY
 const viteDisableEmail = import.meta.env.VITE_DISABLE_EMAIL
 const viteRegistrationOpenDate = import.meta.env.VITE_REGISTRATION_OPEN_DATE
@@ -14,8 +14,8 @@ const viteDev = import.meta.env.DEV
 export const SUPABASE_URL: string = viteSupabaseUrl || ''
 export const SUPABASE_ANON_KEY: string = viteSupabaseAnonKey || ''
 
-// Cloudflare Turnstile
-export const TURNSTILE_SITE_KEY: string = viteTurnstileSiteKey || '1x00000000000000000000AA'
+// Yandex SmartCaptcha
+export const SMARTCAPTCHA_SITE_KEY: string = viteSmartCaptchaSiteKey || ''
 
 // Yandex Maps Static API
 export const YANDEX_MAPS_API_KEY: string = viteYandexMapsApiKey || ''
@@ -78,7 +78,7 @@ export function validateEnvironment(): void {
 export function getEnvironmentInfo(): Record<string, string> {
   const nodeEnv = IS_PRODUCTION ? 'production' : 'development'
   const hasSupabaseKey = SUPABASE_ANON_KEY ? 'Yes' : 'No'
-  const hasTurnstileKey = TURNSTILE_SITE_KEY ? 'Yes' : 'No'
+  const hasCaptchaKey = SMARTCAPTCHA_SITE_KEY ? 'Yes' : 'No'
   const hasAdminPin = ADMIN_PIN ? 'Yes' : 'No'
   const disableEmailStr = DISABLE_EMAIL ? 'true' : 'false'
   const regDateStr = REGISTRATION_OPEN_DATE.toISOString()
@@ -89,7 +89,7 @@ export function getEnvironmentInfo(): Record<string, string> {
     NODE_ENV: nodeEnv,
     SUPABASE_URL: SUPABASE_URL,
     HAS_SUPABASE_KEY: hasSupabaseKey,
-    HAS_TURNSTILE_KEY: hasTurnstileKey,
+    HAS_CAPTCHA_KEY: hasCaptchaKey,
     HAS_ADMIN_PIN: hasAdminPin,
     DISABLE_EMAIL: disableEmailStr,
     REGISTRATION_OPEN_DATE: regDateStr,

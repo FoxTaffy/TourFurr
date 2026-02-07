@@ -241,11 +241,10 @@
       </div>
     </div>
 
-    <!-- Cloudflare Turnstile (показывается на шаге 3) -->
+    <!-- Yandex SmartCaptcha (показывается на шаге 3) -->
     <div v-if="currentStep === 3" class="captcha-wrapper">
-      <CloudflareTurnstile
-        :siteKey="turnstilesiteKey"
-        theme="dark"
+      <YandexSmartCaptcha
+        :siteKey="captchaSiteKey"
         @verify="handleCaptchaVerify"
         @error="handleCaptchaError"
         @expired="handleCaptchaExpired"
@@ -671,7 +670,7 @@ import { useRouter } from 'vue-router'
 import { vMaska } from 'maska/vue'
 import { useAuthStore } from '../../stores/auth'
 import TelegramInput from './TelegramInput.vue'
-import CloudflareTurnstile from '../common/CloudflareTurnstile.vue'
+import YandexSmartCaptcha from '../common/YandexSmartCaptcha.vue'
 import * as yup from 'yup'
 
 const router = useRouter()
@@ -688,8 +687,8 @@ const isDragging = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 const avatarPreview = ref<string | null>(null)
 
-// Cloudflare Turnstile state
-const turnstilesiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
+// Yandex SmartCaptcha state
+const captchaSiteKey = import.meta.env.VITE_SMARTCAPTCHA_SITE_KEY || ''
 const captchaToken = ref<string | null>(null)
 const captchaError = ref('')
 
@@ -896,7 +895,7 @@ function processFile(file: File) {
   reader.readAsDataURL(file)
 }
 
-// Cloudflare Turnstile handlers
+// SmartCaptcha handlers
 function handleCaptchaVerify(token: string) {
   captchaToken.value = token
   captchaError.value = ''
@@ -915,7 +914,7 @@ function handleCaptchaExpired() {
 async function handleSubmit() {
   if (!(await validateStep(3))) return
 
-  // Проверка Turnstile
+  // Проверка SmartCaptcha
   if (!captchaToken.value) {
     captchaError.value = 'Пожалуйста, пройдите проверку безопасности'
     return
@@ -2220,7 +2219,7 @@ function redirectToLogin() {
 
 /* Modal overlay background - clean modern design */
 
-/* Cloudflare Turnstile Styles */
+/* SmartCaptcha Styles */
 .captcha-wrapper {
   display: flex;
   flex-direction: column;
