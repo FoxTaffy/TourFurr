@@ -40,17 +40,18 @@ CREATE POLICY "Admins can manage teams" ON teams
         )
     );
 
--- Seed default Game of Thrones houses
-INSERT INTO teams (name, slug, description, color) VALUES
-    ('Stark', 'stark', 'Winter is Coming. The noble wolves of the North, bound by honor and duty.', '#8B9DAF'),
-    ('Lannister', 'lannister', 'Hear Me Roar! The golden lions of Casterly Rock, wielding power and wealth.', '#C8A951'),
-    ('Targaryen', 'targaryen', 'Fire and Blood. The dragonlords of Old Valyria, born to rule.', '#8B2500'),
-    ('Baratheon', 'baratheon', 'Ours is the Fury. The mighty stags of Storm''s End, forged in battle.', '#FFD700')
+-- Seed default Game of Thrones houses with local crest images
+INSERT INTO teams (name, slug, description, crest_url, color) VALUES
+    ('Stark', 'stark', 'Winter is Coming. The noble wolves of the North, bound by honor and duty.', '/images/crests/stark.png', '#8B9DAF'),
+    ('Lannister', 'lannister', 'Hear Me Roar! The golden lions of Casterly Rock, wielding power and wealth.', '/images/crests/lannister.png', '#C8A951'),
+    ('Tyrell', 'tyrell', 'Growing Strong. The golden roses of Highgarden, masters of diplomacy and abundance.', '/images/crests/tyrell.png', '#2D6A4F'),
+    ('Baratheon', 'baratheon', 'Ours is the Fury. The mighty stags of Storm''s End, forged in battle.', '/images/crests/baratheon.png', '#FFD700'),
+    ('Martell', 'martell', 'Unbowed, Unbent, Unbroken. The sun spears of Dorne, fierce and unyielding.', '/images/crests/martell.png', '#E07A1E')
 ON CONFLICT (slug) DO NOTHING;
 
 -- Comments
 COMMENT ON TABLE teams IS 'TourFurr Houses/Teams - Game of Thrones themed factions';
 COMMENT ON COLUMN teams.slug IS 'URL-friendly identifier for the team';
-COMMENT ON COLUMN teams.crest_url IS 'URL to team crest/icon image in Supabase Storage';
+COMMENT ON COLUMN teams.crest_url IS 'Path to team crest/icon image (e.g. /images/crests/stark.png)';
 COMMENT ON COLUMN teams.color IS 'Primary hex color for the team badge';
 COMMENT ON COLUMN users.team_id IS 'FK to teams table - the house the user belongs to';

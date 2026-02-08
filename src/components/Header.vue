@@ -38,7 +38,7 @@
                 <div class="user-mini-card">
                   <img :src="currentUser.avatar || defaultAvatar" :alt="currentUser.nickname" class="user-avatar" />
                   <div class="user-info">
-                    <div class="user-name">{{ currentUser.nickname }}<TeamBadge :teamId="currentUser.teamId" /></div>
+                    <div class="user-name"><TeamBadge :teamId="currentUser.teamId" />{{ currentUser.nickname }}</div>
                     <div class="user-status" :class="`status-${currentUser.status}`">{{ statusText }}</div>
                   </div>
                 </div>

@@ -28,12 +28,12 @@
           <div class="team-header">
             <div class="team-crest-wrapper">
               <img
-                v-if="team.crest_url"
-                :src="team.crest_url"
+                :src="getCrestSrc(team)"
                 :alt="team.name"
                 class="team-crest-large"
+                @error="($event.target as HTMLImageElement).style.display = 'none'"
               />
-              <span v-else class="team-crest-letter">{{ team.name[0] }}</span>
+              <span class="team-crest-letter">{{ team.name[0] }}</span>
             </div>
             <div class="team-info">
               <h2 class="team-name">{{ team.name }}</h2>
@@ -102,6 +102,14 @@ import { ref, onMounted } from 'vue'
 import { useTeamsStore } from '../stores/teams'
 import Header from '../components/Header.vue'
 
+const CREST_MAP: Record<string, string> = {
+  stark: '/images/crests/stark.png',
+  lannister: '/images/crests/lannister.png',
+  tyrell: '/images/crests/tyrell.png',
+  baratheon: '/images/crests/baratheon.png',
+  martell: '/images/crests/martell.png'
+}
+
 const teamsStore = useTeamsStore()
 
 const teams = ref(teamsStore.teams)
@@ -113,6 +121,11 @@ const statusLabels: Record<string, string> = {
   pending: 'На рассмотрении',
   approved: 'Одобрено',
   rejected: 'Отклонено'
+}
+
+function getCrestSrc(team: { crest_url: string | null; slug: string }): string {
+  if (team.crest_url) return team.crest_url
+  return CREST_MAP[team.slug] || ''
 }
 
 function getMemberCount(teamId: string): number {
@@ -230,12 +243,16 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
 }
 
 .team-crest-large {
   width: 36px;
   height: 36px;
   object-fit: contain;
+  position: relative;
+  z-index: 1;
 }
 
 .team-crest-letter {
@@ -243,6 +260,7 @@ onMounted(async () => {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--team-color, var(--fire));
+  position: absolute;
 }
 
 .team-info {

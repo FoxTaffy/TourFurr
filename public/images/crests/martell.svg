@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="16" fill="#C2956A"/>
+  <circle cx="100" cy="100" r="85" fill="#B8860B" opacity="0.15"/>
+  <circle cx="100" cy="95" r="70" fill="none" stroke="#E07A1E" stroke-width="3"/>
+  <!-- Sun -->
+  <g transform="translate(100,90)">
+    <circle cx="0" cy="0" r="22" fill="#E07A1E"/>
+    <!-- Sun rays -->
+    <g stroke="#E07A1E" stroke-width="4" stroke-linecap="round">
+      <line x1="0" y1="-26" x2="0" y2="-40"/>
+      <line x1="18" y1="-18" x2="28" y2="-28"/>
+      <line x1="26" y1="0" x2="40" y2="0"/>
+      <line x1="18" y1="18" x2="28" y2="28"/>
+      <line x1="0" y1="26" x2="0" y2="40"/>
+      <line x1="-18" y1="18" x2="-28" y2="28"/>
+      <line x1="-26" y1="0" x2="-40" y2="0"/>
+      <line x1="-18" y1="-18" x2="-28" y2="-28"/>
+    </g>
+    <!-- Wavy rays between straight -->
+    <g fill="#E07A1E">
+      <polygon points="-9,-24 0,-36 9,-24"/>
+      <polygon points="17,-17 28,-12 22,-22"/>
+      <polygon points="24,-9 36,0 24,9"/>
+      <polygon points="17,17 22,28 28,12"/>
+      <polygon points="-9,24 0,36 9,24"/>
+      <polygon points="-17,17 -28,12 -22,22"/>
+      <polygon points="-24,-9 -36,0 -24,9"/>
+      <polygon points="-17,-17 -22,-28 -28,-12"/>
+    </g>
+    <!-- Inner sun face -->
+    <circle cx="0" cy="0" r="15" fill="#F4A020"/>
+    <circle cx="-5" cy="-3" r="2" fill="#C2956A"/>
+    <circle cx="5" cy="-3" r="2" fill="#C2956A"/>
+    <path d="M-4,4 Q0,8 4,4" stroke="#C2956A" stroke-width="1.5" fill="none"/>
+  </g>
+  <!-- Spear -->
+  <line x1="100" y1="40" x2="100" y2="170" stroke="#8B4513" stroke-width="3"/>
+  <polygon points="95,40 100,20 105,40" fill="#CD853F"/>
+  <text x="100" y="185" text-anchor="middle" font-family="serif" font-size="13" fill="#E07A1E" font-weight="bold">MARTELL</text>
+</svg>
