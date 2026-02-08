@@ -12,7 +12,7 @@
       <div class="dashboard-grid">
 
         <!-- Left Column - Profile Card -->
-        <div class="profile-card">
+        <div class="profile-card" :class="{ 'nights-watch': !user?.teamId }">
           <!-- Avatar Warning -->
           <div class="avatar-badge-warning">
             <svg class="warning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,7 +43,7 @@
           </div>
 
           <template v-if="!isEditing">
-            <h2 class="profile-name">{{ user?.nickname }}<TeamBadge :teamId="user?.teamId" /></h2>
+            <h2 class="profile-name"><TeamBadge :teamId="user?.teamId" />{{ user?.nickname }}</h2>
 
             <div class="status-badge" :class="user?.status">
               {{ statusLabels[user?.status || 'pending'] }}
@@ -542,6 +542,35 @@ function handleLogout() {
 .profile-card {
   text-align: center;
   grid-row: span 2;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Night's Watch theme for users without a house */
+.profile-card.nights-watch {
+  background-image: url('/images/crests/the-wall-bg.png');
+  background-size: cover;
+  background-position: center top;
+  background-blend-mode: overlay;
+}
+
+.profile-card.nights-watch::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(26, 17, 14, 0.6) 0%,
+    rgba(42, 48, 60, 0.85) 40%,
+    rgba(26, 17, 14, 0.95) 100%
+  );
+  z-index: 0;
+  pointer-events: none;
+}
+
+.profile-card.nights-watch > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Avatar Badge Warning */

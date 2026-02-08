@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="16" fill="#1A1A1A"/>
+  <circle cx="100" cy="100" r="85" fill="#2A2A2A" opacity="0.5"/>
+  <circle cx="100" cy="95" r="70" fill="none" stroke="#FFD700" stroke-width="3"/>
+  <!-- Crown / Stag antlers -->
+  <g transform="translate(100,95)" fill="#FFD700">
+    <!-- Stag head -->
+    <ellipse cx="0" cy="10" rx="18" ry="22"/>
+    <!-- Antlers -->
+    <path d="M-15,-10 L-30,-45 L-20,-30 L-35,-55 M-30,-45 L-45,-40" stroke="#FFD700" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M15,-10 L30,-45 L20,-30 L35,-55 M30,-45 L45,-40" stroke="#FFD700" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- Crown points -->
+    <polygon points="-12,-8 -8,-25 -4,-8"/>
+    <polygon points="-4,-10 0,-30 4,-10"/>
+    <polygon points="4,-8 8,-25 12,-8"/>
+    <!-- Eyes -->
+    <circle cx="-6" cy="4" r="2" fill="#1A1A1A"/>
+    <circle cx="6" cy="4" r="2" fill="#1A1A1A"/>
+    <!-- Body suggestion -->
+    <ellipse cx="0" cy="38" rx="25" ry="18" fill="#DAA520"/>
+  </g>
+  <text x="100" y="185" text-anchor="middle" font-family="serif" font-size="13" fill="#FFD700" font-weight="bold">BARATHEON</text>
+</svg>

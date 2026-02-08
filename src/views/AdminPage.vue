@@ -106,7 +106,7 @@
                 <span v-else class="avatar-letter">{{ user.nickname?.[0]?.toUpperCase() }}</span>
               </div>
               <div class="user-main-info">
-                <h3 class="user-nickname">{{ user.nickname }}<TeamBadge :teamId="user.team_id" /></h3>
+                <h3 class="user-nickname"><TeamBadge :teamId="user.team_id" />{{ user.nickname }}</h3>
                 <p class="user-email">{{ user.email }}</p>
               </div>
               <div class="user-status" :class="user.status">
