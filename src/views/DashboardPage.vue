@@ -178,6 +178,14 @@
           </div>
 
           <p class="status-message">{{ statusDescriptions[user?.status || 'pending'] }}</p>
+
+          <!-- Schedule Button for approved users -->
+          <button v-if="user?.status === 'approved'" class="schedule-card-btn" @click="router.push('/schedule')">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            Расписание мероприятия
+          </button>
         </div>
 
         <!-- Right Column - Payment Info (only for approved) -->
@@ -462,11 +470,11 @@ const statusLabels: Record<string, string> = {
   deferred: 'На рассмотрении'
 }
 
-const statusDescriptions = {
-  pending: 'Ваша заявка на рассмотрении. Вы получите уведомление на почту, когда статус изменится. Если Вы ранее не были на ТурФурр - админ может написать вам для знакомства.',
-  deferred: 'Ваша заявка на рассмотрении. Вы получите уведомление на почту, когда статус изменится. Если Вы ранее не были на ТурФурр - админ может написать вам для знакомства.',
-  approved: 'Поздравляем! Ваша заявка одобрена. Оплатите участие по реквизитам справа.',
-  rejected: 'К сожалению, Вам отказано в участии. Если вы не согласны, пожалуйста, напишите одному из оргов в контактах.'
+const statusDescriptions: Record<string, string> = {
+  pending: 'Если Вы ранее не были на ТурФурр — админ может написать вам для знакомства. Статус: В обработке.',
+  deferred: 'Если Вы ранее не были на ТурФурр — админ может написать вам для знакомства. Статус: В обработке.',
+  approved: 'Поздравляем! Ваша заявка одобрена. Оплатите участие по реквизитам справа и загляните в Расписание.',
+  rejected: 'К сожалению Вам отказано в участии. Если вы не согласны, пожалуйста, напишите одному из оргов в контактах.'
 }
 
 function formatDate(dateStr: string | undefined) {
@@ -1211,6 +1219,37 @@ function handleLogout() {
 }
 
 .edit-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.schedule-card-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  margin-top: 1rem;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.15));
+  border: 1px solid rgba(34, 197, 94, 0.5);
+  border-radius: 12px;
+  color: #22c55e;
+  font-family: 'Lora', serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.schedule-card-btn:hover {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(22, 163, 74, 0.25));
+  border-color: #22c55e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.schedule-card-btn svg {
   width: 18px;
   height: 18px;
 }

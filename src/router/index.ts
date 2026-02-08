@@ -53,6 +53,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/schedule',
+    name: 'Schedule',
+    component: () => import('../views/SchedulePage.vue'),
+    meta: { requiresAuth: true, requiresApproved: true }
+  },
+  {
     path: '/admin',
     name: 'Admin',
     component: () => import('../views/AdminPage.vue'),
@@ -128,6 +134,38 @@ router.beforeEach(async (to, _from, next) => {
       localStorage.removeItem('auth_token')
       localStorage.removeItem('current_user')
       next({ name: 'Auth' })
+      return
+    }
+  }
+
+  // Check approved-only routes (e.g. Schedule)
+  if (to.meta.requiresApproved) {
+    try {
+      const storedUser = localStorage.getItem('current_user')
+      if (storedUser) {
+        const userData = JSON.parse(storedUser)
+        if (userData.status !== 'approved') {
+          next({ name: 'Dashboard' })
+          return
+        }
+      } else {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: dbUser } = await supabase
+            .from('users')
+            .select('status')
+            .eq('id', user.id)
+            .single()
+
+          if (!dbUser || dbUser.status !== 'approved') {
+            next({ name: 'Dashboard' })
+            return
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Approved check error:', err)
+      next({ name: 'Dashboard' })
       return
     }
   }
