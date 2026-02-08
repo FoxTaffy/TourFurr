@@ -21,7 +21,6 @@ CREATE POLICY "Allow read event info"
   USING (true);
 
 -- Insert initial event info with coordinates
--- Coordinates format: "longitude,latitude" (e.g., "37.6173,55.7558" for Moscow)
 INSERT INTO event_info (
   location,
   coordinates,
@@ -30,16 +29,4 @@ INSERT INTO event_info (
   card_number,
   recipient,
   payment_note
-) VALUES (
-  'Ярославская область',
-  '39.108398,56.905351',  -- Ярославская область
-  3500,
-  'Сбербанк',
-  '2202 2061 7891 2345',
-  'Иванов И.И.',
-  'В комментарии укажите ваш никнейм'
 );
-
--- If table already exists, add coordinates column:
--- ALTER TABLE event_info ADD COLUMN coordinates TEXT;
--- UPDATE event_info SET coordinates = '39.108398,56.905351';

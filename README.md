@@ -10,7 +10,7 @@
 - **Роутинг:** Vue Router 4
 - **Backend:** Supabase (PostgreSQL + Edge Functions + Auth)
 - **Email:** Resend API
-- **CAPTCHA:** Cloudflare Turnstile
+- **CAPTCHA:** Yandex SmartCaptcha
 - **Валидация:** Yup
 
 ## Функциональность
@@ -21,7 +21,7 @@
 - Система голосования
 - Админ-панель для управления заявками
 - Сброс пароля через email
-- Защита от ботов (Cloudflare Turnstile)
+- Защита от ботов (Yandex SmartCaptcha)
 - Rate limiting и защита от подбора
 
 ## Установка
@@ -73,8 +73,3 @@ supabase/
   migrations/     # Миграции БД
 database/         # SQL-скрипты для настройки БД
 ```
-
-## База данных
-
-Финальная схема: `database/SETUP_ALL_IN_ONE.sql`
-RLS политики: `database/PRODUCTION_SECURE_RLS.sql`
