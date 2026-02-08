@@ -31,11 +31,14 @@
               <a href="/auth" class="auth-button">Войти</a>
             </li>
             <li v-if="showAuthButtons && isAuthenticated">
+              <a href="/teams" class="teams-nav-link">Дома</a>
+            </li>
+            <li v-if="showAuthButtons && isAuthenticated">
               <a href="/dashboard" class="user-mini-card-link">
                 <div class="user-mini-card">
                   <img :src="currentUser.avatar || defaultAvatar" :alt="currentUser.nickname" class="user-avatar" />
                   <div class="user-info">
-                    <div class="user-name">{{ currentUser.nickname }}</div>
+                    <div class="user-name">{{ currentUser.nickname }}<TeamBadge :teamId="currentUser.teamId" /></div>
                     <div class="user-status" :class="`status-${currentUser.status}`">{{ statusText }}</div>
                   </div>
                 </div>
@@ -48,6 +51,18 @@
 
           <!-- Dashboard Actions -->
           <div v-else class="dashboard-actions">
+            <a v-if="currentUser && currentUser.status === 'approved'" href="/schedule" class="schedule-btn">
+              <svg class="schedule-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              Расписание
+            </a>
+            <a href="/teams" class="teams-btn">
+              <svg class="teams-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
+              </svg>
+              Дома
+            </a>
             <button @click="handleLogout" class="logout-btn">
               <svg class="logout-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
@@ -94,9 +109,11 @@
   import { useAuthStore } from '../stores/auth'
   import { computed } from 'vue'
   import { isRegistrationOpen, verifyAdminPin } from '../utils/env'
+  import TeamBadge from './TeamBadge.vue'
 
   export default {
     name: 'Header',
+    components: { TeamBadge },
     props: {
       isDashboard: {
         type: Boolean,
@@ -704,6 +721,79 @@
   }
 
   .logout-icon {
+      width: 18px;
+      height: 18px;
+  }
+
+  /* Teams Navigation */
+  .teams-nav-link {
+      color: var(--fire-glow) !important;
+      font-weight: 600 !important;
+      padding: 0.4rem 1rem !important;
+      border: 1px solid rgba(255, 179, 71, 0.4);
+      border-radius: 20px;
+      background: rgba(255, 179, 71, 0.1);
+      transition: all 0.3s ease;
+  }
+
+  .teams-nav-link:hover {
+      background: rgba(255, 179, 71, 0.2);
+      border-color: var(--fire-glow);
+      transform: translateY(-1px);
+  }
+
+  .teams-nav-link::after {
+      display: none !important;
+  }
+
+  .schedule-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      border-radius: 12px;
+      color: #22c55e;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+  }
+
+  .schedule-btn:hover {
+      background: rgba(34, 197, 94, 0.2);
+      transform: translateY(-2px);
+  }
+
+  .schedule-icon {
+      width: 18px;
+      height: 18px;
+  }
+
+  .teams-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: rgba(255, 179, 71, 0.1);
+      border: 1px solid rgba(255, 179, 71, 0.4);
+      border-radius: 12px;
+      color: var(--fire-glow);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+  }
+
+  .teams-btn:hover {
+      background: rgba(255, 179, 71, 0.2);
+      transform: translateY(-2px);
+  }
+
+  .teams-icon {
       width: 18px;
       height: 18px;
   }

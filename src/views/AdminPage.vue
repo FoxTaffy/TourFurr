@@ -59,6 +59,10 @@
           <span class="stat-value">{{ pendingCount }}</span>
           <span class="stat-label">На рассмотрении</span>
         </div>
+        <div class="stat-card deferred">
+          <span class="stat-value">{{ deferredCount }}</span>
+          <span class="stat-label">Отложенные</span>
+        </div>
         <div class="stat-card approved">
           <span class="stat-value">{{ approvedCount }}</span>
           <span class="stat-label">Одобрено</span>
@@ -102,7 +106,7 @@
                 <span v-else class="avatar-letter">{{ user.nickname?.[0]?.toUpperCase() }}</span>
               </div>
               <div class="user-main-info">
-                <h3 class="user-nickname">{{ user.nickname }}</h3>
+                <h3 class="user-nickname">{{ user.nickname }}<TeamBadge :teamId="user.team_id" /></h3>
                 <p class="user-email">{{ user.email }}</p>
               </div>
               <div class="user-status" :class="user.status">
@@ -147,6 +151,17 @@
                 Одобрить
               </button>
               <button
+                v-if="user.status === 'pending'"
+                @click="updateStatus(user.id, 'deferred')"
+                class="action-btn deferred"
+                :disabled="isUpdating === user.id"
+              >
+                <svg class="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Отложить
+              </button>
+              <button
                 v-if="user.status !== 'rejected'"
                 @click="updateStatus(user.id, 'rejected')"
                 class="action-btn reject"
@@ -158,13 +173,13 @@
                 Отклонить
               </button>
               <button
-                v-if="user.status !== 'pending'"
+                v-if="user.status !== 'pending' && user.status !== 'deferred'"
                 @click="updateStatus(user.id, 'pending')"
                 class="action-btn pending"
                 :disabled="isUpdating === user.id"
               >
                 <svg class="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                 </svg>
                 На рассмотрение
               </button>
@@ -193,6 +208,7 @@ import { useRouter } from 'vue-router'
 import { supabase } from '../services/supabase'
 import { useAuthStore } from '../stores/auth'
 import ApplicationsManagement from '../components/ApplicationsManagement.vue'
+import TeamBadge from '../components/TeamBadge.vue'
 import logoImg from '../assets/logo.png'
 
 const router = useRouter()
@@ -220,6 +236,7 @@ interface User {
   description: string | null
   status: string
   created_at: string
+  team_id: string | null
 }
 
 const users = ref<User[]>([])
@@ -230,12 +247,14 @@ const activeFilter = ref('all')
 const filters = [
   { label: 'Все', value: 'all' },
   { label: 'На рассмотрении', value: 'pending' },
+  { label: 'Отложенные', value: 'deferred' },
   { label: 'Одобрено', value: 'approved' },
   { label: 'Отклонено', value: 'rejected' }
 ]
 
 const statusLabels: Record<string, string> = {
   pending: 'На рассмотрении',
+  deferred: 'Отложено',
   approved: 'Одобрено',
   rejected: 'Отклонено'
 }
@@ -246,6 +265,7 @@ const filteredUsers = computed(() => {
 })
 
 const pendingCount = computed(() => users.value.filter(u => u.status === 'pending').length)
+const deferredCount = computed(() => users.value.filter(u => u.status === 'deferred').length)
 const approvedCount = computed(() => users.value.filter(u => u.status === 'approved').length)
 const rejectedCount = computed(() => users.value.filter(u => u.status === 'rejected').length)
 
@@ -443,7 +463,7 @@ onMounted(() => {
 /* Stats */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: clamp(0.5rem, 1vw, 1rem);
   margin-bottom: clamp(0.5rem, 1vw, 1rem);
   flex-shrink: 0;
@@ -461,6 +481,12 @@ onMounted(() => {
 .stat-card.pending {
   border-color: rgba(255, 179, 71, 0.5);
 }
+
+.stat-card.deferred {
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+.stat-card.deferred .stat-value { color: #fbbf24; }
 
 .stat-card.approved {
   border-color: rgba(34, 197, 94, 0.5);
@@ -624,6 +650,11 @@ onMounted(() => {
   color: var(--fire-glow);
 }
 
+.user-status.deferred {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+
 .user-status.approved {
   background: rgba(34, 197, 94, 0.2);
   color: #22c55e;
@@ -725,6 +756,16 @@ onMounted(() => {
 
 .action-btn.reject:hover:not(:disabled) {
   background: rgba(239, 68, 68, 0.3);
+}
+
+.action-btn.deferred {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.action-btn.deferred:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.3);
 }
 
 .action-btn.pending {
