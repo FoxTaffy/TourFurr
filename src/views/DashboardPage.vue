@@ -43,7 +43,7 @@
           </div>
 
           <template v-if="!isEditing">
-            <h2 class="profile-name">{{ user?.nickname }}</h2>
+            <h2 class="profile-name">{{ user?.nickname }}<TeamBadge :teamId="user?.teamId" /></h2>
 
             <div class="status-badge" :class="user?.status">
               {{ statusLabels[user?.status || 'pending'] }}
@@ -75,6 +75,14 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
               </svg>
               Редактировать
+            </button>
+
+            <!-- Teams Button -->
+            <button class="teams-profile-btn" @click="router.push('/teams')">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
+              </svg>
+              Великие Дома
             </button>
 
             <!-- Admin Panel Button -->
@@ -277,6 +285,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
 import Header from '../components/Header.vue'
+import TeamBadge from '../components/TeamBadge.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -1202,6 +1211,37 @@ function handleLogout() {
 }
 
 .edit-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.teams-profile-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  margin-top: 0.75rem;
+  background: linear-gradient(135deg, rgba(255, 179, 71, 0.1), rgba(255, 107, 53, 0.1));
+  border: 1px solid rgba(255, 179, 71, 0.4);
+  border-radius: 12px;
+  color: var(--fire-glow);
+  font-family: 'Lora', serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.teams-profile-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 179, 71, 0.2), rgba(255, 107, 53, 0.2));
+  border-color: var(--fire-glow);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 179, 71, 0.3);
+}
+
+.teams-profile-btn svg {
   width: 18px;
   height: 18px;
 }

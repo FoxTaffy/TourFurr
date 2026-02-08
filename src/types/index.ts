@@ -304,6 +304,17 @@ export interface AppConfig {
   particleEffects: boolean;
 }
 
+// Team (House) interface
+export interface Team {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  crest_url: string | null
+  color: string
+  created_at: string
+}
+
 // Состояние пользователя
 export interface UserState {
   isRegistered: boolean;

@@ -47,6 +47,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../views/VerifyResetCodePage.vue')
   },
   {
+    path: '/teams',
+    name: 'Teams',
+    component: () => import('../views/TeamsPage.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/admin',
     name: 'Admin',
     component: () => import('../views/AdminPage.vue'),

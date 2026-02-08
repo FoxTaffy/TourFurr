@@ -102,7 +102,7 @@
                 <span v-else class="avatar-letter">{{ user.nickname?.[0]?.toUpperCase() }}</span>
               </div>
               <div class="user-main-info">
-                <h3 class="user-nickname">{{ user.nickname }}</h3>
+                <h3 class="user-nickname">{{ user.nickname }}<TeamBadge :teamId="user.team_id" /></h3>
                 <p class="user-email">{{ user.email }}</p>
               </div>
               <div class="user-status" :class="user.status">
@@ -193,6 +193,7 @@ import { useRouter } from 'vue-router'
 import { supabase } from '../services/supabase'
 import { useAuthStore } from '../stores/auth'
 import ApplicationsManagement from '../components/ApplicationsManagement.vue'
+import TeamBadge from '../components/TeamBadge.vue'
 import logoImg from '../assets/logo.png'
 
 const router = useRouter()
@@ -220,6 +221,7 @@ interface User {
   description: string | null
   status: string
   created_at: string
+  team_id: string | null
 }
 
 const users = ref<User[]>([])

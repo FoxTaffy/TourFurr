@@ -98,6 +98,7 @@ export interface User {
   canApproveApplications: boolean
   bringingPet: boolean
   petDescription?: string
+  teamId?: string | null
 }
 
 export interface RegisterData {
@@ -131,7 +132,8 @@ function mapDbUserToUser(dbUser: any): User {
     isAdmin: dbUser.is_admin || false,
     canApproveApplications: dbUser.can_approve_applications || false,
     bringingPet: dbUser.bringing_pet || false,
-    petDescription: dbUser.pet_description
+    petDescription: dbUser.pet_description,
+    teamId: dbUser.team_id || null
   }
 }
 
