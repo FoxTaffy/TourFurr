@@ -916,7 +916,7 @@ function handleLogout() {
 
 /* Location Card */
 .location-card {
-  grid-column: span 2;
+  grid-column: 1 / -1;
 }
 
 /* Security Warning Banner */
