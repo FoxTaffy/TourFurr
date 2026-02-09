@@ -133,7 +133,7 @@ function mapDbUserToUser(dbUser: any): User {
     canApproveApplications: dbUser.can_approve_applications || false,
     bringingPet: dbUser.bringing_pet || false,
     petDescription: dbUser.pet_description,
-    teamId: dbUser.team_id || null
+    teamId: dbUser.team_id || localStorage.getItem(`user_team_${dbUser.id}`) || null
   }
 }
 
