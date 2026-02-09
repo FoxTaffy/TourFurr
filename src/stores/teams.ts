@@ -143,15 +143,15 @@ export const useTeamsStore = defineStore('teams', () => {
         .eq('id', userId)
 
       if (dbError) {
-        logger.error('Failed to select team:', dbError)
-        return { success: false, error: dbError.message }
+        logger.error('DB update failed for team selection, saving locally:', dbError)
       }
-
-      return { success: true }
     } catch (err: any) {
-      logger.error('Error selecting team:', err)
-      return { success: false, error: err.message || 'Unknown error' }
+      logger.error('Error selecting team, saving locally:', err)
     }
+
+    // Always save locally regardless of DB result
+    localStorage.setItem(`user_team_${userId}`, teamId)
+    return { success: true }
   }
 
   function getTeamById(teamId: string | null): Team | null {

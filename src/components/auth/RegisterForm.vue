@@ -201,35 +201,56 @@
         </div>
       </div>
 
-      <!-- Checkboxes -->
-      <div class="checkbox-group">
-        <label class="checkbox-label">
-          <input v-model="form.confirmAge" type="checkbox" class="checkbox" />
-          <span>
+      <!-- Consent Oaths -->
+      <div class="oaths-group">
+        <div class="oaths-header">
+          <svg class="oaths-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          <span>Клятвы участника</span>
+        </div>
+
+        <label class="oath-label" :class="{ checked: form.confirmAge, error: errors.confirmAge }">
+          <input v-model="form.confirmAge" type="checkbox" class="oath-input" />
+          <span class="oath-box">
+            <svg class="oath-check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+            </svg>
+          </span>
+          <span class="oath-text">
             Подтверждаю, что мне исполнилось 18 лет
             <span class="required">*</span>
           </span>
         </label>
-        <p v-if="errors.confirmAge" class="error-text checkbox-error">{{ errors.confirmAge }}</p>
+        <p v-if="errors.confirmAge" class="error-text oath-error">{{ errors.confirmAge }}</p>
 
-        <label class="checkbox-label">
-          <input v-model="form.agreeRules" type="checkbox" class="checkbox" />
-          <span>
+        <label class="oath-label" :class="{ checked: form.agreeRules, error: errors.agreeRules }">
+          <input v-model="form.agreeRules" type="checkbox" class="oath-input" />
+          <span class="oath-box">
+            <svg class="oath-check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+            </svg>
+          </span>
+          <span class="oath-text">
             Согласен с <a href="#" @click.prevent="showRulesModal = true">правилами конвента</a>
             <span class="required">*</span>
           </span>
         </label>
-        <p v-if="errors.agreeRules" class="error-text checkbox-error">{{ errors.agreeRules }}</p>
+        <p v-if="errors.agreeRules" class="error-text oath-error">{{ errors.agreeRules }}</p>
 
-        <label class="checkbox-label">
-          <input v-model="form.agreePrivacy" type="checkbox" class="checkbox" />
-          <span>
+        <label class="oath-label" :class="{ checked: form.agreePrivacy, error: errors.agreePrivacy }">
+          <input v-model="form.agreePrivacy" type="checkbox" class="oath-input" />
+          <span class="oath-box">
+            <svg class="oath-check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+            </svg>
+          </span>
+          <span class="oath-text">
             Согласен на <a href="#" @click.prevent="showPrivacyModal = true">обработку персональных данных</a>
             <span class="required">*</span>
           </span>
         </label>
-        <p v-if="errors.agreePrivacy" class="error-text checkbox-error">{{ errors.agreePrivacy }}</p>
-
+        <p v-if="errors.agreePrivacy" class="error-text oath-error">{{ errors.agreePrivacy }}</p>
       </div>
 
       <!-- Email Notification Info -->
@@ -945,20 +966,15 @@ async function handleSubmit() {
     const email = (result as any).email || form.email
     const emailSent = (result as any).emailSent
     const emailError = (result as any).emailError
-
-    // Show warning if email wasn't sent (but registration succeeded)
-    if (!emailSent && emailError) {
-      console.warn('Email not sent:', emailError)
-      // Still redirect, but user will see the code in console (dev mode)
-      // or can request a new code on the verification page
-    }
+    const verificationCode = (result as any).verificationCode || ''
 
     router.push({
       path: '/auth/verify-email',
       query: {
         email,
         emailSent: emailSent ? 'true' : 'false',
-        emailError: emailError || ''
+        emailError: emailError || '',
+        ...(verificationCode ? { code: verificationCode } : {})
       }
     })
   } else {
@@ -1210,56 +1226,138 @@ function redirectToLogin() {
   color: var(--sage);
 }
 
-/* Checkboxes */
-.checkbox-group {
+/* Consent Oaths */
+.oaths-group {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(26, 17, 14, 0.6), rgba(42, 31, 26, 0.4));
+  border: 1px solid rgba(139, 111, 71, 0.3);
+  border-radius: 16px;
 }
 
-.checkbox-label {
+.oaths-header {
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  cursor: pointer;
-  font-size: 0.85rem;
-  color: var(--sage);
-  transition: color 0.3s ease;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(139, 111, 71, 0.25);
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--fire-glow);
 }
 
-.checkbox-label:hover {
-  color: var(--cream);
-}
-
-.checkbox-label span {
-  line-height: 1.4;
-}
-
-.checkbox {
-  margin-top: 2px;
-  width: 16px;
-  height: 16px;
-  accent-color: var(--fire);
+.oaths-icon {
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
 }
 
-.checkbox-label a {
+.oath-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: 1px solid transparent;
+}
+
+.oath-label:hover {
+  background: rgba(255, 179, 71, 0.06);
+  border-color: rgba(139, 111, 71, 0.2);
+}
+
+.oath-label.checked {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.25);
+}
+
+.oath-label.error:not(.checked) {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.oath-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.oath-box {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border: 2px solid rgba(139, 111, 71, 0.5);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  background: rgba(26, 17, 14, 0.4);
+}
+
+.oath-label:hover .oath-box {
+  border-color: var(--fire-glow);
+}
+
+.oath-label.checked .oath-box {
+  background: linear-gradient(135deg, var(--fire), var(--fire-glow));
+  border-color: var(--fire-glow);
+  box-shadow: 0 0 8px rgba(255, 179, 71, 0.3);
+}
+
+.oath-check {
+  width: 14px;
+  height: 14px;
+  color: white;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.2s ease;
+}
+
+.oath-label.checked .oath-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.oath-text {
+  font-size: 0.88rem;
+  color: var(--sage);
+  line-height: 1.5;
+  transition: color 0.25s ease;
+}
+
+.oath-label:hover .oath-text {
+  color: var(--cream);
+}
+
+.oath-label.checked .oath-text {
+  color: var(--cream);
+}
+
+.oath-text a {
   color: var(--fire-glow);
   text-decoration: none;
+  border-bottom: 1px dashed rgba(255, 179, 71, 0.4);
+  transition: all 0.2s ease;
 }
 
-.checkbox-label a:hover {
-  text-decoration: underline;
+.oath-text a:hover {
+  border-bottom-style: solid;
+  border-bottom-color: var(--fire-glow);
 }
 
-.checkbox-error {
-  margin-left: 1.75rem;
-}
-
-.checkbox-label.special {
-  font-weight: 600;
-  color: var(--cream);
-  margin-bottom: 0.75rem;
+.oath-error {
+  margin-left: 2.75rem;
+  font-size: 0.8rem;
 }
 
 .conditional-field {

@@ -437,9 +437,15 @@ async function handleSubmit() {
     // Check if user needs email verification
     if ((result as any).needsVerification) {
       const email = (result as any).email || form.email
+      const emailSent = (result as any).emailSent
+      const verificationCode = (result as any).verificationCode || ''
       router.push({
         path: '/auth/verify-email',
-        query: { email }
+        query: {
+          email,
+          emailSent: emailSent ? 'true' : 'false',
+          ...(verificationCode ? { code: verificationCode } : {})
+        }
       })
       return
     }
