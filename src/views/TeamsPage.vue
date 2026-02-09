@@ -13,7 +13,7 @@
       <p class="page-subtitle">Выберите свой дом и сразитесь за его честь</p>
 
       <div v-if="isLoading" class="loading">
-        <div class="spinner"></div>
+        <div class="page-spinner"></div>
         <p>Загрузка домов...</p>
       </div>
 
@@ -190,19 +190,6 @@ onMounted(async () => {
   color: var(--sage);
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--moss);
-  border-top-color: var(--fire);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-  100% { transform: rotate(360deg); }
-}
 
 /* Teams Grid */
 .teams-grid {
@@ -417,31 +404,6 @@ onMounted(async () => {
 .back-section {
   text-align: center;
   margin-top: 2rem;
-}
-
-.back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: rgba(255, 107, 53, 0.15);
-  border: 1px solid rgba(255, 107, 53, 0.4);
-  border-radius: 12px;
-  color: var(--fire-glow);
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9rem;
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-
-.back-btn:hover {
-  background: rgba(255, 107, 53, 0.25);
-  transform: translateY(-2px);
-}
-
-.back-btn svg {
-  width: 18px;
-  height: 18px;
 }
 
 /* Responsive */

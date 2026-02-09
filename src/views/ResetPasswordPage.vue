@@ -146,7 +146,7 @@ async function handleSubmit() {
     const sendResult = await sendPasswordResetEmail(cleanEmail, result.code)
 
     if (!sendResult.success) {
-      // Show success message anyway for security, but pass error to verify page
+      // Show success message anyway for security, but pass code to verify page
       submitted.value = true
       setTimeout(() => {
         router.push({
@@ -154,7 +154,8 @@ async function handleSubmit() {
           query: {
             email: cleanEmail,
             emailSent: 'false',
-            emailError: sendResult.error || 'Ошибка отправки письма'
+            emailError: sendResult.error || 'Ошибка отправки письма',
+            code: result.code
           }
         })
       }, 1500)

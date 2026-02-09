@@ -89,7 +89,7 @@
       <!-- Users List -->
       <div class="users-list">
         <div v-if="isLoading" class="loading">
-          <div class="spinner"></div>
+          <div class="page-spinner"></div>
           <p>Загрузка...</p>
         </div>
 
@@ -557,19 +557,6 @@ onMounted(() => {
   color: var(--sage);
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--moss);
-  border-top-color: var(--fire);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-  100% { transform: rotate(360deg); }
-}
 
 /* User Cards */
 .user-cards {

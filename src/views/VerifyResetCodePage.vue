@@ -4,8 +4,22 @@
     <div class="fog"></div>
 
     <div class="verify-container">
-      <!-- Email Rate Limit Warning -->
-      <div v-if="emailNotSent && emailError" class="rate-limit-warning">
+      <!-- Fallback code display when email fails -->
+      <div v-if="fallbackCode" class="fallback-code-banner">
+        <div class="fallback-code-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+          </svg>
+        </div>
+        <div class="fallback-code-content">
+          <h4>Ваш код сброса пароля</h4>
+          <p class="fallback-code-hint">Письмо не удалось отправить. Введите этот код:</p>
+          <div class="fallback-code-value">{{ fallbackCode }}</div>
+        </div>
+      </div>
+
+      <!-- Email Rate Limit Warning (no fallback code available) -->
+      <div v-else-if="emailNotSent && emailError" class="rate-limit-warning">
         <div class="warning-icon">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -14,9 +28,6 @@
         <div class="warning-content">
           <h4>Письмо не отправлено</h4>
           <p>{{ emailError }}</p>
-          <p v-if="isDev" class="dev-mode-hint">
-            <strong>Режим разработки:</strong> Код отображается в консоли браузера (F12)
-          </p>
         </div>
       </div>
 
@@ -42,7 +53,7 @@ const router = useRouter()
 const email = ref<string>('')
 const emailNotSent = ref<boolean>(false)
 const emailError = ref<string>('')
-const isDev = ref<boolean>(import.meta.env.DEV)
+const fallbackCode = ref<string>('')
 
 onMounted(async () => {
   // Get email from query params
@@ -60,9 +71,15 @@ onMounted(async () => {
   const emailSentParam = route.query.emailSent as string
   const emailErrorParam = route.query.emailError as string
 
+  const codeParam = route.query.code as string
+
   if (emailSentParam === 'false') {
     emailNotSent.value = true
     emailError.value = emailErrorParam || 'Не удалось отправить письмо с кодом сброса пароля'
+  }
+
+  if (codeParam) {
+    fallbackCode.value = codeParam
   }
 })
 
@@ -87,9 +104,14 @@ async function handleResend() {
     const result = await createPasswordResetCode(email.value)
 
     if (result.success && result.code) {
-      await sendPasswordResetEmail(email.value, result.code)
+      const emailResult = await sendPasswordResetEmail(email.value, result.code)
+      if (!emailResult.success) {
+        fallbackCode.value = result.code
+      } else {
+        fallbackCode.value = ''
+      }
     } else {
-      alert(result.error || 'Не удалось отправить код')
+      alert(result.error || 'Не удалось создать код')
     }
   } catch (err: any) {
     logger.error('Error resending code:', err)
@@ -207,6 +229,59 @@ async function handleResend() {
     0 20px 60px rgba(0, 0, 0, 0.7),
     0 0 40px rgba(255, 138, 62, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Fallback code display */
+.fallback-code-banner {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.1));
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+}
+
+.fallback-code-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(34, 197, 94, 0.2);
+  border-radius: 10px;
+}
+
+.fallback-code-icon svg {
+  width: 22px;
+  height: 22px;
+  color: #22c55e;
+}
+
+.fallback-code-content h4 {
+  color: #22c55e;
+  font-size: 1rem;
+  margin: 0 0 0.25rem;
+}
+
+.fallback-code-hint {
+  color: var(--sage);
+  font-size: 0.85rem;
+  margin: 0 0 0.75rem;
+}
+
+.fallback-code-value {
+  font-family: 'Courier New', monospace;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 8px;
+  color: #22c55e;
+  text-align: center;
+  padding: 0.75rem;
+  background: rgba(26, 17, 14, 0.6);
+  border-radius: 12px;
+  border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
 /* Rate Limit Warning */

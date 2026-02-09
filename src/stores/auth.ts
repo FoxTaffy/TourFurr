@@ -221,6 +221,8 @@ export const useAuthStore = defineStore('auth', () => {
           logger.log('Found unverified new user, sending new verification code...')
 
           // Generate and send new verification code
+          let loginVerificationCode = ''
+          let loginEmailSent = false
           try {
             const { createVerificationCode, sendVerificationEmail, invalidateOldCodes } = await import('../utils/emailVerification')
 
@@ -231,7 +233,9 @@ export const useAuthStore = defineStore('auth', () => {
             const codeResult = await createVerificationCode(cleanEmail)
 
             if (codeResult.success && codeResult.code) {
-              await sendVerificationEmail(cleanEmail, codeResult.code)
+              loginVerificationCode = codeResult.code
+              const emailResult = await sendVerificationEmail(cleanEmail, codeResult.code)
+              loginEmailSent = emailResult.success
             }
           } catch (codeError: any) {
             logger.error('Error generating verification code:', codeError)
@@ -247,7 +251,9 @@ export const useAuthStore = defineStore('auth', () => {
             success: false,
             error: error.value,
             needsVerification: true,
-            email: cleanEmail
+            email: cleanEmail,
+            emailSent: loginEmailSent,
+            verificationCode: !loginEmailSent ? loginVerificationCode : ''
           }
         }
 
@@ -394,6 +400,8 @@ export const useAuthStore = defineStore('auth', () => {
         await supabase.auth.signOut() // Sign out immediately
 
         // Try to send a new verification code
+        let loginVerificationCode2 = ''
+        let loginEmailSent2 = false
         try {
           const { createVerificationCode, sendVerificationEmail, invalidateOldCodes } = await import('../utils/emailVerification')
 
@@ -404,7 +412,9 @@ export const useAuthStore = defineStore('auth', () => {
           const codeResult = await createVerificationCode(cleanEmail)
 
           if (codeResult.success && codeResult.code) {
-            await sendVerificationEmail(cleanEmail, codeResult.code)
+            loginVerificationCode2 = codeResult.code
+            const emailResult = await sendVerificationEmail(cleanEmail, codeResult.code)
+            loginEmailSent2 = emailResult.success
           }
         } catch (codeError: any) {
           logger.error('Error generating verification code:', codeError)
@@ -415,7 +425,9 @@ export const useAuthStore = defineStore('auth', () => {
           success: false,
           error: error.value,
           needsVerification: true,
-          email: cleanEmail
+          email: cleanEmail,
+          emailSent: loginEmailSent2,
+          verificationCode: !loginEmailSent2 ? loginVerificationCode2 : ''
         }
       }
 
@@ -651,12 +663,14 @@ export const useAuthStore = defineStore('auth', () => {
       // Generate and send 6-digit verification code
       let emailSent = false
       let emailError = ''
+      let verificationCode = ''
       try {
         const { createVerificationCode, sendVerificationEmail } = await import('../utils/emailVerification')
 
         const codeResult = await createVerificationCode(cleanEmail)
 
         if (codeResult.success && codeResult.code) {
+          verificationCode = codeResult.code
           const emailResult = await sendVerificationEmail(cleanEmail, codeResult.code)
           emailSent = emailResult.success
           emailError = emailResult.error || ''
@@ -680,6 +694,7 @@ export const useAuthStore = defineStore('auth', () => {
         email: cleanEmail,
         emailSent,
         emailError,
+        verificationCode: !emailSent ? verificationCode : '',
         message: emailSent
           ? 'Регистрация успешна! На вашу почту отправлен код подтверждения.'
           : `Регистрация успешна, но не удалось отправить email: ${emailError}`
