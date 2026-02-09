@@ -188,6 +188,11 @@
           </button>
         </div>
 
+        <!-- House Picker (approved users without a team) -->
+        <div v-if="user?.status === 'approved' && !user?.teamId" class="house-picker-card">
+          <HousePicker @selected="onHouseSelected" />
+        </div>
+
         <!-- Right Column - Payment Info (only for approved) -->
         <div v-if="user?.status === 'approved' && approvedInfo" class="payment-card">
           <div class="card-header">
@@ -294,6 +299,7 @@ import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
 import Header from '../components/Header.vue'
 import TeamBadge from '../components/TeamBadge.vue'
+import HousePicker from '../components/HousePicker.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -490,6 +496,14 @@ onMounted(async () => {
   await authStore.fetchUser()
   await fetchApprovedInfo()
 })
+
+function onHouseSelected(teamId: string) {
+  // teamId is already saved in authStore.user.teamId by HousePicker
+  // Force reactivity update
+  if (authStore.user) {
+    authStore.user = { ...authStore.user, teamId }
+  }
+}
 
 function handleLogout() {
   authStore.logout()
@@ -1097,7 +1111,8 @@ function handleLogout() {
 
   .profile-card,
   .location-card,
-  .error-card {
+  .error-card,
+  .house-picker-card {
     grid-column: auto;
   }
 
@@ -1186,6 +1201,17 @@ function handleLogout() {
   .map-container {
     border-radius: 8px;
   }
+}
+
+/* House Picker Card */
+.house-picker-card {
+  grid-column: span 2;
+  background: rgba(42, 31, 26, 0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 111, 71, 0.4);
+  border-radius: 20px;
+  padding: 1.5rem;
+  animation: fadeIn 0.5s ease-out;
 }
 
 /* Edit Mode Styles */
