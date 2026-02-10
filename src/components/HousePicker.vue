@@ -1,7 +1,7 @@
 <template>
   <div class="house-picker">
-    <h3 class="picker-title">Выберите свой Великий Дом</h3>
-    <p class="picker-subtitle">Это решение определит вашу судьбу на TourFurr 3</p>
+    <h3 class="picker-title">{{ isChangeMode ? 'Сменить Великий Дом' : 'Выберите свой Великий Дом' }}</h3>
+    <p class="picker-subtitle">Присягните на верность одному из Великих Домов Вестероса</p>
 
     <div class="houses-grid">
       <button
@@ -32,7 +32,7 @@
         @click="confirmSelection"
       >
         <template v-if="isSaving">Сохранение...</template>
-        <template v-else>Присоединиться к дому {{ selectedTeamName }}</template>
+        <template v-else>Присягнуть дому {{ selectedTeamName }}</template>
       </button>
     </div>
 
@@ -45,6 +45,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useTeamsStore } from '../stores/teams'
 import { useAuthStore } from '../stores/auth'
 
+const props = defineProps<{
+  changeMode?: boolean
+}>()
+
 const emit = defineEmits<{
   (e: 'selected', teamId: string): void
 }>()
@@ -56,6 +60,7 @@ const teams = computed(() => teamsStore.teams)
 const selectedTeamId = ref<string | null>(null)
 const isSaving = ref(false)
 const errorMsg = ref('')
+const isChangeMode = computed(() => props.changeMode || false)
 
 const selectedTeamName = computed(() => {
   if (!selectedTeamId.value) return ''
@@ -86,6 +91,10 @@ async function confirmSelection() {
 onMounted(async () => {
   if (teamsStore.teams.length === 0) {
     await teamsStore.fetchTeams()
+  }
+  // Pre-select current team in change mode
+  if (isChangeMode.value && authStore.user?.teamId) {
+    selectedTeamId.value = authStore.user.teamId
   }
 })
 </script>
@@ -147,19 +156,15 @@ onMounted(async () => {
 .house-crest {
   width: 48px;
   height: 48px;
-  border-radius: 10px;
-  background: var(--house-bg, rgba(255, 107, 53, 0.15));
-  border: 2px solid var(--house-color, var(--fire));
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: hidden;
 }
 
 .house-crest img {
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
   position: relative;
   z-index: 1;

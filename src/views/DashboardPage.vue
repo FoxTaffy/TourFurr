@@ -77,6 +77,21 @@
               Редактировать
             </button>
 
+            <!-- Change House Button (only if already has a team and not locked) -->
+            <button
+              v-if="user?.teamId && !houseLocked"
+              class="change-house-btn"
+              @click="showHouseChange = !showHouseChange"
+            >
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+              </svg>
+              {{ showHouseChange ? 'Отменить смену дома' : 'Сменить Великий Дом' }}
+            </button>
+            <p v-if="user?.teamId && houseLocked" class="house-locked-text">
+              Смена Великого Дома заблокирована с 1 августа
+            </p>
+
             <!-- Teams Button -->
             <button class="teams-profile-btn" @click="router.push('/teams')">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,9 +252,9 @@
           </div>
         </div>
 
-        <!-- House Picker (approved users without a team) -->
-        <div v-if="user?.status === 'approved' && !user?.teamId" class="house-picker-card">
-          <HousePicker @selected="onHouseSelected" />
+        <!-- House Picker (approved users without a team OR changing house) -->
+        <div v-if="user?.status === 'approved' && (!user?.teamId || showHouseChange)" class="house-picker-card">
+          <HousePicker :changeMode="!!user?.teamId" @selected="onHouseSelected" />
         </div>
 
         <!-- Location Card (only for approved) -->
@@ -297,6 +312,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
+import { isHouseLocked } from '../stores/teams'
 import Header from '../components/Header.vue'
 import TeamBadge from '../components/TeamBadge.vue'
 import HousePicker from '../components/HousePicker.vue'
@@ -305,6 +321,8 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const user = computed(() => authStore.user)
+const showHouseChange = ref(false)
+const houseLocked = computed(() => isHouseLocked())
 
 interface ApprovedInfo {
   location: string
@@ -503,6 +521,7 @@ function onHouseSelected(teamId: string) {
   if (authStore.user) {
     authStore.user = { ...authStore.user, teamId }
   }
+  showHouseChange.value = false
 }
 
 function handleLogout() {
@@ -1281,6 +1300,45 @@ function handleLogout() {
 .schedule-card-btn svg {
   width: 18px;
   height: 18px;
+}
+
+.change-house-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  margin-top: 0.75rem;
+  background: linear-gradient(135deg, rgba(200, 169, 81, 0.1), rgba(255, 179, 71, 0.1));
+  border: 1px solid rgba(200, 169, 81, 0.4);
+  border-radius: 12px;
+  color: #C8A951;
+  font-family: 'Lora', serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.change-house-btn:hover {
+  background: linear-gradient(135deg, rgba(200, 169, 81, 0.2), rgba(255, 179, 71, 0.2));
+  border-color: #C8A951;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(200, 169, 81, 0.3);
+}
+
+.change-house-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.house-locked-text {
+  font-size: 0.8rem;
+  color: var(--sage);
+  font-style: italic;
+  margin-top: 0.75rem;
+  text-align: center;
 }
 
 .teams-profile-btn {
