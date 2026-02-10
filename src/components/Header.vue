@@ -31,7 +31,7 @@
               <a href="/auth" class="auth-button">Войти</a>
             </li>
             <li v-if="showAuthButtons && isAuthenticated">
-              <a href="/teams" class="teams-nav-link">Дома</a>
+              <a href="/teams" class="teams-nav-link">Великие Дома</a>
             </li>
             <li v-if="showAuthButtons && isAuthenticated">
               <a href="/dashboard" class="user-mini-card-link">
@@ -61,7 +61,7 @@
               <svg class="teams-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
               </svg>
-              Дома
+              Великие Дома
             </a>
             <button @click="handleLogout" class="logout-btn">
               <svg class="logout-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">

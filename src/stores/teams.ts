@@ -16,50 +16,57 @@ export interface TeamMember {
 const FALLBACK_TEAMS: Team[] = [
   {
     id: 'stark',
-    name: 'Stark',
+    name: 'Старки',
     slug: 'stark',
-    description: 'Winter is Coming. The noble wolves of the North, bound by honor and duty.',
+    description: '«Зима близко». Благородные волки Севера, связанные честью и долгом.',
     crest_url: '/images/crests/stark.png',
     color: '#8B9DAF',
     created_at: ''
   },
   {
     id: 'lannister',
-    name: 'Lannister',
+    name: 'Ланнистеры',
     slug: 'lannister',
-    description: 'Hear Me Roar! The golden lions of Casterly Rock, wielding power and wealth.',
+    description: '«Услышь мой рёв!» Золотые львы Утёса Кастерли, владеющие властью и богатством.',
     crest_url: '/images/crests/lannister.png',
     color: '#C8A951',
     created_at: ''
   },
   {
     id: 'tyrell',
-    name: 'Tyrell',
+    name: 'Тиреллы',
     slug: 'tyrell',
-    description: 'Growing Strong. The golden roses of Highgarden, masters of diplomacy and abundance.',
+    description: '«Вырастая — крепнем». Золотые розы Хайгардена, мастера дипломатии и изобилия.',
     crest_url: '/images/crests/tyrell.png',
     color: '#2D6A4F',
     created_at: ''
   },
   {
     id: 'baratheon',
-    name: 'Baratheon',
+    name: 'Баратеоны',
     slug: 'baratheon',
-    description: 'Ours is the Fury. The mighty stags of Storm\'s End, forged in battle.',
+    description: '«Нам является ярость». Могучие олени Штормового Предела, закалённые в битвах.',
     crest_url: '/images/crests/baratheon.png',
     color: '#FFD700',
     created_at: ''
   },
   {
     id: 'martell',
-    name: 'Martell',
+    name: 'Мартеллы',
     slug: 'martell',
-    description: 'Unbowed, Unbent, Unbroken. The sun spears of Dorne, fierce and unyielding.',
+    description: '«Непреклонные, несгибаемые, несломленные». Солнечные копья Дорна, яростные и непокорные.',
     crest_url: '/images/crests/martell.png',
     color: '#E07A1E',
     created_at: ''
   }
 ]
+
+// After this date, house selection is locked
+export const HOUSE_LOCK_DATE = new Date('2026-08-01T00:00:00')
+
+export function isHouseLocked(): boolean {
+  return new Date() >= HOUSE_LOCK_DATE
+}
 
 export const useTeamsStore = defineStore('teams', () => {
   const teams = ref<Team[]>([])
@@ -118,6 +125,7 @@ export const useTeamsStore = defineStore('teams', () => {
   }
 
   async function fetchTeamMembers(teamId: string) {
+    // Try DB first
     try {
       const { data, error: dbError } = await supabase
         .from('users')
@@ -125,14 +133,38 @@ export const useTeamsStore = defineStore('teams', () => {
         .eq('team_id', teamId)
         .order('nickname')
 
-      if (!dbError && data) {
+      if (!dbError && data && data.length > 0) {
         members.value[teamId] = data
         return
       }
     } catch {
-      // Silently fail — no members to show
+      // DB column may not exist
     }
-    members.value[teamId] = []
+
+    // Fallback: check current user from localStorage
+    try {
+      const stored = localStorage.getItem('current_user')
+      if (stored) {
+        const currentUser = JSON.parse(stored)
+        const userTeam = currentUser.teamId || localStorage.getItem(`user_team_${currentUser.id}`)
+        if (userTeam === teamId) {
+          members.value[teamId] = [{
+            id: currentUser.id,
+            nickname: currentUser.nickname,
+            avatar_url: currentUser.avatar || null,
+            status: currentUser.status || 'approved',
+            team_id: teamId
+          }]
+          return
+        }
+      }
+    } catch {
+      // ignore parse errors
+    }
+
+    if (!members.value[teamId]) {
+      members.value[teamId] = []
+    }
   }
 
   async function selectTeam(userId: string, teamId: string): Promise<{ success: boolean; error?: string }> {

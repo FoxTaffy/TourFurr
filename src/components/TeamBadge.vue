@@ -2,7 +2,6 @@
   <span
     v-if="team"
     class="team-badge"
-    :style="badgeStyle"
     :title="team.name"
   >
     <img
@@ -53,14 +52,6 @@ const crestSrc = computed(() => {
   return CREST_MAP[team.value.slug] || ''
 })
 
-const badgeStyle = computed(() => {
-  if (!team.value) return {}
-  return {
-    '--team-color': team.value.color,
-    '--team-bg': team.value.color + '30'
-  }
-})
-
 function onImgError() {
   imgFailed.value = true
 }
@@ -73,26 +64,16 @@ function onImgError() {
   justify-content: center;
   width: 22px;
   height: 22px;
-  border-radius: 6px;
-  background: var(--team-bg, rgba(255, 107, 53, 0.2));
-  border: 1.5px solid var(--team-color, var(--fire));
   flex-shrink: 0;
   vertical-align: middle;
   margin-right: 6px;
-  transition: all 0.2s ease;
   cursor: default;
 }
 
-.team-badge:hover {
-  transform: scale(1.15);
-  box-shadow: 0 0 8px var(--team-color, var(--fire));
-}
-
 .team-crest {
-  width: 14px;
-  height: 14px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
-  border-radius: 2px;
 }
 
 .team-initial {

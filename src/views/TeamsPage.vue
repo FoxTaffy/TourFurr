@@ -223,20 +223,16 @@ onMounted(async () => {
 .team-crest-wrapper {
   width: 56px;
   height: 56px;
-  border-radius: 12px;
-  background: var(--team-bg, rgba(255, 107, 53, 0.15));
-  border: 2px solid var(--team-color, var(--fire));
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   position: relative;
-  overflow: hidden;
 }
 
 .team-crest-large {
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
   position: relative;
   z-index: 1;
@@ -419,13 +415,13 @@ onMounted(async () => {
   }
 
   .team-crest-wrapper {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
   }
 
   .team-crest-large {
-    width: 28px;
-    height: 28px;
+    width: 40px;
+    height: 40px;
   }
 
   .team-name {
