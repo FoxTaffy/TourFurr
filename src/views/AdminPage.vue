@@ -294,13 +294,22 @@
             <!-- Actions -->
             <div class="user-actions">
               <button
-                v-if="user.status !== 'approved'"
+                v-if="user.status !== 'approved' && user.status !== 'paid'"
                 @click="updateStatus(user.id, 'approved')"
                 class="action-btn approve"
                 :disabled="isUpdating === user.id"
               >
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 Одобрить
+              </button>
+              <button
+                v-if="user.status === 'approved'"
+                @click="updateStatus(user.id, 'paid')"
+                class="action-btn paid"
+                :disabled="isUpdating === user.id"
+              >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                Оплачено
               </button>
               <button
                 v-if="user.status === 'pending'"
@@ -334,9 +343,162 @@
         </div>
       </div>
 
+      <!-- ============================== HOUSES TAB ============================== -->
+      <div v-if="activeTab === 'houses'" class="tab-content">
+        <div class="tab-header">
+          <h1 class="tab-title">Великие Дома</h1>
+          <p class="tab-subtitle">Назначение домов участникам (Кеса, Ал, Диеро)</p>
+        </div>
+
+        <!-- House Assignment -->
+        <div class="houses-grid">
+          <div v-for="team in teamsStore.teams" :key="team.id" class="house-section">
+            <div class="house-header">
+              <img :src="team.crest_url || `/images/crests/${team.slug}.png`" :alt="team.name" class="house-crest-img" @error="($event.target as HTMLImageElement).style.display='none'" />
+              <div>
+                <h3 class="house-name" :style="{ color: team.color }">{{ team.name }}</h3>
+                <span class="house-count">{{ getHouseMembers(team.id).length }} участников</span>
+              </div>
+            </div>
+
+            <!-- Members in this house -->
+            <div class="house-members">
+              <div v-for="member in getHouseMembers(team.id)" :key="member.id" class="house-member">
+                <div class="member-info">
+                  <div class="member-avatar-sm">
+                    <img v-if="member.avatar_url" :src="member.avatar_url" alt="" />
+                    <span v-else>{{ member.nickname?.[0]?.toUpperCase() }}</span>
+                  </div>
+                  <span class="member-name">{{ member.nickname }}</span>
+                </div>
+                <button class="remove-house-btn" @click="assignHouse(member.id, null)" :disabled="isUpdating === member.id">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+              <p v-if="getHouseMembers(team.id).length === 0" class="no-members">Нет участников</p>
+            </div>
+
+            <!-- Add user to this house -->
+            <div class="add-to-house">
+              <select class="house-select" @change="onHouseAssign($event, team.id)">
+                <option value="">+ Добавить участника...</option>
+                <option v-for="u in unassignedUsers" :key="u.id" :value="u.id">{{ u.nickname }} ({{ u.email }})</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Unassigned Users -->
+        <div class="unassigned-section" v-if="unassignedUsers.length > 0">
+          <h3 class="section-title">Без дома ({{ unassignedUsers.length }})</h3>
+          <div class="unassigned-list">
+            <div v-for="u in unassignedUsers" :key="u.id" class="unassigned-user">
+              <div class="member-avatar-sm">
+                <img v-if="u.avatar_url" :src="u.avatar_url" alt="" />
+                <span v-else>{{ u.nickname?.[0]?.toUpperCase() }}</span>
+              </div>
+              <span class="member-name">{{ u.nickname }}</span>
+              <span class="user-status-badge" :class="u.status">{{ statusLabels[u.status] }}</span>
+              <select class="house-select-sm" @change="onHouseAssign($event, ($event.target as HTMLSelectElement).value, u.id)">
+                <option value="">Назначить дом...</option>
+                <option v-for="team in teamsStore.teams" :key="team.id" :value="team.id">{{ team.name }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ============================== APPLICATIONS TAB ============================== -->
       <div v-if="activeTab === 'applications'" class="tab-content">
-        <ApplicationsManagement />
+        <div class="tab-header">
+          <h1 class="tab-title">Управление заявками</h1>
+          <p class="tab-subtitle">Рассмотрение заявок на участие</p>
+        </div>
+
+        <div class="filter-chips" style="margin-bottom: 1.5rem;">
+          <button @click="appFilter = 'pending'" class="chip" :class="{ active: appFilter === 'pending' }">
+            На рассмотрении <span class="chip-count">{{ pendingCount }}</span>
+          </button>
+          <button @click="appFilter = 'deferred'" class="chip" :class="{ active: appFilter === 'deferred' }">
+            Отложенные <span class="chip-count">{{ deferredCount }}</span>
+          </button>
+          <button @click="appFilter = 'all'" class="chip" :class="{ active: appFilter === 'all' }">
+            Все <span class="chip-count">{{ users.length }}</span>
+          </button>
+        </div>
+
+        <div v-if="isLoading" class="loading-state">
+          <div class="page-spinner"></div>
+          <p>Загрузка заявок...</p>
+        </div>
+
+        <div v-else class="applications-list">
+          <div v-for="user in applicationUsers" :key="user.id" class="application-card">
+            <div class="app-card-header">
+              <div class="app-user-info">
+                <div class="user-avatar-wrap">
+                  <img v-if="user.avatar_url" :src="user.avatar_url" alt="" class="user-avatar" />
+                  <span v-else class="avatar-letter">{{ user.nickname?.[0]?.toUpperCase() }}</span>
+                </div>
+                <div>
+                  <h3 class="user-nickname">{{ user.nickname }}</h3>
+                  <p class="user-email">{{ user.email }}</p>
+                </div>
+              </div>
+              <div class="user-status-badge" :class="user.status">{{ statusLabels[user.status] }}</div>
+            </div>
+
+            <div class="app-details">
+              <div v-if="user.phone" class="app-detail">
+                <span class="app-label">Телефон:</span> {{ user.phone }}
+              </div>
+              <div v-if="user.telegram" class="app-detail">
+                <span class="app-label">Telegram:</span>
+                <a :href="'https://' + user.telegram" target="_blank">{{ user.telegram }}</a>
+              </div>
+              <div v-if="user.description" class="app-detail">
+                <span class="app-label">О себе:</span> {{ user.description }}
+              </div>
+              <div class="app-detail">
+                <span class="app-label">Дата:</span> {{ formatRelativeDate(user.created_at) }}
+              </div>
+            </div>
+
+            <div class="user-actions">
+              <button
+                v-if="user.status !== 'approved' && user.status !== 'paid'"
+                @click="updateStatus(user.id, 'approved')"
+                class="action-btn approve"
+                :disabled="isUpdating === user.id"
+              >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                Одобрить
+              </button>
+              <button
+                v-if="user.status === 'pending'"
+                @click="updateStatus(user.id, 'deferred')"
+                class="action-btn defer"
+                :disabled="isUpdating === user.id"
+              >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Отложить
+              </button>
+              <button
+                v-if="user.status !== 'rejected'"
+                @click="updateStatus(user.id, 'rejected')"
+                class="action-btn reject"
+                :disabled="isUpdating === user.id"
+              >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                Отклонить
+              </button>
+            </div>
+          </div>
+
+          <div v-if="applicationUsers.length === 0" class="empty-state">
+            <p>Нет заявок для отображения</p>
+          </div>
+        </div>
       </div>
     </main>
   </div>
@@ -348,7 +510,6 @@ import { useRouter } from 'vue-router'
 import { supabase } from '../services/supabase'
 import { useAuthStore } from '../stores/auth'
 import { useTeamsStore } from '../stores/teams'
-import ApplicationsManagement from '../components/ApplicationsManagement.vue'
 import TeamBadge from '../components/TeamBadge.vue'
 import logoImg from '../assets/logo.png'
 
@@ -388,16 +549,23 @@ const tabs = computed(() => [
     badgeClass: ''
   },
   {
-    id: 'users',
-    label: 'Пользователи',
-    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>',
+    id: 'applications',
+    label: 'Заявки',
+    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>',
     badge: pendingCount.value > 0 ? pendingCount.value : null,
     badgeClass: 'badge-warn'
   },
   {
-    id: 'applications',
-    label: 'Заявки',
-    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>',
+    id: 'users',
+    label: 'Пользователи',
+    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>',
+    badge: null,
+    badgeClass: ''
+  },
+  {
+    id: 'houses',
+    label: 'Великие Дома',
+    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>',
     badge: null,
     badgeClass: ''
   }
@@ -408,6 +576,7 @@ const filters = [
   { label: 'На рассмотрении', value: 'pending' },
   { label: 'Отложенные', value: 'deferred' },
   { label: 'Одобрено', value: 'approved' },
+  { label: 'Оплачено', value: 'paid' },
   { label: 'Отклонено', value: 'rejected' }
 ]
 
@@ -415,14 +584,82 @@ const statusLabels: Record<string, string> = {
   pending: 'На рассмотрении',
   deferred: 'Отложено',
   approved: 'Одобрено',
+  paid: 'Оплачено',
   rejected: 'Отклонено'
 }
+
+const appFilter = ref('pending')
 
 // ---- Computed Stats ----
 const pendingCount = computed(() => users.value.filter(u => u.status === 'pending').length)
 const deferredCount = computed(() => users.value.filter(u => u.status === 'deferred').length)
 const approvedCount = computed(() => users.value.filter(u => u.status === 'approved').length)
+const paidCount = computed(() => users.value.filter(u => u.status === 'paid').length)
 const rejectedCount = computed(() => users.value.filter(u => u.status === 'rejected').length)
+
+// ---- Application Users ----
+const applicationUsers = computed(() => {
+  if (appFilter.value === 'all') return users.value
+  return users.value.filter(u => u.status === appFilter.value)
+})
+
+// ---- House Assignment ----
+function getHouseMembers(teamId: string) {
+  return users.value.filter(u => {
+    if (u.team_id === teamId) return true
+    try {
+      return localStorage.getItem(`user_team_${u.id}`) === teamId
+    } catch { return false }
+  })
+}
+
+const unassignedUsers = computed(() => {
+  return users.value.filter(u => {
+    if (u.team_id) return false
+    try {
+      const local = localStorage.getItem(`user_team_${u.id}`)
+      return !local
+    } catch { return true }
+  }).filter(u => u.status === 'approved' || u.status === 'paid')
+})
+
+async function assignHouse(userId: string, teamId: string | null) {
+  isUpdating.value = userId
+  try {
+    // Try DB update
+    try {
+      await supabase.from('users').update({ team_id: teamId }).eq('id', userId)
+    } catch { /* column may not exist */ }
+
+    // Always update localStorage
+    if (teamId) {
+      localStorage.setItem(`user_team_${userId}`, teamId)
+    } else {
+      localStorage.removeItem(`user_team_${userId}`)
+    }
+
+    // Update local state
+    const user = users.value.find(u => u.id === userId)
+    if (user) {
+      user.team_id = teamId
+    }
+  } catch (err) {
+    console.error('Error assigning house:', err)
+  } finally {
+    isUpdating.value = null
+  }
+}
+
+function onHouseAssign(event: Event, teamIdOrSelectValue: string, userId?: string) {
+  const select = event.target as HTMLSelectElement
+  const selectedUserId = userId || select.value
+  const teamId = userId ? teamIdOrSelectValue : teamIdOrSelectValue
+
+  if (!selectedUserId || !teamId) return
+
+  assignHouse(userId || selectedUserId, teamId)
+  select.value = ''
+}
 
 const topStats = computed(() => [
   {
@@ -447,6 +684,13 @@ const topStats = computed(() => [
     bg: 'rgba(34, 197, 94, 0.15)'
   },
   {
+    label: 'Оплачено',
+    value: paidCount.value,
+    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>',
+    color: '#10b981',
+    bg: 'rgba(16, 185, 129, 0.15)'
+  },
+  {
     label: 'Отклонено',
     value: rejectedCount.value,
     icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>',
@@ -464,6 +708,7 @@ const donutSegments = computed(() => {
     { label: 'На рассмотрении', count: pendingCount.value, color: '#ffb347' },
     { label: 'Отложено', count: deferredCount.value, color: '#fbbf24' },
     { label: 'Одобрено', count: approvedCount.value, color: '#22c55e' },
+    { label: 'Оплачено', count: paidCount.value, color: '#10b981' },
     { label: 'Отклонено', count: rejectedCount.value, color: '#ef4444' }
   ]
 
@@ -520,16 +765,15 @@ const houseStats = computed(() => {
 
 // ---- Payment Stats ----
 const paymentStats = computed(() => {
-  // For now approximate from user statuses
-  const paid = approvedCount.value
+  const paid = paidCount.value
+  const awaitingPayment = approvedCount.value
   const unpaid = pendingCount.value + deferredCount.value
-  const rejected = rejectedCount.value
-  const total = Math.max(1, paid + unpaid + rejected)
+  const total = Math.max(1, paid + awaitingPayment + unpaid)
 
   return [
-    { label: 'Оплачено', count: paid, color: '#22c55e', percent: (paid / total) * 100 },
-    { label: 'Ожидание', count: unpaid, color: '#ffb347', percent: (unpaid / total) * 100 },
-    { label: 'Отклонено', count: rejected, color: '#ef4444', percent: (rejected / total) * 100 }
+    { label: 'Оплачено', count: paid, color: '#10b981', percent: (paid / total) * 100 },
+    { label: 'Ожидают оплаты', count: awaitingPayment, color: '#22c55e', percent: (awaitingPayment / total) * 100 },
+    { label: 'На рассмотрении', count: unpaid, color: '#ffb347', percent: (unpaid / total) * 100 }
   ]
 })
 
@@ -932,7 +1176,7 @@ onMounted(() => {
    ============================================================================ */
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -1533,6 +1777,11 @@ onMounted(() => {
   color: #22c55e;
 }
 
+.user-status-badge.paid {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
 .user-status-badge.rejected {
   background: rgba(239, 68, 68, 0.15);
   color: #ef4444;
@@ -1655,6 +1904,293 @@ onMounted(() => {
   background: rgba(255, 179, 71, 0.15);
 }
 
+.action-btn.paid {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.action-btn.paid:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.15);
+}
+
+/* ============================================================================
+   HOUSES TAB
+   ============================================================================ */
+.houses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.house-section {
+  background: rgba(26, 17, 14, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(139, 111, 71, 0.2);
+  border-radius: 16px;
+  padding: 1.25rem;
+}
+
+.house-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(139, 111, 71, 0.2);
+}
+
+.house-crest-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.house-name {
+  font-family: 'Merriweather', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.house-count {
+  font-size: 0.8rem;
+  color: var(--sage);
+}
+
+.house-members {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.house-member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.house-member:hover {
+  background: rgba(42, 31, 26, 0.5);
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-avatar-sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--forest-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.member-avatar-sm img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.member-avatar-sm span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--fire-glow);
+}
+
+.member-name {
+  font-size: 0.9rem;
+  color: var(--cream);
+}
+
+.remove-house-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.house-member:hover .remove-house-btn {
+  opacity: 1;
+}
+
+.remove-house-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.remove-house-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.no-members {
+  text-align: center;
+  color: var(--sage);
+  font-style: italic;
+  font-size: 0.85rem;
+  padding: 1rem 0;
+}
+
+.add-to-house {
+  margin-top: 0.5rem;
+}
+
+.house-select,
+.house-select-sm {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(26, 17, 14, 0.7);
+  border: 1px solid rgba(139, 111, 71, 0.3);
+  border-radius: 10px;
+  color: var(--cream);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.house-select:focus,
+.house-select-sm:focus {
+  outline: none;
+  border-color: var(--fire-glow);
+}
+
+.house-select option,
+.house-select-sm option {
+  background: var(--forest-deep);
+  color: var(--cream);
+}
+
+.house-select-sm {
+  width: auto;
+  min-width: 140px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
+
+.unassigned-section {
+  background: rgba(26, 17, 14, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(139, 111, 71, 0.2);
+  border-radius: 16px;
+  padding: 1.25rem;
+}
+
+.section-title {
+  font-family: 'Merriweather', serif;
+  font-size: 1.1rem;
+  color: var(--fire-glow);
+  margin-bottom: 1rem;
+}
+
+.unassigned-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.unassigned-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.unassigned-user:hover {
+  background: rgba(42, 31, 26, 0.4);
+}
+
+/* ============================================================================
+   APPLICATIONS TAB
+   ============================================================================ */
+.applications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.application-card {
+  background: rgba(26, 17, 14, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(139, 111, 71, 0.2);
+  border-radius: 16px;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.application-card:hover {
+  border-color: rgba(139, 111, 71, 0.4);
+}
+
+.app-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.app-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: rgba(42, 31, 26, 0.3);
+  border-radius: 10px;
+}
+
+.app-detail {
+  font-size: 0.85rem;
+  color: var(--sage);
+}
+
+.app-detail a {
+  color: var(--fire-glow);
+  text-decoration: none;
+}
+
+.app-detail a:hover {
+  text-decoration: underline;
+}
+
+.app-label {
+  font-weight: 600;
+  color: var(--cream);
+}
+
+/* Activity status colors - paid */
+.activity-status.paid {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
 /* ============================================================================
    RESPONSIVE
    ============================================================================ */
@@ -1664,6 +2200,10 @@ onMounted(() => {
   }
 
   .charts-row {
+    grid-template-columns: 1fr;
+  }
+
+  .houses-grid {
     grid-template-columns: 1fr;
   }
 }
