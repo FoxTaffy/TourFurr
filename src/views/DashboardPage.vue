@@ -77,21 +77,6 @@
               Редактировать
             </button>
 
-            <!-- Change House Button (only if already has a team and not locked) -->
-            <button
-              v-if="user?.teamId && !houseLocked"
-              class="change-house-btn"
-              @click="showHouseChange = !showHouseChange"
-            >
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-              </svg>
-              {{ showHouseChange ? 'Отменить смену дома' : 'Сменить Великий Дом' }}
-            </button>
-            <p v-if="user?.teamId && houseLocked" class="house-locked-text">
-              Смена Великого Дома заблокирована с 1 августа
-            </p>
-
             <!-- Teams Button -->
             <button class="teams-profile-btn" @click="router.push('/teams')">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -194,8 +179,8 @@
 
           <p class="status-message">{{ statusDescriptions[user?.status || 'pending'] }}</p>
 
-          <!-- Schedule Button for approved users -->
-          <button v-if="user?.status === 'approved'" class="schedule-card-btn" @click="router.push('/schedule')">
+          <!-- Schedule Button for approved/paid users -->
+          <button v-if="user?.status === 'approved' || user?.status === 'paid'" class="schedule-card-btn" @click="router.push('/schedule')">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
@@ -203,8 +188,8 @@
           </button>
         </div>
 
-        <!-- Right Column - Payment Info (only for approved) -->
-        <div v-if="user?.status === 'approved' && approvedInfo" class="payment-card">
+        <!-- Right Column - Payment Info (for approved/paid) -->
+        <div v-if="(user?.status === 'approved' || user?.status === 'paid') && approvedInfo" class="payment-card">
           <div class="card-header">
             <h3>Оплата участия</h3>
           </div>
@@ -252,13 +237,33 @@
           </div>
         </div>
 
-        <!-- House Picker (approved users without a team OR changing house) -->
-        <div v-if="user?.status === 'approved' && (!user?.teamId || showHouseChange)" class="house-picker-card">
-          <HousePicker :changeMode="!!user?.teamId" @selected="onHouseSelected" />
+        <!-- Payment Status Banner (approved users who haven't paid) -->
+        <div v-if="user?.status === 'approved'" class="payment-status-card">
+          <div class="payment-status-banner waiting">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+              <strong>Ожидание оплаты</strong>
+              <p>Оплатите участие по реквизитам и отправьте чек организаторам в Telegram. После проверки вам изменят статус.</p>
+            </div>
+          </div>
         </div>
 
-        <!-- Location Card (only for approved) -->
-        <div v-if="user?.status === 'approved' && approvedInfo" class="location-card">
+        <div v-if="user?.status === 'paid'" class="payment-status-card">
+          <div class="payment-status-banner paid">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+              <strong>Оплата подтверждена</strong>
+              <p>Ваше участие оплачено. Добро пожаловать на TourFurr 3!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location Card (for approved/paid) -->
+        <div v-if="(user?.status === 'approved' || user?.status === 'paid') && approvedInfo" class="location-card">
           <div class="card-header">
             <h3>Локация</h3>
           </div>
@@ -295,7 +300,7 @@
         </div>
 
         <!-- Error Card -->
-        <div v-if="user?.status === 'approved' && infoError" class="error-card">
+        <div v-if="(user?.status === 'approved' || user?.status === 'paid') && infoError" class="error-card">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
           </svg>
@@ -312,17 +317,13 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
-import { isHouseLocked } from '../stores/teams'
 import Header from '../components/Header.vue'
 import TeamBadge from '../components/TeamBadge.vue'
-import HousePicker from '../components/HousePicker.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 const user = computed(() => authStore.user)
-const showHouseChange = ref(false)
-const houseLocked = computed(() => isHouseLocked())
 
 interface ApprovedInfo {
   location: string
@@ -450,7 +451,7 @@ async function confirmDelete() {
 }
 
 async function fetchApprovedInfo() {
-  if (user.value?.status !== 'approved') {
+  if (user.value?.status !== 'approved' && user.value?.status !== 'paid') {
     approvedInfo.value = null
     infoError.value = null
     return
@@ -480,7 +481,7 @@ async function fetchApprovedInfo() {
 }
 
 watch(() => user.value?.status, (newStatus) => {
-  if (newStatus === 'approved') {
+  if (newStatus === 'approved' || newStatus === 'paid') {
     fetchApprovedInfo()
   } else {
     approvedInfo.value = null
@@ -490,6 +491,7 @@ watch(() => user.value?.status, (newStatus) => {
 const statusLabels: Record<string, string> = {
   pending: 'На рассмотрении',
   approved: 'Одобрено',
+  paid: 'Оплачено',
   rejected: 'Отклонено',
   deferred: 'На рассмотрении'
 }
@@ -497,7 +499,8 @@ const statusLabels: Record<string, string> = {
 const statusDescriptions: Record<string, string> = {
   pending: 'Если Вы ранее не были на ТурФурр — админ может написать вам для знакомства. Статус: В обработке.',
   deferred: 'Если Вы ранее не были на ТурФурр — админ может написать вам для знакомства. Статус: В обработке.',
-  approved: 'Поздравляем! Ваша заявка одобрена. Оплатите участие по реквизитам справа и загляните в Расписание.',
+  approved: 'Поздравляем! Ваша заявка одобрена. Оплатите участие по реквизитам справа и отправьте чек организаторам.',
+  paid: 'Оплата подтверждена! Добро пожаловать на TourFurr 3: Game of Thrones. Загляните в Расписание.',
   rejected: 'К сожалению Вам отказано в участии. Если вы не согласны, пожалуйста, напишите одному из оргов в контактах.'
 }
 
@@ -514,15 +517,6 @@ onMounted(async () => {
   await authStore.fetchUser()
   await fetchApprovedInfo()
 })
-
-function onHouseSelected(teamId: string) {
-  // teamId is already saved in authStore.user.teamId by HousePicker
-  // Force reactivity update
-  if (authStore.user) {
-    authStore.user = { ...authStore.user, teamId }
-  }
-  showHouseChange.value = false
-}
 
 function handleLogout() {
   authStore.logout()
@@ -669,6 +663,11 @@ function handleLogout() {
 .status-badge.rejected {
   background: rgba(239, 68, 68, 0.2);
   color: #ef4444;
+}
+
+.status-badge.paid {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
 }
 
 .contact-info {
@@ -1196,15 +1195,65 @@ function handleLogout() {
   }
 }
 
-/* House Picker Card */
-.house-picker-card {
+/* Payment Status Card */
+.payment-status-card {
   grid-column: span 2;
-  background: rgba(42, 31, 26, 0.85);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(139, 111, 71, 0.4);
-  border-radius: 20px;
-  padding: 1.5rem;
+}
+
+.payment-status-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 16px;
   animation: fadeIn 0.5s ease-out;
+}
+
+.payment-status-banner svg {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.payment-status-banner strong {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.payment-status-banner p {
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.payment-status-banner.waiting {
+  background: rgba(255, 179, 71, 0.1);
+  border: 1px solid rgba(255, 179, 71, 0.3);
+  color: var(--fire-glow);
+}
+
+.payment-status-banner.waiting svg {
+  color: var(--fire-glow);
+}
+
+.payment-status-banner.waiting p {
+  color: var(--sage);
+}
+
+.payment-status-banner.paid {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.payment-status-banner.paid svg {
+  color: #10b981;
+}
+
+.payment-status-banner.paid p {
+  color: var(--sage);
 }
 
 /* Edit Mode Styles */
@@ -1300,45 +1349,6 @@ function handleLogout() {
 .schedule-card-btn svg {
   width: 18px;
   height: 18px;
-}
-
-.change-house-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px;
-  margin-top: 0.75rem;
-  background: linear-gradient(135deg, rgba(200, 169, 81, 0.1), rgba(255, 179, 71, 0.1));
-  border: 1px solid rgba(200, 169, 81, 0.4);
-  border-radius: 12px;
-  color: #C8A951;
-  font-family: 'Lora', serif;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.change-house-btn:hover {
-  background: linear-gradient(135deg, rgba(200, 169, 81, 0.2), rgba(255, 179, 71, 0.2));
-  border-color: #C8A951;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(200, 169, 81, 0.3);
-}
-
-.change-house-btn svg {
-  width: 18px;
-  height: 18px;
-}
-
-.house-locked-text {
-  font-size: 0.8rem;
-  color: var(--sage);
-  font-style: italic;
-  margin-top: 0.75rem;
-  text-align: center;
 }
 
 .teams-profile-btn {
