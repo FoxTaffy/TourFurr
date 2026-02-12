@@ -449,18 +449,67 @@
             </div>
 
             <div class="app-details">
+              <!-- Contact info -->
               <div v-if="user.phone" class="app-detail">
+                <svg class="app-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                 <span class="app-label">Телефон:</span> {{ user.phone }}
               </div>
               <div v-if="user.telegram" class="app-detail">
+                <svg class="app-detail-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.327.015.095.034.312.019.482z"/></svg>
                 <span class="app-label">Telegram:</span>
                 <a :href="'https://' + user.telegram" target="_blank">{{ user.telegram }}</a>
               </div>
-              <div v-if="user.description" class="app-detail">
+              <div v-if="user.email" class="app-detail">
+                <svg class="app-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <span class="app-label">Email:</span> {{ user.email }}
+              </div>
+
+              <!-- Description -->
+              <div v-if="user.description" class="app-detail app-detail-full">
+                <svg class="app-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
                 <span class="app-label">О себе:</span> {{ user.description }}
               </div>
+
+              <!-- Pet info -->
+              <div v-if="user.bringing_pet" class="app-detail app-detail-full app-detail-highlight pet">
+                <svg class="app-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19c-4 0-7-2-7-5 0-2 1.5-3.5 3-4.5C9 8.5 10.5 8 12 8s3 .5 4 1.5c1.5 1 3 2.5 3 4.5 0 3-3 5-7 5zM8.5 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM18.5 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6 10.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM21 10.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/></svg>
+                <span class="app-label">Животное:</span> {{ user.pet_description || 'Да, берёт с собой' }}
+              </div>
+
+              <!-- Allergies -->
+              <div v-if="user.has_allergies" class="app-detail app-detail-highlight allergy">
+                <svg class="app-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="app-label">Аллергии:</span> Есть
+              </div>
+
+              <!-- Tags row -->
+              <div class="app-tags">
+                <span v-if="user.email_verified" class="app-tag verified">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  Email подтверждён
+                </span>
+                <span v-else class="app-tag unverified">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  Email не подтверждён
+                </span>
+                <span v-if="user.agree_rules" class="app-tag agreed">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  Правила
+                </span>
+                <span v-if="user.agree_privacy" class="app-tag agreed">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  Конфиденциальность
+                </span>
+                <span v-if="user.is_admin" class="app-tag admin-tag">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  Админ
+                </span>
+              </div>
+
+              <!-- Date -->
               <div class="app-detail">
-                <span class="app-label">Дата:</span> {{ formatRelativeDate(user.created_at) }}
+                <svg class="app-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span class="app-label">Дата подачи:</span> {{ formatRelativeDate(user.created_at) }}
               </div>
             </div>
 
@@ -532,7 +581,15 @@ interface User {
   description: string | null
   status: string
   created_at: string
+  updated_at: string | null
   team_id: string | null
+  is_admin: boolean
+  has_allergies: boolean
+  bringing_pet: boolean
+  pet_description: string | null
+  agree_rules: boolean
+  agree_privacy: boolean
+  email_verified: boolean
 }
 
 const users = ref<User[]>([])
@@ -2169,6 +2226,9 @@ onMounted(() => {
 .app-detail {
   font-size: 0.85rem;
   color: var(--sage);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .app-detail a {
@@ -2183,6 +2243,98 @@ onMounted(() => {
 .app-label {
   font-weight: 600;
   color: var(--cream);
+}
+
+.app-detail-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.app-detail-full {
+  width: 100%;
+  flex-basis: 100%;
+}
+
+.app-detail-highlight {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.app-detail-highlight.pet {
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  color: #c084fc;
+}
+
+.app-detail-highlight.pet .app-label {
+  color: #c084fc;
+}
+
+.app-detail-highlight.pet .app-detail-icon {
+  color: #c084fc;
+  opacity: 1;
+}
+
+.app-detail-highlight.allergy {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+}
+
+.app-detail-highlight.allergy .app-label {
+  color: #fbbf24;
+}
+
+.app-detail-highlight.allergy .app-detail-icon {
+  color: #fbbf24;
+  opacity: 1;
+}
+
+.app-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  width: 100%;
+  flex-basis: 100%;
+  padding-top: 0.25rem;
+}
+
+.app-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.app-tag svg {
+  width: 12px;
+  height: 12px;
+}
+
+.app-tag.verified {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.app-tag.unverified {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+}
+
+.app-tag.agreed {
+  background: rgba(96, 165, 250, 0.12);
+  color: #93c5fd;
+}
+
+.app-tag.admin-tag {
+  background: rgba(255, 107, 53, 0.15);
+  color: var(--fire-glow);
 }
 
 /* Activity status colors - paid */
