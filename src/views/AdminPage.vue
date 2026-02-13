@@ -550,6 +550,17 @@
         </div>
       </div>
     </main>
+
+    <!-- Toast Notifications -->
+    <Teleport to="body">
+      <Transition name="toast">
+        <div v-if="toast.show" class="admin-toast" :class="toast.type" @click="toast.show = false">
+          <svg v-if="toast.type === 'success'" class="toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <svg v-else class="toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>{{ toast.message }}</span>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -570,6 +581,20 @@ const activeTab = ref('dashboard')
 const sidebarCollapsed = ref(false)
 const mobileMenuOpen = ref(false)
 const searchQuery = ref('')
+
+// Toast notification system
+const toast = ref<{ show: boolean; message: string; type: 'success' | 'error' }>({
+  show: false,
+  message: '',
+  type: 'success'
+})
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+function showToast(message: string, type: 'success' | 'error' = 'success', duration = 5000) {
+  if (toastTimer) clearTimeout(toastTimer)
+  toast.value = { show: true, message, type }
+  toastTimer = setTimeout(() => { toast.value.show = false }, duration)
+}
 
 interface User {
   id: string
@@ -912,36 +937,79 @@ async function updateStatus(userId: string, status: string) {
 
     if (error) {
       console.error('Error updating status:', error)
-      alert('Ошибка обновления статуса')
+      showToast('Ошибка обновления статуса: ' + error.message, 'error')
       return
     }
 
     const user = users.value.find(u => u.id === userId)
     if (user) {
       user.status = status
+      showToast(`Статус ${user.nickname} изменён на "${statusLabels[status]}"`, 'success')
 
       if (status === 'approved' || status === 'rejected') {
-        try {
-          const { data: { session } } = await supabase.auth.getSession()
-          const token = session?.access_token
-          await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-approval-email`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token || import.meta.env.VITE_SUPABASE_ANON_KEY}`
-            },
-            body: JSON.stringify({ email: user.email, nickname: user.nickname, status })
-          })
-        } catch (emailError) {
-          console.error('Error sending approval email:', emailError)
-        }
+        await sendApprovalEmail(user.email, user.nickname, status)
       }
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error in updateStatus:', err)
-    alert('Произошла ошибка')
+    showToast('Произошла ошибка: ' + (err.message || 'Неизвестная ошибка'), 'error')
   } finally {
     isUpdating.value = null
+  }
+}
+
+async function sendApprovalEmail(email: string, nickname: string, status: string) {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+  if (!supabaseUrl) {
+    showToast('Email не отправлен: SUPABASE_URL не настроен', 'error', 8000)
+    return
+  }
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/send-approval-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token || import.meta.env.VITE_SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify({ email, nickname, status })
+    })
+
+    const responseData = await response.json().catch(() => null)
+
+    if (!response.ok) {
+      const errMsg = responseData?.error || responseData?.message || `HTTP ${response.status}`
+      console.error('Email send failed:', response.status, responseData)
+
+      if (response.status === 401 || response.status === 403) {
+        showToast(`Email не отправлен: нет доступа к Edge Function (${response.status}). Проверьте авторизацию.`, 'error', 8000)
+      } else if (response.status === 404) {
+        showToast('Email не отправлен: Edge Function "send-approval-email" не найдена. Функция не задеплоена в Supabase.', 'error', 10000)
+      } else if (response.status === 500) {
+        showToast(`Email не отправлен: ошибка сервера — ${errMsg}. Проверьте RESEND_API_KEY в Supabase secrets.`, 'error', 10000)
+      } else if (response.status === 429) {
+        showToast('Email не отправлен: превышен лимит отправки писем. Подождите и попробуйте снова.', 'error', 8000)
+      } else {
+        showToast(`Email не отправлен: ${errMsg}`, 'error', 8000)
+      }
+      return
+    }
+
+    console.log('Approval email sent:', responseData)
+    const statusText = status === 'approved' ? 'одобрении' : 'отклонении'
+    showToast(`Email об ${statusText} отправлен на ${email}`, 'success')
+
+  } catch (fetchError: any) {
+    console.error('Email fetch error:', fetchError)
+
+    if (fetchError.message?.includes('Failed to fetch') || fetchError.message?.includes('NetworkError')) {
+      showToast('Email не отправлен: нет связи с Supabase. Проверьте SUPABASE_URL и что Edge Functions задеплоены.', 'error', 10000)
+    } else {
+      showToast(`Email не отправлен: ${fetchError.message || 'сетевая ошибка'}`, 'error', 8000)
+    }
   }
 }
 
@@ -961,6 +1029,26 @@ function formatRelativeDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
 }
 
+async function checkEmailService() {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+  if (!supabaseUrl) {
+    showToast('SUPABASE_URL не настроен — email-уведомления не будут работать', 'error', 10000)
+    return
+  }
+
+  try {
+    // Preflight OPTIONS check — if function is deployed, it returns 200
+    const res = await fetch(`${supabaseUrl}/functions/v1/send-approval-email`, {
+      method: 'OPTIONS'
+    })
+    if (res.status === 404) {
+      showToast('Edge Function "send-approval-email" не задеплоена в Supabase. Письма не будут отправляться.', 'error', 12000)
+    }
+  } catch {
+    showToast('Нет связи с Supabase Edge Functions. Письма не будут отправляться. Проверьте сеть и URL.', 'error', 12000)
+  }
+}
+
 async function checkAdminAndLoad() {
   if (!authStore.user?.isAdmin) {
     alert('У вас нет прав доступа к админ-панели')
@@ -971,6 +1059,8 @@ async function checkAdminAndLoad() {
     loadUsers(),
     teamsStore.fetchTeams()
   ])
+  // Background check: is email service accessible?
+  checkEmailService()
 }
 
 onMounted(() => {
@@ -2428,6 +2518,81 @@ onMounted(() => {
   .chip {
     white-space: nowrap;
     flex-shrink: 0;
+  }
+}
+
+/* ============================================================================
+   TOAST NOTIFICATIONS
+   ============================================================================ */
+.admin-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  max-width: 480px;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  z-index: 10000;
+  cursor: pointer;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--cream, #F5DEB3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  word-break: break-word;
+}
+
+.admin-toast.success {
+  background: rgba(22, 101, 52, 0.9);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.admin-toast.error {
+  background: rgba(127, 29, 29, 0.9);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.toast-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.admin-toast.success .toast-icon {
+  color: #4ade80;
+}
+
+.admin-toast.error .toast-icon {
+  color: #fca5a5;
+}
+
+.toast-enter-active {
+  transition: all 0.35s ease;
+}
+
+.toast-leave-active {
+  transition: all 0.25s ease;
+}
+
+.toast-enter-from {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+}
+
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(40px);
+}
+
+@media (max-width: 640px) {
+  .admin-toast {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    max-width: none;
   }
 }
 </style>
