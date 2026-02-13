@@ -78,23 +78,21 @@ Deno.serve(async (req) => {
   }
 })
 
-/*
- * Настройка автоматического запуска:
- *
- * 1. С помощью pg_cron (в Supabase Dashboard -> SQL Editor):
- *    SELECT cron.schedule(
- *      'cleanup-unverified-users',
- *      '*/5 * * * *',
- *      $$SELECT net.http_post(
- *        url:='https://YOUR_PROJECT_REF.supabase.co/functions/v1/cleanup-unverified-accounts',
- *        headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_ANON_KEY"}'::jsonb
- *      ) as request_id;$$
- *    );
- *
- * 2. С помощью внешнего cron (например, GitHub Actions, Vercel Cron, или любого cron сервиса):
- *    curl -X POST https://YOUR_PROJECT_REF.supabase.co/functions/v1/cleanup-unverified-accounts \
- *      -H "Authorization: Bearer YOUR_ANON_KEY"
- *
- * 3. Вызов вручную для тестирования:
- *    curl -X POST http://localhost:54321/functions/v1/cleanup-unverified-accounts
- */
+// Настройка автоматического запуска:
+//
+// 1. С помощью pg_cron (в Supabase Dashboard -> SQL Editor):
+//    SELECT cron.schedule(
+//      'cleanup-unverified-users',
+//      '*/5 * * * *',
+//      $$SELECT net.http_post(
+//        url:='https://YOUR_PROJECT_REF.supabase.co/functions/v1/cleanup-unverified-accounts',
+//        headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_ANON_KEY"}'::jsonb
+//      ) as request_id;$$
+//    );
+//
+// 2. С помощью внешнего cron (например, GitHub Actions, Vercel Cron, или любого cron сервиса):
+//    curl -X POST https://YOUR_PROJECT_REF.supabase.co/functions/v1/cleanup-unverified-accounts \
+//      -H "Authorization: Bearer YOUR_ANON_KEY"
+//
+// 3. Вызов вручную для тестирования:
+//    curl -X POST http://localhost:54321/functions/v1/cleanup-unverified-accounts
