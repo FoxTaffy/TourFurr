@@ -194,46 +194,38 @@
             <h3>Оплата участия</h3>
           </div>
 
-          <!-- Visual Card -->
-          <div class="visual-card">
-            <div class="card-chip"></div>
-            <div class="card-number">{{ approvedInfo.card_number }}</div>
-            <div class="card-details">
-              <span class="card-holder">{{ approvedInfo.recipient }}</span>
-              <span class="card-bank">{{ approvedInfo.bank }}</span>
-            </div>
-          </div>
-
           <div class="payment-list">
             <div class="detail-row">
               <span class="detail-label">Сумма</span>
               <span class="detail-value price">{{ approvedInfo.price }} ₽</span>
             </div>
-            <div class="detail-row">
-              <span class="detail-label">Банк</span>
-              <span class="detail-value">{{ approvedInfo.bank }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Номер карты</span>
-              <span class="detail-value mono">{{ approvedInfo.card_number }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Получатель</span>
-              <span class="detail-value">{{ approvedInfo.recipient }}</span>
-            </div>
           </div>
 
-          <p class="payment-note">{{ approvedInfo.payment_note }}</p>
+          <p v-if="approvedInfo.payment_note" class="payment-note">{{ approvedInfo.payment_note }}</p>
 
-          <!-- Receipt reminder -->
-          <div class="receipt-reminder">
-            <svg class="reminder-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          <!-- Pay Online Button (for approved users who haven't paid) -->
+          <div v-if="user?.status === 'approved'" class="pay-online-section">
+            <button
+              class="pay-online-btn"
+              :disabled="isCreatingPayment"
+              @click="createPayment"
+            >
+              <svg v-if="!isCreatingPayment" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+              </svg>
+              <span v-if="isCreatingPayment" class="spinner-inline"></span>
+              {{ isCreatingPayment ? 'Создание платежа...' : 'Оплатить онлайн' }}
+            </button>
+            <p class="payment-methods-hint">Банковские карты, СБП, ЮMoney, SberPay и другие способы</p>
+            <p v-if="paymentError" class="payment-error">{{ paymentError }}</p>
+          </div>
+
+          <!-- Paid confirmation -->
+          <div v-if="user?.status === 'paid'" class="paid-confirmation">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <div class="reminder-content">
-              <strong>Важно!</strong>
-              <p>После оплаты отправьте чек об оплате организаторам в Telegram</p>
-            </div>
+            <span>Оплата подтверждена</span>
           </div>
         </div>
 
@@ -245,7 +237,7 @@
             </svg>
             <div>
               <strong>Ожидание оплаты</strong>
-              <p>Оплатите участие по реквизитам и отправьте чек организаторам в Telegram. После проверки вам изменят статус.</p>
+              <p>Нажмите кнопку «Оплатить онлайн» для перехода к безопасной оплате. Статус обновится автоматически после подтверждения платежа.</p>
             </div>
           </div>
         </div>
@@ -337,6 +329,53 @@ interface ApprovedInfo {
 
 const approvedInfo = ref<ApprovedInfo | null>(null)
 const infoError = ref<string | null>(null)
+
+// Payment state
+const isCreatingPayment = ref(false)
+const paymentError = ref<string | null>(null)
+
+async function createPayment() {
+  if (!approvedInfo.value || !user.value) return
+
+  isCreatingPayment.value = true
+  paymentError.value = null
+
+  try {
+    // Get application ID for current user
+    const { data: application, error: appError } = await supabase
+      .from('applications')
+      .select('id')
+      .eq('user_id', user.value.id)
+      .single()
+
+    if (appError || !application) {
+      paymentError.value = 'Не удалось найти заявку'
+      return
+    }
+
+    const { data, error } = await supabase.functions.invoke('create-payment', {
+      body: {
+        application_id: application.id,
+        amount: approvedInfo.value.price,
+        return_url: window.location.href,
+      },
+    })
+
+    if (error || !data?.confirmation_url) {
+      paymentError.value = 'Не удалось создать платёж. Попробуйте позже.'
+      console.error('Payment creation error:', error || data)
+      return
+    }
+
+    // Redirect to YooKassa payment page
+    window.location.href = data.confirmation_url
+  } catch (err: any) {
+    paymentError.value = err.message || 'Ошибка при создании платежа'
+    console.error('Payment error:', err)
+  } finally {
+    isCreatingPayment.value = false
+  }
+}
 
 // Yandex Maps iframe URL
 const yandexMapUrl = computed(() => {
@@ -499,7 +538,7 @@ const statusLabels: Record<string, string> = {
 const statusDescriptions: Record<string, string> = {
   pending: 'Если Вы ранее не были на ТурФурр — админ может написать вам для знакомства. Статус: В обработке.',
   deferred: 'Если Вы ранее не были на ТурФурр — админ может написать вам для знакомства. Статус: В обработке.',
-  approved: 'Поздравляем! Ваша заявка одобрена. Оплатите участие по реквизитам справа и отправьте чек организаторам.',
+  approved: 'Поздравляем! Ваша заявка одобрена. Оплатите участие онлайн — нажмите кнопку «Оплатить онлайн» в карточке оплаты.',
   paid: 'Оплата подтверждена! Добро пожаловать на TourFurr 3: Game of Thrones. Загляните в Расписание.',
   rejected: 'К сожалению Вам отказано в участии. Если вы не согласны, пожалуйста, напишите одному из оргов в контактах.'
 }
@@ -891,6 +930,87 @@ function handleLogout() {
   font-size: 0.85rem;
   font-style: italic;
   text-align: center;
+}
+
+/* Pay Online Section */
+.pay-online-section {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.pay-online-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #FF6B35, #FFB347);
+  color: #1a1410;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+}
+
+.pay-online-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.5);
+}
+
+.pay-online-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.pay-online-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.spinner-inline {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(26, 20, 16, 0.3);
+  border-top-color: #1a1410;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.payment-methods-hint {
+  margin-top: 0.75rem;
+  color: var(--sage);
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.payment-error {
+  margin-top: 0.75rem;
+  color: #ef4444;
+  font-size: 0.85rem;
+}
+
+.paid-confirmation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 12px;
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.paid-confirmation svg {
+  width: 24px;
+  height: 24px;
 }
 
 /* Receipt Reminder */
