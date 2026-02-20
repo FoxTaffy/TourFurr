@@ -361,9 +361,25 @@ async function createPayment() {
       },
     })
 
-    if (error || !data?.confirmation_url) {
-      paymentError.value = 'Не удалось создать платёж. Попробуйте позже.'
-      console.error('Payment creation error:', error || data)
+    if (error) {
+      paymentError.value = 'Сервис оплаты временно недоступен. Попробуйте позже.'
+      console.error('Payment creation error:', error)
+      return
+    }
+
+    if (data?.error) {
+      const errorMessages: Record<string, string> = {
+        'Application is not approved for payment': 'Заявка не одобрена для оплаты',
+        'Payment already completed': 'Оплата уже завершена',
+        'Payment service not configured': 'Сервис оплаты не настроен',
+      }
+      paymentError.value = errorMessages[data.error] || 'Не удалось создать платёж. Попробуйте позже.'
+      console.error('Payment creation error:', data)
+      return
+    }
+
+    if (!data?.confirmation_url) {
+      paymentError.value = 'Не удалось получить ссылку на оплату. Попробуйте позже.'
       return
     }
 

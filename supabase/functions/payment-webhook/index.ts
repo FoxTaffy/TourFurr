@@ -46,6 +46,9 @@ serve(async (req) => {
     if (paymentStatus === 'succeeded') {
       // Payment succeeded — update application
       const paidAmount = parseFloat(payment.amount?.value || '0')
+      if (!payment.amount?.value) {
+        console.warn('Payment succeeded but amount is missing:', paymentId)
+      }
 
       const { error: updateError } = await supabase
         .from('applications')
@@ -73,10 +76,14 @@ serve(async (req) => {
         .single()
 
       if (application?.user_id) {
-        await supabase
+        const { error: userUpdateError } = await supabase
           .from('users')
           .update({ status: 'paid' })
           .eq('id', application.user_id)
+
+        if (userUpdateError) {
+          console.error('Error updating user status to paid:', userUpdateError)
+        }
       }
 
       console.log('Payment confirmed for application:', applicationId)

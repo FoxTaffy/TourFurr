@@ -72,8 +72,12 @@ serve(async (req) => {
       )
     }
 
-    // Generate idempotency key
-    const idempotencyKey = crypto.randomUUID()
+    // Generate deterministic idempotency key based on application to prevent duplicate payments
+    const encoder = new TextEncoder()
+    const data = encoder.encode(application_id)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const idempotencyKey = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 
     // Create payment via YooKassa API
     const yookassaResponse = await fetch('https://api.yookassa.ru/v3/payments', {
