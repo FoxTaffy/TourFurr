@@ -558,6 +558,21 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
+      // 1a. Before signUp: clean up any expired unverified account for this email.
+      // This handles the case where user didn't verify within 15 minutes and tries
+      // to re-register — the old auth.users entry blocks a new signUp.
+      try {
+        const { data: cleanupData } = await supabase.functions.invoke('delete-expired-account', {
+          body: { email: cleanEmail }
+        })
+        if (cleanupData?.cleaned) {
+          logger.log('Cleaned up expired unverified account before re-registration:', cleanEmail)
+        }
+      } catch (cleanupError) {
+        // Non-critical: if cleanup fails, signUp attempt will reveal the conflict below
+        logger.warn('Could not pre-clean expired account:', cleanupError)
+      }
+
       // 1. Register user with Supabase Auth (disable automatic email)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: cleanEmail,
@@ -594,7 +609,9 @@ export const useAuthStore = defineStore('auth', () => {
       // Supabase returns a user with empty identities instead of an error
       // (anti-enumeration behavior when email confirmation is enabled)
       if (!authData.user.identities || authData.user.identities.length === 0) {
-        error.value = 'Этот email уже зарегистрирован. Попробуйте войти или восстановить пароль.'
+        // Edge case: cleanup ran but auth.users entry still persisted.
+        // Inform the user they can try again in a moment or use login/reset.
+        error.value = 'Этот email уже зарегистрирован. Если вы недавно пытались зарегистрироваться и не подтвердили email — подождите несколько минут и попробуйте ещё раз. Иначе войдите или восстановите пароль.'
         return { success: false, error: error.value }
       }
 
