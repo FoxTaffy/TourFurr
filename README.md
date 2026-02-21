@@ -9,7 +9,7 @@
 - **Стейт:** Pinia
 - **Роутинг:** Vue Router 4
 - **Backend:** Supabase (PostgreSQL + Edge Functions + Auth)
-- **Email:** Resend API
+- **Email:** Resend (SMTP + API)
 - **CAPTCHA:** Yandex SmartCaptcha
 - **Валидация:** Yup
 
@@ -53,6 +53,7 @@ cp .env.example .env
 
 ```bash
 supabase secrets set RESEND_API_KEY="your_key"
+supabase secrets set SMTP_PASS="your_key"
 supabase secrets set TURNSTILE_SECRET_KEY="your_key"
 ```
 

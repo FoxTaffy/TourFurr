@@ -1,0 +1,22 @@
+# Supabase Local Development Configuration
+# For more information, see: https://supabase.com/docs/guides/cli/config
+
+[project]
+id = "tourfurr"
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+sender_name = "TourFurr 2026"
+sender_email = "team@tourfurr.camp"
+
+[auth.email.smtp]
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(SMTP_PASS)"

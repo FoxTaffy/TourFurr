@@ -180,7 +180,7 @@ TourFurr 2026 - Сброс пароля
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'TourFurr 2026 <noreply@tourfurr.camp>',
+        from: 'TourFurr 2026 <team@tourfurr.camp>',
         to: [email],
         subject: `Код сброса пароля TourFurr: ${code}`,
         html: htmlContent,
