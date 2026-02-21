@@ -4,6 +4,8 @@ import App from './App.vue'
 import router from './router'
 import './assets/style.css'
 import { validateEnvironment } from './utils/env'
+import { supabase } from './services/supabase'
+import { useAuthStore } from './stores/auth'
 
 // Validate environment variables before starting the app
 try {
@@ -31,3 +33,15 @@ app.use(createPinia())
 app.use(router)
 
 app.mount('#app')
+
+// Sync Supabase auth state with the app's auth store.
+// When Supabase exhausts token-refresh retries (e.g. ERR_CONNECTION_CLOSED /
+// ERR_CONNECTION_TIMED_OUT) it eventually fires a SIGNED_OUT event.
+// Without this listener the app's localStorage token and user cache stay
+// stale, leaving the UI in a broken "logged in but session dead" state.
+supabase.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_OUT') {
+    const authStore = useAuthStore()
+    authStore.logout()
+  }
+})
