@@ -1,22 +1,18 @@
-# Supabase Local Development Configuration
-# For more information, see: https://supabase.com/docs/guides/cli/config
+project_id = "tourfurr"
 
-[project]
-id = "tourfurr"
+[api]
+port = 54321
 
 [auth]
-enabled = true
 site_url = "http://localhost:5173"
 
-[auth.email]
-enable_signup = true
-double_confirm_changes = true
-enable_confirmations = true
-sender_name = "TourFurr 2026"
-sender_email = "team@tourfurr.camp"
-
-[auth.email.smtp]
+[auth.external.smtp]
+enabled = true
 host = "smtp.resend.com"
 port = 465
 user = "resend"
 pass = "env(SMTP_PASS)"
+
+# Если CLI снова ругнется на "auth", попробуйте удалить эти две строки ниже:
+# admin_email = "team@tourfurr.camp"
+# sender_name = "TourFurr 2026"
