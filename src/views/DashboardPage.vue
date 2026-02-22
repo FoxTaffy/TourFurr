@@ -191,17 +191,49 @@
         <!-- Right Column - Payment Info (for approved/paid) -->
         <div v-if="(user?.status === 'approved' || user?.status === 'paid') && approvedInfo" class="payment-card">
           <div class="card-header">
+            <svg class="card-header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
             <h3>Оплата участия</h3>
           </div>
 
-          <div class="payment-list">
-            <div class="detail-row">
-              <span class="detail-label">Сумма</span>
-              <span class="detail-value price">{{ approvedInfo.price }} ₽</span>
+          <!-- Visual Credit Card -->
+          <div class="visual-card" :class="{ 'visual-card--paid': user?.status === 'paid' }">
+            <div class="visual-card__circles">
+              <div class="visual-card__circle visual-card__circle--1"></div>
+              <div class="visual-card__circle visual-card__circle--2"></div>
+            </div>
+            <div class="visual-card__top">
+              <div class="visual-card__chip">
+                <div class="chip-inner"></div>
+              </div>
+              <div v-if="user?.status === 'paid'" class="visual-card__paid-badge">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <div v-else class="visual-card__nfc">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="visual-card__amount">
+              <span class="visual-card__amount-label">{{ user?.status === 'paid' ? 'Оплачено' : 'К оплате' }}</span>
+              <span class="visual-card__amount-value">{{ (approvedInfo.price ?? 0).toLocaleString('ru-RU') }} ₽</span>
+            </div>
+            <div class="visual-card__bottom">
+              <span class="visual-card__event">TourFurr 3 · 2026</span>
+              <span class="visual-card__brand">ЮKassa</span>
             </div>
           </div>
 
-          <p v-if="approvedInfo.payment_note" class="payment-note">{{ approvedInfo.payment_note }}</p>
+          <p v-if="approvedInfo.payment_note" class="payment-note">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ approvedInfo.payment_note }}
+          </p>
 
           <!-- Pay Online Button (for approved users who haven't paid) -->
           <div v-if="user?.status === 'approved'" class="pay-online-section">
@@ -210,43 +242,76 @@
               :disabled="isCreatingPayment"
               @click="createPayment"
             >
-              <svg v-if="!isCreatingPayment" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-              </svg>
-              <span v-if="isCreatingPayment" class="spinner-inline"></span>
-              {{ isCreatingPayment ? 'Создание платежа...' : 'Оплатить онлайн' }}
+              <span class="pay-online-btn__glow"></span>
+              <span class="pay-online-btn__content">
+                <svg v-if="!isCreatingPayment" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                <span v-if="isCreatingPayment" class="spinner-inline"></span>
+                {{ isCreatingPayment ? 'Создание платежа...' : 'Оплатить онлайн' }}
+              </span>
             </button>
-            <p class="payment-methods-hint">Банковские карты, СБП, ЮMoney, SberPay и другие способы</p>
-            <p v-if="paymentError" class="payment-error">{{ paymentError }}</p>
+
+            <!-- Payment method badges -->
+            <div class="payment-methods-row">
+              <span class="pm-badge pm-badge--visa">VISA</span>
+              <span class="pm-badge pm-badge--mir">МИР</span>
+              <span class="pm-badge pm-badge--sbp">СБП</span>
+              <span class="pm-badge pm-badge--sber">SberPay</span>
+              <span class="pm-badge pm-badge--ymoney">ЮMoney</span>
+            </div>
+
+            <div class="payment-security-hint">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+              Безопасная оплата через ЮKassa
+            </div>
+
+            <div v-if="paymentError" class="payment-error">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              {{ paymentError }}
+            </div>
           </div>
 
           <!-- Paid confirmation -->
           <div v-if="user?.status === 'paid'" class="paid-confirmation">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <span>Оплата подтверждена</span>
+            <div class="paid-confirmation__icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <div class="paid-confirmation__text">
+              <strong>Оплата подтверждена</strong>
+              <span>Ваше участие в TourFurr 3 подтверждено</span>
+            </div>
           </div>
         </div>
 
         <!-- Payment Status Banner (approved users who haven't paid) -->
         <div v-if="user?.status === 'approved'" class="payment-status-card">
           <div class="payment-status-banner waiting">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
+            <div class="payment-status-banner__icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
             <div>
               <strong>Ожидание оплаты</strong>
-              <p>Нажмите кнопку «Оплатить онлайн» для перехода к безопасной оплате. Статус обновится автоматически после подтверждения платежа.</p>
+              <p>Нажмите «Оплатить онлайн» для перехода к безопасной оплате. Статус обновится автоматически после подтверждения платежа.</p>
             </div>
           </div>
         </div>
 
         <div v-if="user?.status === 'paid'" class="payment-status-card">
           <div class="payment-status-banner paid">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
+            <div class="payment-status-banner__icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
             <div>
               <strong>Оплата подтверждена</strong>
               <p>Ваше участие оплачено. Добро пожаловать на TourFurr 3!</p>
@@ -765,6 +830,9 @@ function handleLogout() {
 
 /* Card Header */
 .card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid rgba(139, 111, 71, 0.3);
@@ -885,148 +953,454 @@ function handleLogout() {
   margin-bottom: 1rem;
 }
 
-/* Visual Card */
+/* Card Header Icon */
+.card-header-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--fire-glow);
+  flex-shrink: 0;
+}
+
+/* Visual Credit Card */
 .visual-card {
-  background: linear-gradient(135deg, var(--fire) 0%, var(--fire-glow) 100%);
-  border-radius: 16px;
-  padding: 1.5rem;
+  background: linear-gradient(135deg, #2a1a0e 0%, #3d2410 40%, #5a3018 100%);
+  border-radius: 18px;
+  padding: 1.4rem 1.5rem;
   margin-bottom: 1.5rem;
   color: white;
   position: relative;
   overflow: hidden;
+  border: 1px solid rgba(255, 179, 71, 0.25);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: box-shadow 0.3s ease;
 }
 
-.visual-card::before {
+.visual-card::after {
   content: '';
   position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.1);
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 179, 71, 0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.visual-card--paid {
+  background: linear-gradient(135deg, #0e2a1a 0%, #103d24 40%, #185a30 100%);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.visual-card--paid::after {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, transparent 60%);
+}
+
+/* Decorative circles */
+.visual-card__circles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.visual-card__circle {
+  position: absolute;
   border-radius: 50%;
+  opacity: 0.12;
 }
 
-.card-chip {
-  width: 40px;
-  height: 30px;
-  background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
+.visual-card__circle--1 {
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, var(--fire-glow), transparent);
+  top: -60px;
+  right: -40px;
 }
 
-.card-number {
-  font-family: 'Courier New', monospace;
-  font-size: 1.1rem;
-  letter-spacing: 2px;
-  margin-bottom: 1rem;
+.visual-card__circle--2 {
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, var(--fire), transparent);
+  bottom: -40px;
+  left: -20px;
 }
 
-.card-details {
+/* Card top row */
+.visual-card__top {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+  position: relative;
+  z-index: 1;
 }
 
-.card-holder {
+/* Chip */
+.visual-card__chip {
+  width: 42px;
+  height: 32px;
+  background: linear-gradient(135deg, #e8c96a 0%, #c8a84b 40%, #f0d878 70%, #b8901e 100%);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.chip-inner {
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.chip-inner::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.15);
+  transform: translateY(-50%);
+}
+
+.chip-inner::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(0, 0, 0, 0.15);
+  transform: translateX(-50%);
+}
+
+/* Paid badge on card */
+.visual-card__paid-badge {
+  width: 32px;
+  height: 32px;
+  background: rgba(34, 197, 94, 0.25);
+  border: 2px solid rgba(34, 197, 94, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.visual-card__paid-badge svg {
+  width: 18px;
+  height: 18px;
+  color: #4ade80;
+}
+
+/* NFC icon */
+.visual-card__nfc svg {
+  width: 28px;
+  height: 28px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Amount */
+.visual-card__amount {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 1.25rem;
+}
+
+.visual-card__amount-label {
+  display: block;
+  font-size: 0.72rem;
   text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 0.3rem;
+}
+
+.visual-card__amount-value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--fire-glow);
   letter-spacing: 1px;
+  text-shadow: 0 0 20px rgba(255, 179, 71, 0.4);
 }
 
-.card-bank {
-  opacity: 0.8;
+.visual-card--paid .visual-card__amount-value {
+  color: #4ade80;
+  text-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
 }
 
-.payment-list {
-  margin-bottom: 1rem;
+/* Card bottom row */
+.visual-card__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  position: relative;
+  z-index: 1;
 }
 
+.visual-card__event {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.visual-card__brand {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.5px;
+}
+
+/* Payment Note */
 .payment-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
   color: var(--sage);
   font-size: 0.85rem;
   font-style: italic;
-  text-align: center;
+  margin-bottom: 0.25rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  border-left: 2px solid rgba(255, 179, 71, 0.4);
+}
+
+.payment-note svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--fire-glow);
+  opacity: 0.8;
 }
 
 /* Pay Online Section */
 .pay-online-section {
   margin-top: 1.5rem;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .pay-online-btn {
-  display: inline-flex;
+  position: relative;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
   width: 100%;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #FF6B35, #FFB347);
-  color: #1a1410;
+  background: linear-gradient(135deg, #FF6B35 0%, #FF9A35 50%, #FFB347 100%);
+  color: #1a0e06;
   border: none;
-  border-radius: 12px;
-  font-size: 1.1rem;
-  font-weight: 700;
+  border-radius: 14px;
+  font-size: 1.05rem;
+  font-weight: 800;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+  box-shadow:
+    0 4px 20px rgba(255, 107, 53, 0.45),
+    0 0 0 0 rgba(255, 107, 53, 0.3);
+  overflow: hidden;
+  letter-spacing: 0.3px;
+}
+
+.pay-online-btn:not(:disabled) {
+  animation: btnPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(255, 107, 53, 0.45), 0 0 0 0 rgba(255, 107, 53, 0.3); }
+  50% { box-shadow: 0 4px 24px rgba(255, 107, 53, 0.55), 0 0 0 6px rgba(255, 107, 53, 0); }
+}
+
+.pay-online-btn__glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform 0s;
+}
+
+.pay-online-btn:hover:not(:disabled) .pay-online-btn__glow {
+  animation: shimmer 0.7s ease forwards;
+}
+
+@keyframes shimmer {
+  to { transform: translateX(100%); }
+}
+
+.pay-online-btn__content {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  position: relative;
+  z-index: 1;
+}
+
+.pay-online-btn__content svg {
+  width: 22px;
+  height: 22px;
 }
 
 .pay-online-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.5);
+  box-shadow: 0 8px 28px rgba(255, 107, 53, 0.55), 0 0 0 4px rgba(255, 107, 53, 0.15);
+  animation: none;
+}
+
+.pay-online-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 12px rgba(255, 107, 53, 0.4);
 }
 
 .pay-online-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
-}
-
-.pay-online-btn svg {
-  width: 24px;
-  height: 24px;
+  animation: none;
 }
 
 .spinner-inline {
   display: inline-block;
   width: 20px;
   height: 20px;
-  border: 3px solid rgba(26, 20, 16, 0.3);
-  border-top-color: #1a1410;
+  border: 3px solid rgba(26, 14, 6, 0.3);
+  border-top-color: #1a0e06;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
 }
 
-.payment-methods-hint {
-  margin-top: 0.75rem;
-  color: var(--sage);
-  font-size: 0.8rem;
-  opacity: 0.8;
+/* Payment method badges */
+.payment-methods-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: center;
 }
 
-.payment-error {
-  margin-top: 0.75rem;
-  color: #ef4444;
-  font-size: 0.85rem;
+.pm-badge {
+  padding: 0.3rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.paid-confirmation {
+.pm-badge--visa {
+  background: rgba(26, 44, 102, 0.6);
+  border: 1px solid rgba(26, 44, 102, 0.8);
+  color: #8ab4f8;
+}
+
+.pm-badge--mir {
+  background: rgba(0, 102, 80, 0.5);
+  border: 1px solid rgba(0, 160, 126, 0.5);
+  color: #6ee7c4;
+}
+
+.pm-badge--sbp {
+  background: rgba(128, 0, 128, 0.4);
+  border: 1px solid rgba(180, 0, 180, 0.4);
+  color: #e879f9;
+}
+
+.pm-badge--sber {
+  background: rgba(0, 120, 50, 0.45);
+  border: 1px solid rgba(0, 180, 80, 0.4);
+  color: #86efac;
+}
+
+.pm-badge--ymoney {
+  background: rgba(140, 0, 200, 0.35);
+  border: 1px solid rgba(180, 60, 220, 0.4);
+  color: #d8b4fe;
+}
+
+/* Security hint */
+.payment-security-hint {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  border-radius: 12px;
-  color: #22c55e;
-  font-weight: 600;
+  gap: 0.4rem;
+  color: var(--sage);
+  font-size: 0.78rem;
+  opacity: 0.75;
 }
 
-.paid-confirmation svg {
-  width: 24px;
-  height: 24px;
+.payment-security-hint svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* Payment error */
+.payment-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 10px;
+  color: #fca5a5;
+  font-size: 0.85rem;
+}
+
+.payment-error svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Paid Confirmation */
+.paid-confirmation {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(16, 185, 129, 0.08));
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  border-radius: 14px;
+}
+
+.paid-confirmation__icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  background: rgba(34, 197, 94, 0.2);
+  border: 2px solid rgba(34, 197, 94, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paid-confirmation__icon svg {
+  width: 22px;
+  height: 22px;
+  color: #4ade80;
+}
+
+.paid-confirmation__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.paid-confirmation__text strong {
+  color: #4ade80;
+  font-size: 0.95rem;
+}
+
+.paid-confirmation__text span {
+  color: var(--sage);
+  font-size: 0.82rem;
 }
 
 /* Receipt Reminder */
@@ -1282,8 +1656,17 @@ function handleLogout() {
     padding: 1.25rem;
   }
 
-  .card-number {
-    font-size: 1rem;
+  .visual-card__amount-value {
+    font-size: 1.7rem;
+  }
+
+  .payment-methods-row {
+    gap: 0.35rem;
+  }
+
+  .pm-badge {
+    font-size: 0.68rem;
+    padding: 0.25rem 0.55rem;
   }
 
   /* Location Card Mobile Styles */
@@ -1345,11 +1728,19 @@ function handleLogout() {
   animation: fadeIn 0.5s ease-out;
 }
 
-.payment-status-banner svg {
-  width: 28px;
-  height: 28px;
+.payment-status-banner__icon {
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
-  margin-top: 2px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.payment-status-banner__icon svg {
+  width: 26px;
+  height: 26px;
 }
 
 .payment-status-banner strong {
@@ -1370,7 +1761,9 @@ function handleLogout() {
   color: var(--fire-glow);
 }
 
-.payment-status-banner.waiting svg {
+.payment-status-banner.waiting .payment-status-banner__icon {
+  background: rgba(255, 179, 71, 0.15);
+  border: 1.5px solid rgba(255, 179, 71, 0.4);
   color: var(--fire-glow);
 }
 
@@ -1384,7 +1777,9 @@ function handleLogout() {
   color: #10b981;
 }
 
-.payment-status-banner.paid svg {
+.payment-status-banner.paid .payment-status-banner__icon {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1.5px solid rgba(16, 185, 129, 0.4);
   color: #10b981;
 }
 
