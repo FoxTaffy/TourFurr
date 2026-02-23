@@ -198,7 +198,7 @@
           </div>
 
           <!-- Visual Credit Card -->
-          <div class="visual-card" :class="{ 'visual-card--paid': user?.status === 'paid' }">
+          <div class="visual-card" :class="{ 'visual-card--paid': user?.status === 'paid', 'visual-card--closed': user?.status === 'approved' }">
             <div class="visual-card__circles">
               <div class="visual-card__circle visual-card__circle--1"></div>
               <div class="visual-card__circle visual-card__circle--2"></div>
@@ -212,19 +212,20 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                 </svg>
               </div>
-              <div v-else class="visual-card__nfc">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z"/>
+              <div v-else class="visual-card__closed-badge">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                 </svg>
               </div>
             </div>
             <div class="visual-card__amount">
-              <span class="visual-card__amount-label">{{ user?.status === 'paid' ? 'Оплачено' : 'К оплате' }}</span>
-              <span class="visual-card__amount-value">{{ (approvedInfo.price ?? 0).toLocaleString('ru-RU') }} ₽</span>
+              <span class="visual-card__amount-label">{{ user?.status === 'paid' ? 'Оплачено' : 'Онлайн оплата закрыта' }}</span>
+              <span class="visual-card__amount-value">{{ (approvedInfo.price ?? DEFAULT_EVENT_PRICE).toLocaleString('ru-RU') }} ₽</span>
             </div>
             <div class="visual-card__bottom">
               <span class="visual-card__event">TourFurr 3 · 2026</span>
-              <span class="visual-card__brand">ЮKassa</span>
+              <span v-if="user?.status === 'paid'" class="visual-card__brand">ЮKassa</span>
+              <span v-else class="visual-card__deadline">до 30 мая</span>
             </div>
           </div>
 
@@ -235,44 +236,16 @@
             {{ approvedInfo.payment_note }}
           </p>
 
-          <!-- Pay Online Button (for approved users who haven't paid) -->
-          <div v-if="user?.status === 'approved'" class="pay-online-section">
-            <button
-              class="pay-online-btn"
-              :disabled="isCreatingPayment"
-              @click="createPayment"
-            >
-              <span class="pay-online-btn__glow"></span>
-              <span class="pay-online-btn__content">
-                <svg v-if="!isCreatingPayment" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                </svg>
-                <span v-if="isCreatingPayment" class="spinner-inline"></span>
-                {{ isCreatingPayment ? 'Создание платежа...' : 'Оплатить онлайн' }}
-              </span>
-            </button>
-
-            <!-- Payment method badges -->
-            <div class="payment-methods-row">
-              <span class="pm-badge pm-badge--visa">VISA</span>
-              <span class="pm-badge pm-badge--mir">МИР</span>
-              <span class="pm-badge pm-badge--sbp">СБП</span>
-              <span class="pm-badge pm-badge--sber">SberPay</span>
-              <span class="pm-badge pm-badge--ymoney">ЮMoney</span>
-            </div>
-
-            <div class="payment-security-hint">
+          <!-- Payment closed notice (for approved users who haven't paid) -->
+          <div v-if="user?.status === 'approved'" class="payment-closed-notice">
+            <div class="payment-closed-notice__icon">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
               </svg>
-              Безопасная оплата через ЮKassa
             </div>
-
-            <div v-if="paymentError" class="payment-error">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              {{ paymentError }}
+            <div class="payment-closed-notice__text">
+              <strong>Онлайн оплата недоступна</strong>
+              <span>Срок онлайн оплаты истёк (30 мая 2026). Для оплаты обратитесь к организаторам.</span>
             </div>
           </div>
 
@@ -292,15 +265,15 @@
 
         <!-- Payment Status Banner (approved users who haven't paid) -->
         <div v-if="user?.status === 'approved'" class="payment-status-card">
-          <div class="payment-status-banner waiting">
+          <div class="payment-status-banner closed">
             <div class="payment-status-banner__icon">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
               </svg>
             </div>
             <div>
-              <strong>Ожидание оплаты</strong>
-              <p>Нажмите «Оплатить онлайн» для перехода к безопасной оплате. Статус обновится автоматически после подтверждения платежа.</p>
+              <strong>Онлайн оплата закрыта</strong>
+              <p>Срок онлайн оплаты истёк (30 мая 2026). Свяжитесь с организаторами для уточнения способа оплаты.</p>
             </div>
           </div>
         </div>
@@ -379,6 +352,9 @@ import TeamBadge from '../components/TeamBadge.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+// Default event price used when approvedInfo is not yet loaded
+const DEFAULT_EVENT_PRICE = 9000
 
 const user = computed(() => authStore.user)
 
@@ -619,7 +595,7 @@ const statusLabels: Record<string, string> = {
 const statusDescriptions: Record<string, string> = {
   pending: 'Если Вы ранее не были на ТурФурр — админ может написать вам для знакомства. Статус: В обработке.',
   deferred: 'Если Вы ранее не были на ТурФурр — админ может написать вам для знакомства. Статус: В обработке.',
-  approved: 'Поздравляем! Ваша заявка одобрена. Оплатите участие онлайн — нажмите кнопку «Оплатить онлайн» в карточке оплаты.',
+  approved: 'Поздравляем! Ваша заявка одобрена. Онлайн оплата закрыта — свяжитесь с организаторами для уточнения способа оплаты.',
   paid: 'Оплата подтверждена! Добро пожаловать на TourFurr 3: Game of Thrones. Загляните в Расписание.',
   rejected: 'К сожалению Вам отказано в участии. Если вы не согласны, пожалуйста, напишите одному из оргов в контактах.'
 }
@@ -992,6 +968,105 @@ function handleLogout() {
 
 .visual-card--paid::after {
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, transparent 60%);
+}
+
+.visual-card--closed {
+  background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 40%, #333333 100%);
+  border-color: rgba(150, 150, 150, 0.2);
+  opacity: 0.65;
+  filter: saturate(0.15);
+}
+
+.visual-card--closed::after {
+  background: linear-gradient(135deg, rgba(200, 200, 200, 0.05) 0%, transparent 60%);
+}
+
+.visual-card--closed .visual-card__chip {
+  background: linear-gradient(135deg, #888 0%, #666 40%, #999 70%, #555 100%);
+}
+
+.visual-card--closed .visual-card__amount-value {
+  color: #aaaaaa;
+  text-shadow: none;
+}
+
+.visual-card--closed .visual-card__event,
+.visual-card--closed .visual-card__deadline {
+  color: rgba(180, 180, 180, 0.5);
+}
+
+/* Closed badge on card */
+.visual-card__closed-badge {
+  width: 32px;
+  height: 32px;
+  background: rgba(150, 150, 150, 0.15);
+  border: 1.5px solid rgba(150, 150, 150, 0.4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.visual-card__closed-badge svg {
+  width: 18px;
+  height: 18px;
+  color: #888;
+}
+
+/* Deadline label on card bottom */
+.visual-card__deadline {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(200, 100, 100, 0.7);
+  letter-spacing: 0.5px;
+}
+
+/* Payment Closed Notice */
+.payment-closed-notice {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(100, 100, 100, 0.1);
+  border: 1px solid rgba(150, 150, 150, 0.25);
+  border-radius: 14px;
+}
+
+.payment-closed-notice__icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  background: rgba(120, 120, 120, 0.15);
+  border: 1.5px solid rgba(150, 150, 150, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.payment-closed-notice__icon svg {
+  width: 20px;
+  height: 20px;
+  color: #888;
+}
+
+.payment-closed-notice__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.payment-closed-notice__text strong {
+  color: #aaaaaa;
+  font-size: 0.95rem;
+}
+
+.payment-closed-notice__text span {
+  color: var(--sage);
+  font-size: 0.82rem;
+  opacity: 0.7;
+  line-height: 1.4;
 }
 
 /* Decorative circles */
@@ -1785,6 +1860,23 @@ function handleLogout() {
 
 .payment-status-banner.paid p {
   color: var(--sage);
+}
+
+.payment-status-banner.closed {
+  background: rgba(100, 100, 100, 0.1);
+  border: 1px solid rgba(150, 150, 150, 0.25);
+  color: #aaaaaa;
+}
+
+.payment-status-banner.closed .payment-status-banner__icon {
+  background: rgba(120, 120, 120, 0.15);
+  border: 1.5px solid rgba(150, 150, 150, 0.3);
+  color: #888;
+}
+
+.payment-status-banner.closed p {
+  color: var(--sage);
+  opacity: 0.7;
 }
 
 /* Edit Mode Styles */
