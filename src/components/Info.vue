@@ -64,7 +64,7 @@
             id: 2,
             icon: 'fas fa-ruble-sign',
             label: 'Стоимость участия',
-            value: '9000',
+            value: '9900',
             detail: 'Полная оплата до 30 мая'
           },
           {
