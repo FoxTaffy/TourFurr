@@ -354,7 +354,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 // Default event price used when approvedInfo is not yet loaded
-const DEFAULT_EVENT_PRICE = 9000
+const DEFAULT_EVENT_PRICE = 9900
 
 const user = computed(() => authStore.user)
 
