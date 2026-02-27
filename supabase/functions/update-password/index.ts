@@ -11,6 +11,9 @@ interface UpdatePasswordRequest {
   newPassword: string
 }
 
+// How long (ms) after verifying a reset code the password can be updated
+const VERIFIED_CODE_WINDOW_MS = 10 * 60 * 1000 // 10 minutes
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -89,6 +92,45 @@ serve(async (req) => {
       }
     })
 
+    // Security: Verify that a reset code was recently verified for this email.
+    // This prevents calling the endpoint directly without completing the reset flow.
+    const verifiedAfter = new Date(Date.now() - VERIFIED_CODE_WINDOW_MS).toISOString()
+    const { data: verifiedCodes, error: codeCheckError } = await supabaseAdmin
+      .from('password_reset_codes')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .eq('used', true)
+      .gte('verified_at', verifiedAfter)
+      .limit(1)
+
+    if (codeCheckError) {
+      console.error('Error checking reset code verification:', codeCheckError)
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Failed to verify reset authorization'
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    if (!verifiedCodes || verifiedCodes.length === 0) {
+      console.warn('Password update attempted without valid verified reset code for:', email)
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Reset code not verified or expired. Please restart the password reset process.'
+        }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
     // Get user by email
     const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers()
 
@@ -160,8 +202,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'Internal server error',
-        message: error.message
+        error: 'Internal server error'
       }),
       {
         status: 500,

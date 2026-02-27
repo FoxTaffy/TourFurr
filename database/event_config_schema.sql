@@ -21,12 +21,6 @@ CREATE TABLE IF NOT EXISTS event_config (
     event_price DECIMAL(10, 2),
     currency VARCHAR(10) DEFAULT 'RUB',
 
-    -- Payment details
-    bank_name TEXT,
-    card_number TEXT,
-    recipient_name TEXT,
-    payment_notes TEXT,
-
     -- Location
     location_name TEXT,
     location_address TEXT,

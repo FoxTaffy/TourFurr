@@ -66,7 +66,7 @@
                 <svg fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.327.015.095.034.312.019.482z"/>
                 </svg>
-                <a :href="'https://' + user?.telegram" target="_blank">{{ user?.telegram }}</a>
+                <a :href="'https://' + user?.telegram" target="_blank" rel="noopener noreferrer">{{ user?.telegram }}</a>
               </div>
             </div>
 
@@ -198,7 +198,7 @@
           </div>
 
           <!-- Visual Credit Card -->
-          <div class="visual-card" :class="{ 'visual-card--paid': user?.status === 'paid', 'visual-card--closed': user?.status === 'approved' }">
+          <div class="visual-card" :class="{ 'visual-card--paid': user?.status === 'paid' }">
             <div class="visual-card__circles">
               <div class="visual-card__circle visual-card__circle--1"></div>
               <div class="visual-card__circle visual-card__circle--2"></div>
@@ -212,41 +212,30 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                 </svg>
               </div>
-              <div v-else class="visual-card__closed-badge">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                </svg>
-              </div>
             </div>
             <div class="visual-card__amount">
-              <span class="visual-card__amount-label">{{ user?.status === 'paid' ? 'Оплачено' : 'Онлайн оплата закрыта' }}</span>
+              <span class="visual-card__amount-label">{{ user?.status === 'paid' ? 'Оплачено' : 'К оплате' }}</span>
               <span class="visual-card__amount-value">{{ (approvedInfo.price ?? DEFAULT_EVENT_PRICE).toLocaleString('ru-RU') }} ₽</span>
             </div>
             <div class="visual-card__bottom">
               <span class="visual-card__event">TourFurr 3 · 2026</span>
-              <span v-if="user?.status === 'paid'" class="visual-card__brand">ЮKassa</span>
-              <span v-else class="visual-card__deadline">до 30 мая</span>
+              <span class="visual-card__brand">Т-Банк</span>
             </div>
           </div>
 
-          <p v-if="approvedInfo.payment_note" class="payment-note">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            {{ approvedInfo.payment_note }}
-          </p>
-
-          <!-- Payment closed notice (for approved users who haven't paid) -->
-          <div v-if="user?.status === 'approved'" class="payment-closed-notice">
-            <div class="payment-closed-notice__icon">
+          <!-- T-Bank payment link (for approved users who haven't paid) -->
+          <div v-if="user?.status === 'approved'" class="tbank-payment-section">
+            <a
+              :href="TBANK_PAYMENT_URL"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="tbank-payment-btn"
+            >
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
               </svg>
-            </div>
-            <div class="payment-closed-notice__text">
-              <strong>Онлайн оплата недоступна</strong>
-              <span>Срок онлайн оплаты истёк (30 мая 2026). Для оплаты обратитесь к организаторам.</span>
-            </div>
+              Оплатить через Т-Банк
+            </a>
           </div>
 
           <!-- Paid confirmation -->
@@ -259,21 +248,6 @@
             <div class="paid-confirmation__text">
               <strong>Оплата подтверждена</strong>
               <span>Ваше участие в TourFurr 3 подтверждено</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Payment Status Banner (approved users who haven't paid) -->
-        <div v-if="user?.status === 'approved'" class="payment-status-card">
-          <div class="payment-status-banner closed">
-            <div class="payment-status-banner__icon">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-              </svg>
-            </div>
-            <div>
-              <strong>Онлайн оплата закрыта</strong>
-              <p>Срок онлайн оплаты истёк (30 мая 2026). Свяжитесь с организаторами для уточнения способа оплаты.</p>
             </div>
           </div>
         </div>
@@ -356,83 +330,19 @@ const authStore = useAuthStore()
 // Default event price used when approvedInfo is not yet loaded
 const DEFAULT_EVENT_PRICE = 9900
 
+// T-Bank payment link
+const TBANK_PAYMENT_URL = 'https://www.tinkoff.ru/rm/r_siiTwKksNK.AxwPmVgKGC/GwrnL13713'
+
 const user = computed(() => authStore.user)
 
 interface ApprovedInfo {
   location: string
   coordinates: string | null
   price: number
-  bank: string
-  card_number: string
-  recipient: string
-  payment_note: string
 }
 
 const approvedInfo = ref<ApprovedInfo | null>(null)
 const infoError = ref<string | null>(null)
-
-// Payment state
-const isCreatingPayment = ref(false)
-const paymentError = ref<string | null>(null)
-
-async function createPayment() {
-  if (!approvedInfo.value || !user.value) return
-
-  isCreatingPayment.value = true
-  paymentError.value = null
-
-  try {
-    // Get application ID for current user
-    const { data: application, error: appError } = await supabase
-      .from('applications')
-      .select('id')
-      .eq('user_id', user.value.id)
-      .single()
-
-    if (appError || !application) {
-      paymentError.value = 'Не удалось найти заявку'
-      return
-    }
-
-    const { data, error } = await supabase.functions.invoke('create-payment', {
-      body: {
-        application_id: application.id,
-        amount: approvedInfo.value.price,
-        return_url: window.location.href,
-      },
-    })
-
-    if (error) {
-      paymentError.value = 'Сервис оплаты временно недоступен. Попробуйте позже.'
-      console.error('Payment creation error:', error)
-      return
-    }
-
-    if (data?.error) {
-      const errorMessages: Record<string, string> = {
-        'Application is not approved for payment': 'Заявка не одобрена для оплаты',
-        'Payment already completed': 'Оплата уже завершена',
-        'Payment service not configured': 'Сервис оплаты не настроен',
-      }
-      paymentError.value = errorMessages[data.error] || 'Не удалось создать платёж. Попробуйте позже.'
-      console.error('Payment creation error:', data)
-      return
-    }
-
-    if (!data?.confirmation_url) {
-      paymentError.value = 'Не удалось получить ссылку на оплату. Попробуйте позже.'
-      return
-    }
-
-    // Redirect to YooKassa payment page
-    window.location.href = data.confirmation_url
-  } catch (err: any) {
-    paymentError.value = err.message || 'Ошибка при создании платежа'
-    console.error('Payment error:', err)
-  } finally {
-    isCreatingPayment.value = false
-  }
-}
 
 // Yandex Maps iframe URL
 const yandexMapUrl = computed(() => {
@@ -595,7 +505,7 @@ const statusLabels: Record<string, string> = {
 const statusDescriptions: Record<string, string> = {
   pending: 'Если Вы ранее не были на ТурФурр — админ может написать вам для знакомства. Статус: В обработке.',
   deferred: 'Если Вы ранее не были на ТурФурр — админ может написать вам для знакомства. Статус: В обработке.',
-  approved: 'Поздравляем! Ваша заявка одобрена. Онлайн оплата закрыта — свяжитесь с организаторами для уточнения способа оплаты.',
+  approved: 'Поздравляем! Ваша заявка одобрена. Для оплаты участия воспользуйтесь ссылкой Т-Банк в разделе оплаты.',
   paid: 'Оплата подтверждена! Добро пожаловать на TourFurr 3: Game of Thrones. Загляните в Расписание.',
   rejected: 'К сожалению Вам отказано в участии. Если вы не согласны, пожалуйста, напишите одному из оргов в контактах.'
 }
@@ -1430,6 +1340,44 @@ function handleLogout() {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
+}
+
+/* T-Bank payment section */
+.tbank-payment-section {
+  margin-top: 1rem;
+}
+
+.tbank-payment-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.9rem 1.5rem;
+  background: linear-gradient(135deg, #ffdd2d 0%, #fcc521 100%);
+  color: #1a1a1a;
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 14px;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 18px rgba(255, 221, 45, 0.35);
+}
+
+.tbank-payment-btn svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.tbank-payment-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(255, 221, 45, 0.5);
+}
+
+.tbank-payment-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(255, 221, 45, 0.3);
 }
 
 /* Paid Confirmation */
