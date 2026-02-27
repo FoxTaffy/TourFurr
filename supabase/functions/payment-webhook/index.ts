@@ -43,10 +43,53 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    if (paymentStatus === 'succeeded') {
+    // Security: Verify the payment with YooKassa API before processing.
+    // This prevents processing of forged webhook payloads.
+    const shopId = Deno.env.get('YOOKASSA_SHOP_ID')
+    const secretKey = Deno.env.get('YOOKASSA_SECRET_KEY')
+
+    if (!shopId || !secretKey) {
+      console.error('YooKassa credentials not configured')
+      return new Response(
+        JSON.stringify({ error: 'Payment service not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const verifyResponse = await fetch(`https://api.yookassa.ru/v3/payments/${encodeURIComponent(paymentId)}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Basic ' + btoa(`${shopId}:${secretKey}`),
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!verifyResponse.ok) {
+      console.error('YooKassa payment verification failed for paymentId:', paymentId)
+      return new Response(
+        JSON.stringify({ error: 'Payment verification failed' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const verifiedPayment = await verifyResponse.json()
+
+    // Use the verified payment data (not the unverified webhook payload)
+    const verifiedStatus = verifiedPayment.status
+    const verifiedApplicationId = verifiedPayment.metadata?.application_id
+
+    if (verifiedApplicationId !== applicationId) {
+      console.error('application_id mismatch between webhook and verified payment')
+      return new Response(
+        JSON.stringify({ error: 'Payment metadata mismatch' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (verifiedStatus === 'succeeded') {
       // Payment succeeded — update application
-      const paidAmount = parseFloat(payment.amount?.value || '0')
-      if (!payment.amount?.value) {
+      const paidAmount = parseFloat(verifiedPayment.amount?.value || '0')
+      if (!verifiedPayment.amount?.value) {
         console.warn('Payment succeeded but amount is missing:', paymentId)
       }
 
@@ -88,7 +131,7 @@ serve(async (req) => {
 
       console.log('Payment confirmed for application:', applicationId)
 
-    } else if (paymentStatus === 'canceled') {
+    } else if (verifiedStatus === 'canceled') {
       // Payment was canceled
       console.log('Payment canceled for application:', applicationId)
 
@@ -109,7 +152,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('Error in payment-webhook function:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error', message: error.message }),
+      JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

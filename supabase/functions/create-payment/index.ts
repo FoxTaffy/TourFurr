@@ -109,8 +109,8 @@ serve(async (req) => {
     if (!yookassaResponse.ok) {
       console.error('YooKassa API error:', paymentData)
       return new Response(
-        JSON.stringify({ error: 'Failed to create payment', details: paymentData }),
-        { status: yookassaResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Failed to create payment' }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -134,7 +134,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('Error in create-payment function:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error', message: error.message }),
+      JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
