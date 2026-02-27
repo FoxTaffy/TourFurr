@@ -4,13 +4,13 @@
         <div class="glass-card">
           <h2 class="section-title">Готов к приключениям?</h2>
           <p class="registration-text">
-            Регистрация откроется <strong>1 марта 2026 года</strong>. <br>
+            Регистрация открыта! <br>
             Событие пройдёт <strong>6–9 августа 2026</strong>. <br>
             Мест для участия: <strong>121</strong>. <br><br>
-            Следи за обновлениями в наших соцсетях — самое интересное впереди!
+            Заполни анкету и присоединяйся к нам!
           </p>
-          <a href="#contacts" @click.prevent="scrollTo('contacts')" class="cta-button">
-            Связаться с нами
+          <a href="/auth" class="cta-button">
+            Зарегистрироваться
           </a>
         </div>
       </div>

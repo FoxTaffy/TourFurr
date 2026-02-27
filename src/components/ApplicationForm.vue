@@ -31,7 +31,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
         <div>
-          <h3>Регистрация откроется 1 марта 2026 года</h3>
+          <h3>Регистрация ещё не открыта</h3>
           <p>Следите за обновлениями в наших социальных сетях</p>
         </div>
       </div>
@@ -287,12 +287,9 @@ async function loadEventConfig() {
 
     // Check registration status
     const now = new Date()
-    const openDate = new Date(config.registration_open_date)
     const closeDate = config.registration_close_date ? new Date(config.registration_close_date) : null
 
-    if (now < openDate) {
-      registrationStatus.value = 'not_open'
-    } else if (closeDate && now > closeDate) {
+    if (closeDate && now > closeDate) {
       registrationStatus.value = 'closed'
     } else if (approvedCount.value >= config.max_participants) {
       registrationStatus.value = 'full'
@@ -303,8 +300,7 @@ async function loadEventConfig() {
     console.log('📊 Event config loaded:', {
       status: registrationStatus.value,
       approvedCount: approvedCount.value,
-      maxParticipants: config.max_participants,
-      openDate: config.registration_open_date
+      maxParticipants: config.max_participants
     })
 
   } catch (err) {
@@ -329,7 +325,7 @@ async function handleSubmit() {
 
   // Check registration status
   if (registrationStatus.value === 'not_open') {
-    serverError.value = 'Регистрация еще не открыта. Открытие 1 марта 2026 года'
+    serverError.value = 'Регистрация еще не открыта'
     return
   }
 
