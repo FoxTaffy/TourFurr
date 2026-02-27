@@ -224,9 +224,9 @@
           </div>
 
           <!-- T-Bank payment link (for approved users who haven't paid) -->
-          <div v-if="user?.status === 'approved'" class="tbank-payment-section">
+          <div v-if="user?.status === 'approved' && approvedInfo?.payment_url" class="tbank-payment-section">
             <a
-              :href="TBANK_PAYMENT_URL"
+              :href="approvedInfo.payment_url"
               target="_blank"
               rel="noopener noreferrer"
               class="tbank-payment-btn"
@@ -234,7 +234,7 @@
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
               </svg>
-              Оплатить через Т-Банк
+              Оплатить участие
             </a>
           </div>
 
@@ -263,6 +263,40 @@
               <strong>Оплата подтверждена</strong>
               <p>Ваше участие оплачено. Добро пожаловать на TourFurr 3!</p>
             </div>
+          </div>
+        </div>
+
+        <!-- Telegram Group Card (for approved/paid with telegram_link) -->
+        <div v-if="(user?.status === 'approved' || user?.status === 'paid') && approvedInfo?.telegram_link" class="telegram-card">
+          <div class="card-header">
+            <svg class="card-header-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.327.015.095.034.312.019.482z"/>
+            </svg>
+            <h3>Группа участников</h3>
+          </div>
+          <div class="telegram-info">
+            <div class="telegram-security-notice">
+              <div class="warning-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </div>
+              <div class="warning-content">
+                <strong>Конфиденциальная ссылка!</strong>
+                <p>Ссылка доступна только одобренным участникам. Пожалуйста, не передавайте её посторонним.</p>
+              </div>
+            </div>
+            <a
+              :href="approvedInfo.telegram_link"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="telegram-join-btn"
+            >
+              <svg fill="currentColor" viewBox="0 0 24 24" style="width:20px;height:20px;flex-shrink:0">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.327.015.095.034.312.019.482z"/>
+              </svg>
+              Войти в группу Telegram
+            </a>
           </div>
         </div>
 
@@ -330,15 +364,14 @@ const authStore = useAuthStore()
 // Default event price used when approvedInfo is not yet loaded
 const DEFAULT_EVENT_PRICE = 9900
 
-// T-Bank payment link
-const TBANK_PAYMENT_URL = 'https://www.tinkoff.ru/rm/r_siiTwKksNK.AxwPmVgKGC/GwrnL13713'
-
 const user = computed(() => authStore.user)
 
 interface ApprovedInfo {
   location: string
   coordinates: string | null
   price: number
+  telegram_link?: string | null
+  payment_url?: string | null
 }
 
 const approvedInfo = ref<ApprovedInfo | null>(null)
@@ -505,7 +538,7 @@ const statusLabels: Record<string, string> = {
 const statusDescriptions: Record<string, string> = {
   pending: 'Если Вы ранее не были на ТурФурр — админ может написать вам для знакомства. Статус: В обработке.',
   deferred: 'Если Вы ранее не были на ТурФурр — админ может написать вам для знакомства. Статус: В обработке.',
-  approved: 'Поздравляем! Ваша заявка одобрена. Для оплаты участия воспользуйтесь ссылкой Т-Банк в разделе оплаты.',
+  approved: 'Поздравляем! Ваша заявка одобрена. Для оплаты участия воспользуйтесь ссылкой в разделе оплаты.',
   paid: 'Оплата подтверждена! Добро пожаловать на TourFurr 3: Game of Thrones. Загляните в Расписание.',
   rejected: 'К сожалению Вам отказано в участии. Если вы не согласны, пожалуйста, напишите одному из оргов в контактах.'
 }
@@ -1468,6 +1501,54 @@ function handleLogout() {
 /* Location Card */
 .location-card {
   grid-column: 1 / -1;
+}
+
+/* Telegram Card */
+.telegram-card {
+  grid-column: 1 / -1;
+}
+
+.telegram-info {
+  padding: 1.25rem;
+}
+
+.telegram-security-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(29, 161, 242, 0.12) 0%, rgba(29, 161, 242, 0.06) 100%);
+  border: 2px solid rgba(29, 161, 242, 0.35);
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 8px rgba(29, 161, 242, 0.12);
+}
+
+.telegram-join-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #229ED9, #1a8cbf);
+  color: #fff;
+  border-radius: 12px;
+  text-decoration: none;
+  font-family: 'Lora', serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(34, 158, 217, 0.3);
+}
+
+.telegram-join-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(34, 158, 217, 0.4);
+  background: linear-gradient(135deg, #1a8cbf, #1479a8);
+}
+
+.telegram-join-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(34, 158, 217, 0.25);
 }
 
 /* Security Warning Banner */

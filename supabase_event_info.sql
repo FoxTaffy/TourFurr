@@ -4,17 +4,26 @@ CREATE TABLE IF NOT EXISTS event_info (
   location TEXT NOT NULL,
   coordinates TEXT,  -- Format: "longitude,latitude" for Yandex Maps
   price INTEGER NOT NULL,
+  telegram_link TEXT,  -- Private Telegram invite link (approved/paid users only)
+  payment_url TEXT,    -- Payment link, e.g. T-Bank (approved/paid users only)
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Enable Row Level Security
 ALTER TABLE event_info ENABLE ROW LEVEL SECURITY;
 
--- Policy: Allow read for all (we check status in app)
-CREATE POLICY "Allow read event info"
+-- Policy: Allow read only for authenticated approved/paid users
+CREATE POLICY "Allow read event info for approved users"
   ON event_info
   FOR SELECT
-  USING (true);
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM users u
+      WHERE u.id = auth.uid()
+        AND u.status IN ('approved', 'paid')
+    )
+  );
 
 -- Insert initial event info with coordinates
 INSERT INTO event_info (

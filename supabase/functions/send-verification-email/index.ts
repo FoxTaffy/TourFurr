@@ -205,11 +205,10 @@ TourFurr 2026 - Подтверждение регистрации
 
       return new Response(
         JSON.stringify({
-          error: 'Failed to send email',
-          details: resendData
+          error: 'Failed to send email'
         }),
         {
-          status: resendResponse.status,
+          status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       )
