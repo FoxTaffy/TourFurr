@@ -4,10 +4,6 @@ CREATE TABLE IF NOT EXISTS event_info (
   location TEXT NOT NULL,
   coordinates TEXT,  -- Format: "longitude,latitude" for Yandex Maps
   price INTEGER NOT NULL,
-  bank TEXT NOT NULL,
-  card_number TEXT NOT NULL,
-  recipient TEXT NOT NULL,
-  payment_note TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -24,9 +20,5 @@ CREATE POLICY "Allow read event info"
 INSERT INTO event_info (
   location,
   coordinates,
-  price,
-  bank,
-  card_number,
-  recipient,
-  payment_note
+  price
 );
