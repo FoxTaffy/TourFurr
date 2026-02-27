@@ -44,9 +44,7 @@
                 </div>
               </a>
             </li>
-            <li v-if="!showAuthButtons && !isRegistrationOpen">
-              <a href="#" @click.prevent="showPinModal = true" class="auth-button">Разблокировать</a>
-            </li>
+
           </ul>
 
           <!-- Dashboard Actions -->
@@ -80,27 +78,6 @@
         @click="mobileMenuOpen = false"
       ></div>
 
-      <!-- Pin Code Modal (outside header for full screen) -->
-      <Teleport to="body">
-        <div v-if="showPinModal" class="modal-overlay" @click="showPinModal = false">
-          <div class="modal-content" @click.stop>
-            <h3>Введите пин-код</h3>
-            <p>Регистрация откроется 1 марта 2026 года</p>
-            <input
-              v-model="pinCode"
-              type="text"
-              placeholder="Введите пин-код"
-              @keyup.enter="checkPinCode"
-              class="pin-input"
-            />
-            <div class="modal-buttons">
-              <button @click="checkPinCode" class="btn-submit">Подтвердить</button>
-              <button @click="showPinModal = false" class="btn-cancel">Отмена</button>
-            </div>
-            <p v-if="pinError" class="error-message">{{ pinError }}</p>
-          </div>
-        </div>
-      </Teleport>
     </div>
   </template>
   
@@ -108,7 +85,6 @@
   import logoImg from '../assets/logo.png'
   import { useAuthStore } from '../stores/auth'
   import { computed } from 'vue'
-  import { isRegistrationOpen, verifyAdminPin } from '../utils/env'
   import TeamBadge from './TeamBadge.vue'
 
   export default {
@@ -131,20 +107,13 @@
     data() {
       return {
         logoImg,
-        showPinModal: false,
-        pinCode: '',
-        pinError: '',
-        isPinUnlocked: false,
         mobileMenuOpen: false,
         defaultAvatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=default&backgroundColor=ff6b35'
       }
     },
     computed: {
-      isRegistrationOpen() {
-        return isRegistrationOpen()
-      },
       showAuthButtons() {
-        return this.isRegistrationOpen || this.isPinUnlocked
+        return true
       },
       statusText() {
         if (!this.currentUser) return ''
@@ -157,11 +126,6 @@
       }
     },
     mounted() {
-      // Проверяем сохраненный статус разблокировки
-      const unlocked = localStorage.getItem('registration_unlocked')
-      if (unlocked === 'true') {
-        this.isPinUnlocked = true
-      }
     },
     methods: {
       scrollTo(id) {
@@ -173,17 +137,6 @@
       scrollToAndClose(id) {
         this.scrollTo(id)
         this.mobileMenuOpen = false
-      },
-      checkPinCode() {
-        if (verifyAdminPin(this.pinCode)) {
-          this.isPinUnlocked = true
-          localStorage.setItem('registration_unlocked', 'true')
-          this.showPinModal = false
-          this.pinCode = ''
-          this.pinError = ''
-        } else {
-          this.pinError = 'Неверный пин-код'
-        }
       },
       handleLogout() {
         this.authStore.logout()
@@ -512,114 +465,6 @@
 
   .auth-button.register {
       background: linear-gradient(135deg, var(--amber) 0%, var(--fire-glow) 100%);
-  }
-
-  /* Modal styles */
-  .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.85);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-  }
-
-  .modal-content {
-      background: linear-gradient(
-          135deg,
-          rgba(42, 31, 26, 0.95) 0%,
-          rgba(61, 45, 36, 0.95) 100%
-      );
-      padding: 2.5rem;
-      border-radius: 20px;
-      max-width: 400px;
-      width: 90%;
-      text-align: center;
-      border: 1px solid rgba(139, 111, 71, 0.5);
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
-  }
-
-  .modal-content h3 {
-      font-family: 'Merriweather', serif;
-      color: var(--fire-glow);
-      margin-bottom: 1rem;
-      font-size: 1.8rem;
-  }
-
-  .modal-content p {
-      color: var(--sage);
-      margin-bottom: 1.5rem;
-  }
-
-  .pin-input {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border: 2px solid rgba(139, 111, 71, 0.3);
-      background: rgba(26, 17, 14, 0.5);
-      border-radius: 10px;
-      color: var(--cream);
-      font-size: 1rem;
-      margin-bottom: 1.5rem;
-      transition: all 0.3s ease;
-      font-family: 'Inter', sans-serif;
-  }
-
-  .pin-input:focus {
-      outline: none;
-      border-color: var(--fire-glow);
-      box-shadow: 0 0 15px rgba(255, 179, 71, 0.3);
-  }
-
-  .modal-buttons {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-  }
-
-  .btn-submit,
-  .btn-cancel {
-      padding: 0.75rem 2rem;
-      border: none;
-      border-radius: 25px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-family: 'Inter', sans-serif;
-  }
-
-  .btn-submit {
-      background: linear-gradient(135deg, var(--fire) 0%, var(--fire-glow) 100%);
-      color: var(--forest-deep);
-  }
-
-  .btn-submit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(255, 107, 53, 0.5);
-  }
-
-  .btn-cancel {
-      background: rgba(61, 45, 36, 0.5);
-      color: var(--sage);
-      border: 1px solid rgba(139, 111, 71, 0.3);
-  }
-
-  .btn-cancel:hover {
-      background: rgba(61, 45, 36, 0.8);
-      color: var(--cream);
-  }
-
-  .error-message {
-      color: var(--fire);
-      margin-top: 1rem;
-      font-size: 0.9rem;
   }
 
   /* User Mini Card */

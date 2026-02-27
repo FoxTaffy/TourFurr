@@ -11,6 +11,7 @@
             >
               <div class="faq-question">{{ item.question }}</div>
               <div class="faq-answer">{{ item.answer }}</div>
+              <a v-if="item.link" :href="item.link" target="_blank" rel="noopener noreferrer" class="faq-link">Оплатить через Т-Банк</a>
             </div>
           </div>
         </div>
@@ -27,7 +28,7 @@
           {
             id: 1,
             question: 'Как зарегистрироваться?',
-            answer: 'Регистрация откроется 1 марта 2025 года. Нужно будет заполнить анкету на сайте, загрузить аватар и дождаться одобрения модераторов. После аппрува вы получите реквизиты для оплаты. Само событие пройдёт 6–9 августа 2026 года.'
+            answer: 'Нужно заполнить анкету на сайте, загрузить аватар и дождаться одобрения модераторов. После аппрува появится окно для оплаты. Само событие пройдёт 6–9 августа 2026 года.'
           },
           {
             id: 2,
@@ -47,7 +48,8 @@
           {
             id: 5,
             question: 'Как оплатить участие?',
-            answer: 'После одобрения вашей заявки мы вышлем реквизиты для перевода на карту или номер телефона. Полная оплата должна быть произведена за месяц до начала мероприятия.'
+            answer: 'После одобрения вашей заявки появится окно для оплаты. Оплата доступна по следующей ссылке:',
+            link: 'https://www.tinkoff.ru/rm/r_siiTwKksNK.AxwPmVgKGC/GwrnL13713'
           },
           {
             id: 6,
@@ -117,6 +119,19 @@
       color: var(--sage);
       line-height: 1.8;
       font-size: 1.05rem;
+  }
+
+  .faq-link {
+      display: inline-block;
+      margin: 0 1.5rem 1.5rem 3rem;
+      color: var(--fire-glow);
+      text-decoration: underline;
+      font-size: 1.05rem;
+      word-break: break-all;
+  }
+
+  .faq-link:hover {
+      color: var(--fire);
   }
   
   @media (max-width: 768px) {
