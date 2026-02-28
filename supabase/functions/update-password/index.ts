@@ -131,11 +131,16 @@ serve(async (req) => {
       )
     }
 
-    // Get user by email
-    const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers()
+    // Get user by email — query the public users table (same id as auth.users)
+    // to avoid fetching all users via listUsers().
+    const { data: publicUser, error: userLookupError } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .maybeSingle()
 
-    if (listError) {
-      console.error('Error listing users:', listError)
+    if (userLookupError) {
+      console.error('Error looking up user:', userLookupError)
       return new Response(
         JSON.stringify({
           success: false,
@@ -148,9 +153,7 @@ serve(async (req) => {
       )
     }
 
-    const user = users?.find(u => u.email?.toLowerCase() === email.toLowerCase())
-
-    if (!user) {
+    if (!publicUser) {
       return new Response(
         JSON.stringify({
           success: false,
@@ -165,7 +168,7 @@ serve(async (req) => {
 
     // Update user password
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      user.id,
+      publicUser.id,
       { password: newPassword }
     )
 
