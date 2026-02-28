@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { supabase } from '../services/supabase'
+import { safeStorage } from '../utils/safeStorage'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -73,7 +74,7 @@ const router = createRouter({
 
 // Navigation guards
 router.beforeEach(async (to, _from, next) => {
-  const token = localStorage.getItem('auth_token')
+  const token = safeStorage.getItem('auth_token')
   const isAuthenticated = !!token
 
   // Check guest routes
@@ -91,14 +92,14 @@ router.beforeEach(async (to, _from, next) => {
 
     // CRITICAL: Verify email is confirmed before allowing access to protected routes
     try {
-      const storedUser = localStorage.getItem('current_user')
+      const storedUser = safeStorage.getItem('current_user')
       if (storedUser) {
         const userData = JSON.parse(storedUser)
         // Check if email is verified
         if (!userData.emailVerified) {
           // Clear auth data and redirect to verification
-          localStorage.removeItem('auth_token')
-          localStorage.removeItem('current_user')
+          safeStorage.removeItem('auth_token')
+          safeStorage.removeItem('current_user')
           await supabase.auth.signOut()
           next({
             name: 'VerifyEmail',
@@ -117,8 +118,8 @@ router.beforeEach(async (to, _from, next) => {
             .single()
 
           if (dbUser && !dbUser.email_verified) {
-            localStorage.removeItem('auth_token')
-            localStorage.removeItem('current_user')
+            safeStorage.removeItem('auth_token')
+            safeStorage.removeItem('current_user')
             await supabase.auth.signOut()
             next({
               name: 'VerifyEmail',
@@ -131,8 +132,8 @@ router.beforeEach(async (to, _from, next) => {
     } catch (err) {
       console.error('Email verification check error:', err)
       // On error, clear auth and redirect to login
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('current_user')
+      safeStorage.removeItem('auth_token')
+      safeStorage.removeItem('current_user')
       next({ name: 'Auth' })
       return
     }
@@ -141,7 +142,7 @@ router.beforeEach(async (to, _from, next) => {
   // Check approved-only routes (e.g. Schedule)
   if (to.meta.requiresApproved) {
     try {
-      const storedUser = localStorage.getItem('current_user')
+      const storedUser = safeStorage.getItem('current_user')
       if (storedUser) {
         const userData = JSON.parse(storedUser)
         if (userData.status !== 'approved') {

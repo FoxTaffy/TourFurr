@@ -13,6 +13,7 @@ import {
   getClientFingerprint
 } from '@/utils/security'
 import { logger } from '@/utils/logger'
+import { safeStorage } from '@/utils/safeStorage'
 
 // Security: Allowed file types for avatar
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -133,22 +134,22 @@ function mapDbUserToUser(dbUser: any): User {
     canApproveApplications: dbUser.can_approve_applications || false,
     bringingPet: dbUser.bringing_pet || false,
     petDescription: dbUser.pet_description,
-    teamId: dbUser.team_id || localStorage.getItem(`user_team_${dbUser.id}`) || null
+    teamId: dbUser.team_id || safeStorage.getItem(`user_team_${dbUser.id}`) || null
   }
 }
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
-  const token = ref<string | null>(localStorage.getItem('auth_token'))
+  const token = ref<string | null>(safeStorage.getItem('auth_token'))
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
   const isAuthenticated = computed(() => !!token.value)
   const userStatus = computed(() => user.value?.status || null)
 
-  // Load user from localStorage on init
+  // Load user from safeStorage on init
   if (token.value) {
-    const storedUser = localStorage.getItem('current_user')
+    const storedUser = safeStorage.getItem('current_user')
     user.value = safeJsonParse<User | null>(storedUser, null)
   }
 
@@ -437,8 +438,8 @@ export const useAuthStore = defineStore('auth', () => {
       // Use Supabase session token
       token.value = authData.data.session?.access_token || crypto.randomUUID()
       user.value = mappedUser
-      localStorage.setItem('auth_token', token.value)
-      localStorage.setItem('current_user', JSON.stringify(mappedUser))
+      safeStorage.setItem('auth_token', token.value)
+      safeStorage.setItem('current_user', JSON.stringify(mappedUser))
 
       // Security: Reset rate limit on successful login
       rateLimiter.reset(cleanEmail)
@@ -795,7 +796,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchUser() {
     if (!token.value) return
 
-    const storedUser = localStorage.getItem('current_user')
+    const storedUser = safeStorage.getItem('current_user')
     const cachedUser = safeJsonParse<User | null>(storedUser, null)
 
     if (!cachedUser) {
@@ -816,7 +817,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (!dbError && data) {
         const freshUser = mapDbUserToUser(data)
         user.value = freshUser
-        localStorage.setItem('current_user', JSON.stringify(freshUser))
+        safeStorage.setItem('current_user', JSON.stringify(freshUser))
       }
     } catch (err) {
       // Keep cached user if fetch fails
@@ -827,8 +828,8 @@ export const useAuthStore = defineStore('auth', () => {
   function logout() {
     user.value = null
     token.value = null
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('current_user')
+    safeStorage.removeItem('auth_token')
+    safeStorage.removeItem('current_user')
   }
 
   function clearError() {
@@ -939,7 +940,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       const updatedUser = mapDbUserToUser(data)
       user.value = updatedUser
-      localStorage.setItem('current_user', JSON.stringify(updatedUser))
+      safeStorage.setItem('current_user', JSON.stringify(updatedUser))
 
       return { success: true }
     } catch (err: any) {

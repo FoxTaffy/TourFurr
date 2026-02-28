@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { supabase } from '../services/supabase'
 import type { Team } from '../types'
 import { logger } from '../utils/logger'
+import { safeStorage } from '../utils/safeStorage'
 
 export interface TeamMember {
   id: string
@@ -141,12 +142,12 @@ export const useTeamsStore = defineStore('teams', () => {
       // DB column may not exist
     }
 
-    // Fallback: check current user from localStorage
+    // Fallback: check current user from safeStorage
     try {
-      const stored = localStorage.getItem('current_user')
+      const stored = safeStorage.getItem('current_user')
       if (stored) {
         const currentUser = JSON.parse(stored)
-        const userTeam = currentUser.teamId || localStorage.getItem(`user_team_${currentUser.id}`)
+        const userTeam = currentUser.teamId || safeStorage.getItem(`user_team_${currentUser.id}`)
         if (userTeam === teamId) {
           members.value[teamId] = [{
             id: currentUser.id,
@@ -182,7 +183,7 @@ export const useTeamsStore = defineStore('teams', () => {
     }
 
     // Always save locally regardless of DB result
-    localStorage.setItem(`user_team_${userId}`, teamId)
+    safeStorage.setItem(`user_team_${userId}`, teamId)
     return { success: true }
   }
 

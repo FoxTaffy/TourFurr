@@ -113,6 +113,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../services/supabase'
+import { safeStorage } from '../utils/safeStorage'
 
 const router = useRouter()
 
@@ -213,8 +214,8 @@ async function handleSubmit() {
 
     // Sign out if user was logged in
     await supabase.auth.signOut()
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('current_user')
+    safeStorage.removeItem('auth_token')
+    safeStorage.removeItem('current_user')
   } catch (err: any) {
     console.error('Unexpected error:', err)
     serverError.value = 'Произошла ошибка. Попробуйте позже.'

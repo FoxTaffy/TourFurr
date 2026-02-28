@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { SUPABASE_URL, SUPABASE_ANON_KEY, IS_DEVELOPMENT } from '../utils/env'
 import { logger } from '../utils/logger'
+import { safeStorage } from '../utils/safeStorage'
 
 // Валидация в production
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -13,7 +14,12 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 export const supabase = createClient(
   SUPABASE_URL || 'https://placeholder.supabase.co',
-  SUPABASE_ANON_KEY || 'placeholder-key'
+  SUPABASE_ANON_KEY || 'placeholder-key',
+  {
+    auth: {
+      storage: safeStorage
+    }
+  }
 )
 
 export const isSupabaseConfigured = !!(SUPABASE_URL && SUPABASE_ANON_KEY)
