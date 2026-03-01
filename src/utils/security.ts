@@ -18,7 +18,7 @@ interface RateLimitEntry {
 
 class RateLimiter {
   private storage: Map<string, RateLimitEntry> = new Map()
-  private cleanupInterval: NodeJS.Timeout | null = null
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null
 
   constructor() {
     // Cleanup old entries every 5 minutes
@@ -182,7 +182,7 @@ export function isValidEmail(email: string): boolean {
  * Password strength checker
  */
 export interface PasswordStrength {
-  score: number // 0-4
+  score: number // 0-5
   feedback: string[]
   isStrong: boolean
 }
