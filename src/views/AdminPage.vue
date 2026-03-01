@@ -244,6 +244,10 @@
               <span class="chip-count">{{ getFilterCount(filter.value) }}</span>
             </button>
           </div>
+          <button class="export-btn" @click="exportUsersCSV" title="Скачать CSV (nickname, telegram, email, phone, status)">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Экспорт CSV
+          </button>
         </div>
 
         <!-- Users Table / Cards -->
@@ -1038,6 +1042,31 @@ function formatRelativeDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
 }
 
+function exportUsersCSV() {
+  const list = filteredUsers.value
+  if (list.length === 0) {
+    showToast('Нет пользователей для экспорта', 'error')
+    return
+  }
+  const header = ['nickname', 'telegram', 'email', 'phone', 'status']
+  const rows = list.map(u => [
+    u.nickname ?? '',
+    u.telegram ?? '',
+    u.email ?? '',
+    u.phone ?? '',
+    u.status ?? ''
+  ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+  const csv = [header.join(','), ...rows].join('\n')
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `tourfurr-users-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+  showToast(`Экспортировано ${list.length} пользователей`, 'success')
+}
+
 async function checkEmailService() {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   if (!supabaseUrl) {
@@ -1815,6 +1844,34 @@ onMounted(() => {
 
 .chip.active .chip-count {
   background: rgba(255, 179, 71, 0.2);
+}
+
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(26, 17, 14, 0.6);
+  border: 1px solid rgba(139, 111, 71, 0.35);
+  border-radius: 12px;
+  color: var(--sage);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  align-self: flex-start;
+}
+
+.export-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.export-btn:hover {
+  border-color: var(--fire-glow);
+  color: var(--fire-glow);
+  background: rgba(255, 179, 71, 0.07);
 }
 
 /* Loading & Empty */
