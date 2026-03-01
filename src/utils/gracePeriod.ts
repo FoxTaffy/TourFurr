@@ -1,10 +1,6 @@
 import { supabase } from '../services/supabase'
 import { logger } from './logger'
-
-/**
- * Grace period для подтверждения email (в минутах)
- */
-export const GRACE_PERIOD_MINUTES = 15
+import { GRACE_PERIOD_MINUTES } from './env'
 
 /**
  * Результат проверки grace period

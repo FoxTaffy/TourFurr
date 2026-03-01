@@ -37,7 +37,7 @@ export async function createVerificationCode(email: string): Promise<{
     const code = generateVerificationCode()
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes from now
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('email_verification_codes')
       .insert({
         email: email.toLowerCase(),
@@ -188,7 +188,7 @@ export async function sendVerificationEmail(email: string, code: string): Promis
     }
 
     // PRODUCTION MODE: Use Supabase Edge Function to send email
-    const { data, error } = await supabase.functions.invoke('send-verification-email', {
+    const { error } = await supabase.functions.invoke('send-verification-email', {
       body: {
         email,
         code

@@ -91,7 +91,7 @@ export interface User {
   telegram: string
   avatar?: string
   description?: string
-  status: 'pending' | 'approved' | 'rejected'
+  status: 'pending' | 'approved' | 'paid' | 'deferred' | 'rejected'
   emailVerified: boolean
   emailVerifiedAt?: string
   createdAt: string
@@ -211,7 +211,7 @@ export const useAuthStore = defineStore('auth', () => {
         logger.log('Supabase Auth failed, checking for old user or unverified user...')
 
         // Check if user exists in database
-        const { data: existingUser, error: dbError } = await supabase
+        const { data: existingUser } = await supabase
           .from('users')
           .select('*')
           .eq('email', cleanEmail)
@@ -830,6 +830,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null
     safeStorage.removeItem('auth_token')
     safeStorage.removeItem('current_user')
+    supabase.auth.signOut()
   }
 
   function clearError() {

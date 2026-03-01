@@ -145,7 +145,7 @@ router.beforeEach(async (to, _from, next) => {
       const storedUser = safeStorage.getItem('current_user')
       if (storedUser) {
         const userData = JSON.parse(storedUser)
-        if (userData.status !== 'approved') {
+        if (userData.status !== 'approved' && userData.status !== 'paid') {
           next({ name: 'Dashboard' })
           return
         }
@@ -158,7 +158,7 @@ router.beforeEach(async (to, _from, next) => {
             .eq('id', user.id)
             .single()
 
-          if (!dbUser || dbUser.status !== 'approved') {
+          if (!dbUser || (dbUser.status !== 'approved' && dbUser.status !== 'paid')) {
             next({ name: 'Dashboard' })
             return
           }

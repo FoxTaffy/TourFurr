@@ -5,7 +5,7 @@
  * Использует вместо прямых вызовов console.log
  */
 
-import { IS_PRODUCTION, IS_DEVELOPMENT } from './env'
+import { IS_DEVELOPMENT } from './env'
 
 /**
  * Типы логов

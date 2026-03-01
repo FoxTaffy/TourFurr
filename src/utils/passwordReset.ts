@@ -52,7 +52,7 @@ export async function createPasswordResetCode(email: string): Promise<{
     const hashedCode = await hashCode(code)
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes from now
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('password_reset_codes')
       .insert({
         email: email.toLowerCase(),
@@ -197,7 +197,7 @@ export async function sendPasswordResetEmail(email: string, code: string): Promi
     }
 
     // PRODUCTION MODE: Use Supabase Edge Function to send email
-    const { data, error } = await supabase.functions.invoke('send-password-reset-email', {
+    const { error } = await supabase.functions.invoke('send-password-reset-email', {
       body: {
         email,
         code
