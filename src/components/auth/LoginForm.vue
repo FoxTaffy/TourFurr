@@ -322,6 +322,7 @@ import { supabase } from '../../services/supabase'
 import YandexSmartCaptcha from '../common/YandexSmartCaptcha.vue'
 import * as yup from 'yup'
 import { createPasswordResetCode, sendPasswordResetEmail, invalidateOldResetCodes } from '../../utils/passwordReset'
+import { safeStorage } from '../../utils/safeStorage'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -767,8 +768,8 @@ async function handlePasswordUpdate() {
 
     // Sign out if user was logged in
     await supabase.auth.signOut()
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('current_user')
+    safeStorage.removeItem('auth_token')
+    safeStorage.removeItem('current_user')
 
     // After 2 seconds, reset form and show login
     setTimeout(() => {

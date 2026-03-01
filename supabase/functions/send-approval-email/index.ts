@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,6 +19,55 @@ serve(async (req) => {
   }
 
   try {
+    // Security: require an authenticated admin to call this endpoint.
+    // Verify the caller's JWT and check is_admin in the users table.
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
+
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
+      console.error('Missing Supabase configuration')
+      return new Response(
+        JSON.stringify({ error: 'Internal server error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const authHeader = req.headers.get('Authorization') || ''
+    const callerToken = authHeader.replace(/^Bearer\s+/i, '')
+
+    // Resolve caller identity with their JWT
+    const supabaseCaller = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${callerToken}` } },
+      auth: { autoRefreshToken: false, persistSession: false }
+    })
+    const { data: { user: callerUser } } = await supabaseCaller.auth.getUser()
+
+    if (!callerUser) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Check is_admin using service role to bypass RLS
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    })
+    const { data: adminCheck } = await supabaseAdmin
+      .from('users')
+      .select('is_admin')
+      .eq('id', callerUser.id)
+      .maybeSingle()
+
+    if (!adminCheck?.is_admin) {
+      console.warn('send-approval-email: non-admin caller rejected')
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { email, nickname, status }: ApprovalEmailRequest = await req.json()
 
     // Validate input
@@ -229,11 +279,10 @@ TourFurr 2026 - Заявка отклонена
       console.error('Resend API error:', resendData)
       return new Response(
         JSON.stringify({
-          error: 'Failed to send email',
-          details: resendData
+          error: 'Failed to send email'
         }),
         {
-          status: resendResponse.status,
+          status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       )

@@ -572,6 +572,7 @@ import { useAuthStore } from '../stores/auth'
 import { useTeamsStore } from '../stores/teams'
 import TeamBadge from '../components/TeamBadge.vue'
 import logoImg from '../assets/logo.png'
+import { safeStorage } from '../utils/safeStorage'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -690,7 +691,7 @@ function getHouseMembers(teamId: string) {
   return users.value.filter(u => {
     if (u.team_id === teamId) return true
     try {
-      return localStorage.getItem(`user_team_${u.id}`) === teamId
+      return safeStorage.getItem(`user_team_${u.id}`) === teamId
     } catch { return false }
   })
 }
@@ -699,7 +700,7 @@ const unassignedUsers = computed(() => {
   return users.value.filter(u => {
     if (u.team_id) return false
     try {
-      const local = localStorage.getItem(`user_team_${u.id}`)
+      const local = safeStorage.getItem(`user_team_${u.id}`)
       return !local
     } catch { return true }
   }).filter(u => u.status === 'approved' || u.status === 'paid')
@@ -713,11 +714,11 @@ async function assignHouse(userId: string, teamId: string | null) {
       await supabase.from('users').update({ team_id: teamId }).eq('id', userId)
     } catch { /* column may not exist */ }
 
-    // Always update localStorage
+    // Always update safeStorage
     if (teamId) {
-      localStorage.setItem(`user_team_${userId}`, teamId)
+      safeStorage.setItem(`user_team_${userId}`, teamId)
     } else {
-      localStorage.removeItem(`user_team_${userId}`)
+      safeStorage.removeItem(`user_team_${userId}`)
     }
 
     // Update local state
@@ -821,11 +822,11 @@ const houseStats = computed(() => {
     }
   }
 
-  // Also check localStorage fallback
+  // Also check safeStorage fallback
   for (const u of users.value) {
     if (!u.team_id) {
       try {
-        const localTeam = localStorage.getItem(`user_team_${u.id}`)
+        const localTeam = safeStorage.getItem(`user_team_${u.id}`)
         if (localTeam) {
           houseCounts[localTeam] = (houseCounts[localTeam] || 0) + 1
         }

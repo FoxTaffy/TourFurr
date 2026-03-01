@@ -393,7 +393,7 @@ function openYandexMaps() {
   const [lon, lat] = approvedInfo.value.coordinates.split(',')
   // Yandex Maps URL with marker
   const url = `https://yandex.ru/maps/?pt=${lon},${lat}&z=13&l=map`
-  window.open(url, '_blank')
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 // Edit mode

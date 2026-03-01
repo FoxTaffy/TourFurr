@@ -44,6 +44,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useTeamsStore } from '../stores/teams'
 import { useAuthStore } from '../stores/auth'
+import { safeStorage } from '../utils/safeStorage'
 
 const props = defineProps<{
   changeMode?: boolean
@@ -79,7 +80,7 @@ async function confirmSelection() {
   if (result.success) {
     // Update local user state
     authStore.user.teamId = selectedTeamId.value
-    localStorage.setItem('current_user', JSON.stringify(authStore.user))
+    safeStorage.setItem('current_user', JSON.stringify(authStore.user))
     emit('selected', selectedTeamId.value)
   } else {
     errorMsg.value = result.error || 'Не удалось выбрать дом. Попробуйте позже.'

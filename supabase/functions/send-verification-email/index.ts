@@ -54,6 +54,48 @@ serve(async (req) => {
       )
     }
 
+    // Security: Verify the code exists in the database before sending.
+    // This prevents the endpoint from being abused to send emails to arbitrary
+    // addresses with arbitrary codes (email spam / phishing abuse).
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Supabase env not configured – cannot validate code')
+      return new Response(
+        JSON.stringify({ error: 'Internal server error' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    })
+
+    const { data: codeRecord } = await supabaseAdmin
+      .from('email_verification_codes')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .eq('code', code)
+      .eq('used', false)
+      .gte('expires_at', new Date().toISOString())
+      .limit(1)
+      .maybeSingle()
+
+    if (!codeRecord) {
+      console.warn('send-verification-email: no matching active code in DB')
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired verification code' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
     // Get Resend API key from environment
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
     if (!resendApiKey) {

@@ -58,6 +58,54 @@ serve(async (req) => {
       )
     }
 
+    // Security: Verify the hashed code exists in the database before sending.
+    // Password reset codes are stored as SHA-256 hashes; hash the plain code
+    // and compare against the stored hash to prevent email spam abuse.
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Supabase env not configured – cannot validate code')
+      return new Response(
+        JSON.stringify({ error: 'Internal server error' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    const encoder = new TextEncoder()
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(code))
+    const hashedCode = Array.from(new Uint8Array(hashBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    })
+
+    const { data: codeRecord } = await supabaseAdmin
+      .from('password_reset_codes')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .eq('code', hashedCode)
+      .eq('used', false)
+      .gte('expires_at', new Date().toISOString())
+      .limit(1)
+      .maybeSingle()
+
+    if (!codeRecord) {
+      console.warn('send-password-reset-email: no matching active code in DB')
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired reset code' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
     // Get Resend API key from environment
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
     if (!resendApiKey) {
@@ -209,11 +257,10 @@ TourFurr 2026 - Сброс пароля
 
       return new Response(
         JSON.stringify({
-          error: 'Failed to send email',
-          details: resendData
+          error: 'Failed to send email'
         }),
         {
-          status: resendResponse.status,
+          status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       )
