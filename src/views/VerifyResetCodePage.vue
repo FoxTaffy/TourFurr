@@ -50,6 +50,7 @@ import { logger } from '../utils/logger'
 
 const route = useRoute()
 const router = useRouter()
+const RESET_CODE_STORAGE_PREFIX = 'reset_code_'
 const email = ref<string>('')
 const emailNotSent = ref<boolean>(false)
 const emailError = ref<string>('')
@@ -71,15 +72,15 @@ onMounted(async () => {
   const emailSentParam = route.query.emailSent as string
   const emailErrorParam = route.query.emailError as string
 
-  const codeParam = route.query.code as string
-
   if (emailSentParam === 'false') {
     emailNotSent.value = true
     emailError.value = emailErrorParam || 'Не удалось отправить письмо с кодом сброса пароля'
   }
 
-  if (codeParam) {
-    fallbackCode.value = codeParam
+  const storedCode = sessionStorage.getItem(`${RESET_CODE_STORAGE_PREFIX}${email.value.toLowerCase()}`)
+  if (storedCode) {
+    fallbackCode.value = storedCode
+    sessionStorage.removeItem(`${RESET_CODE_STORAGE_PREFIX}${email.value.toLowerCase()}`)
   }
 })
 

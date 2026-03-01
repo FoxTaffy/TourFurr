@@ -826,6 +826,7 @@ import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { vMaska } from 'maska/vue'
 import { useAuthStore } from '../../stores/auth'
+import { supabase } from '../../services/supabase'
 import TelegramInput from './TelegramInput.vue'
 import YandexSmartCaptcha from '../common/YandexSmartCaptcha.vue'
 import * as yup from 'yup'
@@ -848,6 +849,7 @@ const avatarPreview = ref<string | null>(null)
 const captchaSiteKey = import.meta.env.VITE_SMARTCAPTCHA_SITE_KEY || ''
 const captchaToken = ref<string | null>(null)
 const captchaError = ref('')
+const EMAIL_VERIFY_CODE_STORAGE_PREFIX = 'verify_code_'
 
 const stepTitles = ['Основное', 'Профиль', 'Дополнительно']
 
@@ -1077,6 +1079,17 @@ async function handleSubmit() {
     return
   }
 
+  // Server-side CAPTCHA verification
+  const { data: verifyData, error: verifyError } = await supabase.functions.invoke('turnstile-verify', {
+    body: { token: captchaToken.value }
+  })
+
+  if (verifyError || !verifyData?.success) {
+    captchaError.value = 'Проверка CAPTCHA не пройдена. Попробуйте снова.'
+    captchaToken.value = null
+    return
+  }
+
   serverError.value = ''
   captchaError.value = ''
   isLoading.value = true
@@ -1104,13 +1117,16 @@ async function handleSubmit() {
     const emailError = (result as any).emailError
     const verificationCode = (result as any).verificationCode || ''
 
+    if (verificationCode) {
+      sessionStorage.setItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.toLowerCase()}`, verificationCode)
+    }
+
     router.push({
       path: '/auth/verify-email',
       query: {
         email,
         emailSent: emailSent ? 'true' : 'false',
-        emailError: emailError || '',
-        ...(verificationCode ? { code: verificationCode } : {})
+        emailError: emailError || ''
       }
     })
   } else {

@@ -435,8 +435,15 @@ export const useAuthStore = defineStore('auth', () => {
       logger.log('Login successful')
       const mappedUser = mapDbUserToUser(userData)
 
-      // Use Supabase session token
-      token.value = authData.data.session?.access_token || crypto.randomUUID()
+      // Use only real Supabase session token (never generate fake auth token)
+      const accessToken = authData.data.session?.access_token
+      if (!accessToken) {
+        logger.error('Login failed: no Supabase session token returned')
+        error.value = 'Ошибка авторизации: сессия не создана. Попробуйте снова.'
+        return { success: false, error: error.value }
+      }
+
+      token.value = accessToken
       user.value = mappedUser
       safeStorage.setItem('auth_token', token.value)
       safeStorage.setItem('current_user', JSON.stringify(mappedUser))

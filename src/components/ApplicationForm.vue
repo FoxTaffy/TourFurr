@@ -287,9 +287,12 @@ async function loadEventConfig() {
 
     // Check registration status
     const now = new Date()
+    const openDate = config.registration_open_date ? new Date(config.registration_open_date) : null
     const closeDate = config.registration_close_date ? new Date(config.registration_close_date) : null
 
-    if (closeDate && now > closeDate) {
+    if (openDate && now < openDate) {
+      registrationStatus.value = 'not_open'
+    } else if (closeDate && now > closeDate) {
       registrationStatus.value = 'closed'
     } else if (approvedCount.value >= config.max_participants) {
       registrationStatus.value = 'full'
@@ -360,7 +363,7 @@ async function handleSubmit() {
   // Check if user is authenticated
   if (!authStore.isAuthenticated || !authStore.user) {
     serverError.value = 'Пожалуйста, войдите в систему для подачи заявки'
-    router.push('/auth/login')
+    router.push('/auth')
     return
   }
 

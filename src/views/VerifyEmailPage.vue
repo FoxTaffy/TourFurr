@@ -91,7 +91,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { supabase } from '../services/supabase'
 import VerificationCodeInput from '../components/auth/VerificationCodeInput.vue'
 import { createVerificationCode, sendVerificationEmail, invalidateOldCodes } from '../utils/emailVerification'
 import { checkGracePeriodStatus, formatRemainingTime, type GracePeriodStatus } from '../utils/gracePeriod'
@@ -99,6 +98,7 @@ import { logger } from '../utils/logger'
 
 const route = useRoute()
 const router = useRouter()
+const EMAIL_VERIFY_CODE_STORAGE_PREFIX = 'verify_code_'
 const email = ref<string>('')
 const emailNotSent = ref<boolean>(false)
 const emailError = ref<string>('')
@@ -155,15 +155,15 @@ onMounted(async () => {
   const emailSentParam = route.query.emailSent as string
   const emailErrorParam = route.query.emailError as string
 
-  const codeParam = route.query.code as string
-
   if (emailSentParam === 'false') {
     emailNotSent.value = true
     emailError.value = emailErrorParam || 'Не удалось отправить письмо с кодом подтверждения'
   }
 
-  if (codeParam) {
-    fallbackCode.value = codeParam
+  const storedCode = sessionStorage.getItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.value.toLowerCase()}`)
+  if (storedCode) {
+    fallbackCode.value = storedCode
+    sessionStorage.removeItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.value.toLowerCase()}`)
   }
 
   // Начальная проверка grace period
@@ -181,22 +181,8 @@ onUnmounted(() => {
 
 async function handleVerified() {
   try {
-    // Update user's email_verified status in database
-    const { error } = await supabase
-      .from('users')
-      .update({
-        email_verified: true,
-        email_verified_at: new Date().toISOString()
-      })
-      .eq('email', email.value)
-
-    if (error) {
-      logger.error('Error updating email verification status:', error)
-      alert('Ошибка обновления статуса. Свяжитесь с поддержкой.')
-      return
-    }
-
-    // Redirect to login with success message
+    // Redirect to login with success message.
+    // Email verification state should be updated by secure backend logic.
     router.push('/auth?verified=true')
   } catch (err: any) {
     logger.error('Error in handleVerified:', err)

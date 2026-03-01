@@ -84,6 +84,7 @@ import { supabase } from '../services/supabase'
 import { createPasswordResetCode, sendPasswordResetEmail, invalidateOldResetCodes } from '../utils/passwordReset'
 
 const router = useRouter()
+const RESET_CODE_STORAGE_PREFIX = 'reset_code_'
 const email = ref('')
 const error = ref('')
 const isLoading = ref(false)
@@ -148,14 +149,14 @@ async function handleSubmit() {
     if (!sendResult.success) {
       // Show success message anyway for security, but pass code to verify page
       submitted.value = true
+      sessionStorage.setItem(`${RESET_CODE_STORAGE_PREFIX}${cleanEmail.toLowerCase()}`, result.code)
       setTimeout(() => {
         router.push({
           path: '/auth/verify-reset-code',
           query: {
             email: cleanEmail,
             emailSent: 'false',
-            emailError: sendResult.error || 'Ошибка отправки письма',
-            code: result.code
+            emailError: sendResult.error || 'Ошибка отправки письма'
           }
         })
       }, 1500)

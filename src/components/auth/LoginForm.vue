@@ -347,6 +347,7 @@ const captchaToken = ref<string | null>(null)
 const captchaError = ref('')
 const loginAttempts = ref(0)
 const showCaptcha = computed(() => loginAttempts.value >= 2)
+const EMAIL_VERIFY_CODE_STORAGE_PREFIX = 'verify_code_'
 
 // Password reset state
 const showForgotPassword = ref(false)
@@ -414,6 +415,19 @@ async function handleSubmit() {
     return
   }
 
+  // Server-side CAPTCHA verification
+  if (showCaptcha.value && captchaToken.value) {
+    const { data: verifyData, error: verifyError } = await supabase.functions.invoke('turnstile-verify', {
+      body: { token: captchaToken.value }
+    })
+
+    if (verifyError || !verifyData?.success) {
+      captchaError.value = 'Проверка CAPTCHA не пройдена. Попробуйте снова.'
+      captchaToken.value = null
+      return
+    }
+  }
+
   try {
     await schema.validate(form, { abortEarly: false })
   } catch (err: any) {
@@ -440,12 +454,16 @@ async function handleSubmit() {
       const email = (result as any).email || form.email
       const emailSent = (result as any).emailSent
       const verificationCode = (result as any).verificationCode || ''
+
+      if (verificationCode) {
+        sessionStorage.setItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.toLowerCase()}`, verificationCode)
+      }
+
       router.push({
         path: '/auth/verify-email',
         query: {
           email,
-          emailSent: emailSent ? 'true' : 'false',
-          ...(verificationCode ? { code: verificationCode } : {})
+          emailSent: emailSent ? 'true' : 'false'
         }
       })
       return

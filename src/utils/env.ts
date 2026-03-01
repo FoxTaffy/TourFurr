@@ -5,6 +5,7 @@ const viteSmartCaptchaSiteKey = import.meta.env.VITE_SMARTCAPTCHA_SITE_KEY
 const viteYandexMapsApiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY
 const viteDisableEmail = import.meta.env.VITE_DISABLE_EMAIL
 const viteGracePeriodMinutes = import.meta.env.VITE_GRACE_PERIOD_MINUTES
+const viteRegistrationOpenDate = import.meta.env.VITE_REGISTRATION_OPEN_DATE
 const viteProd = import.meta.env.PROD
 const viteDev = import.meta.env.DEV
 
@@ -24,7 +25,12 @@ export const DISABLE_EMAIL: boolean = disableEmailValue === 'true'
 
 // Registration Settings
 export function isRegistrationOpen(): boolean {
-  return true
+  if (!viteRegistrationOpenDate) return true
+
+  const openDate = new Date(viteRegistrationOpenDate)
+  if (Number.isNaN(openDate.getTime())) return true
+
+  return new Date() >= openDate
 }
 
 // Grace Period

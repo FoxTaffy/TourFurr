@@ -74,8 +74,24 @@ const router = createRouter({
 
 // Navigation guards
 router.beforeEach(async (to, _from, next) => {
-  const token = safeStorage.getItem('auth_token')
-  const isAuthenticated = !!token
+  let isAuthenticated = false
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    const accessToken = session?.access_token
+    isAuthenticated = !!accessToken
+
+    if (accessToken) {
+      safeStorage.setItem('auth_token', accessToken)
+    } else {
+      safeStorage.removeItem('auth_token')
+      safeStorage.removeItem('current_user')
+    }
+  } catch {
+    isAuthenticated = false
+    safeStorage.removeItem('auth_token')
+    safeStorage.removeItem('current_user')
+  }
 
   // Check guest routes
   if (to.meta.requiresGuest && isAuthenticated) {

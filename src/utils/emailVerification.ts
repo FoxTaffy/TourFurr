@@ -74,6 +74,38 @@ export async function verifyCode(email: string, code: string): Promise<{
   error?: string
 }> {
   try {
+    // STRATEGY 0: Preferred secure path via RPC function on backend.
+    // verify_email_code() should validate code, rate-limit attempts,
+    // mark code as used and set users.email_verified in one transaction.
+    try {
+      const { data: rpcData, error: rpcError } = await supabase
+        .rpc('verify_email_code', {
+          p_email: email.toLowerCase(),
+          p_code: code
+        })
+
+      if (!rpcError && rpcData) {
+        const row = Array.isArray(rpcData) ? rpcData[0] : rpcData
+        if (row?.is_valid === true) {
+          logger.log('✅ Verified using secure RPC verify_email_code')
+          return { success: true }
+        }
+
+        if (row?.is_valid === false) {
+          return {
+            success: false,
+            error: row?.message || 'Неверный или истекший код'
+          }
+        }
+      }
+
+      if (rpcError) {
+        logger.log('verify_email_code RPC unavailable, falling back:', rpcError.message)
+      }
+    } catch (rpcException: any) {
+      logger.log('verify_email_code RPC exception, falling back:', rpcException?.message)
+    }
+
     // STRATEGY 1: Try our custom verification code system first
     const { data: codes, error: fetchError } = await supabase
       .from('email_verification_codes')
