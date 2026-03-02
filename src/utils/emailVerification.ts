@@ -256,12 +256,17 @@ export async function sendVerificationEmail(email: string, code: string): Promis
     if (error) {
       logger.error('Error sending verification email:', error)
 
-      // Check if it's a rate limit error
-      if (error.message && (
-        error.message.includes('rate limit') ||
-        error.message.includes('too many') ||
-        error.message.includes('Email rate limit exceeded')
-      )) {
+      // Check if it's a rate limit error.
+      // FunctionsHttpError stores the HTTP response in .context, so check status 429 first.
+      const isRateLimit =
+        (error as any).context?.status === 429 ||
+        (error.message && (
+          error.message.includes('rate limit') ||
+          error.message.includes('too many') ||
+          error.message.includes('Email rate limit exceeded')
+        ))
+
+      if (isRateLimit) {
         return {
           success: false,
           error: 'Слишком много писем отправлено на этот адрес. Подождите 1 час и попробуйте снова.'
@@ -278,12 +283,17 @@ export async function sendVerificationEmail(email: string, code: string): Promis
   } catch (err: any) {
     logger.error('Exception sending verification email:', err)
 
-    // Check if it's a rate limit error
-    if (err.message && (
-      err.message.includes('rate limit') ||
-      err.message.includes('too many') ||
-      err.message.includes('Email rate limit exceeded')
-    )) {
+    // Check if it's a rate limit error.
+    // FunctionsHttpError stores the HTTP response in .context, so check status 429 first.
+    const isRateLimit =
+      err?.context?.status === 429 ||
+      (err.message && (
+        err.message.includes('rate limit') ||
+        err.message.includes('too many') ||
+        err.message.includes('Email rate limit exceeded')
+      ))
+
+    if (isRateLimit) {
       return {
         success: false,
         error: 'Слишком много писем отправлено на этот адрес. Подождите 1 час и попробуйте снова.'
