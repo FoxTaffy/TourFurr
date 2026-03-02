@@ -142,10 +142,8 @@ export function sanitizeInput(input: string, maxLength: number = 1000): string {
 
   return input
     .trim()
-    // Remove ALL HTML tags (not just < >)
+    // Remove HTML tags to prevent XSS
     .replace(/<[^>]*>/g, '')
-    // Remove HTML entities
-    .replace(/&[a-zA-Z]+;/g, '')
     // Remove javascript: protocol
     .replace(/javascript:/gi, '')
     // Remove data: protocol
@@ -154,11 +152,7 @@ export function sanitizeInput(input: string, maxLength: number = 1000): string {
     .replace(/vbscript:/gi, '')
     // Remove event handlers (onclick, onload, etc)
     .replace(/on\w+\s*=/gi, '')
-    // Remove common SQL injection patterns
-    .replace(/(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|SCRIPT)\b)/gi, '')
-    // Remove SQL comments
-    .replace(/(--|\/\*|\*\/|#)/g, '')
-    // Remove multiple spaces
+    // Collapse multiple spaces
     .replace(/\s+/g, ' ')
     .substring(0, maxLength) // Limit length
 }

@@ -68,10 +68,10 @@ serve(async (req) => {
       )
     }
 
-    const { email, nickname, status }: ApprovalEmailRequest = await req.json()
+    const { email, nickname: rawNickname, status }: ApprovalEmailRequest = await req.json()
 
     // Validate input
-    if (!email || !nickname || !status) {
+    if (!email || !rawNickname || !status) {
       return new Response(
         JSON.stringify({ error: 'Email, nickname and status are required' }),
         {
@@ -104,6 +104,14 @@ serve(async (req) => {
         }
       )
     }
+
+    // HTML-escape nickname to prevent HTML injection in email body
+    const nickname = rawNickname
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
 
     // Email content based on status
     const isApproved = status === 'approved'
@@ -227,7 +235,7 @@ serve(async (req) => {
     const textContent = isApproved ? `
 TourFurr 2026 - Заявка одобрена!
 
-Здравствуйте, ${nickname}!
+Здравствуйте, ${rawNickname}!
 
 Поздравляем! Ваша заявка на участие в TourFurr 2026 была одобрена.
 
@@ -247,7 +255,7 @@ TourFurr 2026 - Заявка одобрена!
     ` : `
 TourFurr 2026 - Заявка отклонена
 
-Здравствуйте, ${nickname}!
+Здравствуйте, ${rawNickname}!
 
 К сожалению, Вам отказано в участии.
 

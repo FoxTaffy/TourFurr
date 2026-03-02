@@ -20,6 +20,14 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Method not allowed' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
   try {
     const { email, newPassword }: UpdatePasswordRequest = await req.json()
 
