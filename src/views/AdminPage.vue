@@ -936,7 +936,14 @@ async function loadUsers() {
   isLoading.value = false
 }
 
+const ALLOWED_STATUSES = ['pending', 'deferred', 'approved', 'paid', 'rejected'] as const
+
 async function updateStatus(userId: string, status: string) {
+  // Validate that status is one of the allowed values before writing to DB
+  if (!ALLOWED_STATUSES.includes(status as typeof ALLOWED_STATUSES[number])) {
+    console.error('updateStatus: invalid status value', status)
+    return
+  }
   isUpdating.value = userId
   try {
     const { error } = await supabase

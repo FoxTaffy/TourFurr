@@ -19,10 +19,42 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // Security: only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Method not allowed' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 405 },
+    )
+  }
+
   try {
-    // Создаем Supabase клиент с service role для админских операций
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const cleanupSecret = Deno.env.get('CLEANUP_SECRET')
+
+    // Security: require a shared secret to prevent unauthorized invocations.
+    // Set CLEANUP_SECRET as a Supabase Edge Function secret and pass it in the
+    // Authorization header as "Bearer <secret>" from the cron job.
+    if (cleanupSecret) {
+      const authHeader = req.headers.get('Authorization') || ''
+      const providedSecret = authHeader.replace(/^Bearer\s+/i, '')
+      // Use constant-time comparison to prevent timing attacks
+      const secretBytes = new TextEncoder().encode(cleanupSecret)
+      const providedBytes = new TextEncoder().encode(providedSecret)
+      let match = secretBytes.length === providedBytes.length
+      if (match) {
+        for (let i = 0; i < secretBytes.length; i++) {
+          if (secretBytes[i] !== providedBytes[i]) { match = false }
+        }
+      }
+      if (!match) {
+        console.warn('cleanup-unverified-accounts: unauthorized call rejected')
+        return new Response(
+          JSON.stringify({ success: false, error: 'Unauthorized' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 },
+        )
+      }
+    }
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
@@ -47,16 +79,11 @@ Deno.serve(async (req) => {
 
     console.log(`Cleanup completed. Deleted ${cleanupResult.deleted_count} unverified accounts`)
 
-    if (cleanupResult.deleted_emails && cleanupResult.deleted_emails.length > 0) {
-      console.log('Deleted emails:', cleanupResult.deleted_emails)
-    }
-
     return new Response(
       JSON.stringify({
         success: true,
         message: `Deleted ${cleanupResult.deleted_count} unverified accounts`,
         deleted_count: cleanupResult.deleted_count,
-        deleted_emails: cleanupResult.deleted_emails || []
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -80,19 +107,20 @@ Deno.serve(async (req) => {
 
 // Настройка автоматического запуска:
 //
-// 1. С помощью pg_cron (в Supabase Dashboard -> SQL Editor):
+// 1. Установить CLEANUP_SECRET как Supabase Edge Function secret:
+//    supabase secrets set CLEANUP_SECRET=<random-secret>
+//
+// 2. С помощью pg_cron (в Supabase Dashboard -> SQL Editor):
 //    SELECT cron.schedule(
 //      'cleanup-unverified-users',
 //      '*/5 * * * *',
 //      $$SELECT net.http_post(
 //        url:='https://YOUR_PROJECT_REF.supabase.co/functions/v1/cleanup-unverified-accounts',
-//        headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_ANON_KEY"}'::jsonb
+//        headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_CLEANUP_SECRET"}'::jsonb
 //      ) as request_id;$$
 //    );
 //
-// 2. С помощью внешнего cron (например, GitHub Actions, Vercel Cron, или любого cron сервиса):
+// 3. С помощью внешнего cron (например, GitHub Actions, Vercel Cron):
 //    curl -X POST https://YOUR_PROJECT_REF.supabase.co/functions/v1/cleanup-unverified-accounts \
-//      -H "Authorization: Bearer YOUR_ANON_KEY"
-//
-// 3. Вызов вручную для тестирования:
-//    curl -X POST http://localhost:54321/functions/v1/cleanup-unverified-accounts
+//      -H "Authorization: Bearer YOUR_CLEANUP_SECRET"
+

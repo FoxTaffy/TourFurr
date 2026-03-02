@@ -14,12 +14,19 @@ export interface PasswordResetCode {
 }
 
 /**
- * Generate a random 6-digit reset code
+ * Generate a cryptographically secure random 6-digit reset code
  */
 export function generateResetCode(): string {
-  // Generate a number between 100000 and 999999
-  const code = Math.floor(100000 + Math.random() * 900000)
-  return code.toString()
+  // Use CSPRNG with rejection sampling to avoid modulo bias
+  const max = 900000 // range size (100000–999999)
+  const cap = Math.floor(0x100000000 / max) * max // largest multiple of max within Uint32 range
+  let value: number
+  const array = new Uint32Array(1)
+  do {
+    crypto.getRandomValues(array)
+    value = array[0]
+  } while (value >= cap)
+  return (100000 + (value % max)).toString()
 }
 
 /**

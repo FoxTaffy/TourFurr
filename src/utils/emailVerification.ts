@@ -14,12 +14,19 @@ export interface VerificationCode {
 }
 
 /**
- * Generate a random 6-digit verification code
+ * Generate a cryptographically secure random 6-digit verification code
  */
 export function generateVerificationCode(): string {
-  // Generate a number between 100000 and 999999
-  const code = Math.floor(100000 + Math.random() * 900000)
-  return code.toString()
+  // Use CSPRNG with rejection sampling to avoid modulo bias
+  const max = 900000 // range size (100000–999999)
+  const cap = Math.floor(0x100000000 / max) * max // largest multiple of max within Uint32 range
+  let value: number
+  const array = new Uint32Array(1)
+  do {
+    crypto.getRandomValues(array)
+    value = array[0]
+  } while (value >= cap)
+  return (100000 + (value % max)).toString()
 }
 
 /**
@@ -170,6 +177,25 @@ export async function verifyCode(email: string, code: string): Promise<{
 
       if (!otpError && otpData?.user) {
         logger.log('✅ Verified using Supabase OTP')
+        // Ensure our own email_verified flag is set so auth guards work correctly.
+        // These updates are best-effort: if they fail the user is still considered
+        // verified (Supabase Auth has already confirmed ownership).
+        try {
+          await supabase
+            .from('email_verification_codes')
+            .update({ used: true, verified_at: new Date().toISOString() })
+            .eq('email', email.toLowerCase())
+            .eq('used', false)
+          const { error: userUpdateError } = await supabase
+            .from('users')
+            .update({ email_verified: true, email_verified_at: new Date().toISOString() })
+            .eq('email', email.toLowerCase())
+          if (userUpdateError) {
+            logger.error('OTP fallback: failed to set email_verified:', userUpdateError)
+          }
+        } catch (updateErr: any) {
+          logger.error('OTP fallback: error updating verification state:', updateErr)
+        }
         return { success: true }
       } else {
         logger.log('Supabase OTP verification failed:', otpError?.message)
