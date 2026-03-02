@@ -229,7 +229,7 @@ TourFurr 2026 - Подтверждение регистрации
       body: JSON.stringify({
         from: 'TourFurr 2026 <team@tourfurr.camp>', 
         to: [email],
-        subject: `Код подтверждения TourFurr: ${code}`,
+        subject: 'Код подтверждения TourFurr 2026',
         html: htmlContent,
         text: textContent,
       }),
