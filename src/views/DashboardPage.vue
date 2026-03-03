@@ -2550,6 +2550,10 @@ function handleLogout() {
 }
 
 /* Mobile-only logout — hidden on desktop */
+.mobile-nav-actions {
+  display: none;
+}
+
 .logout-mobile-btn {
   display: none;
 }
