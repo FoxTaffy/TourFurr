@@ -236,6 +236,15 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                 </svg>
               </div>
+              <!-- QR inside card for approved users -->
+              <div v-if="user?.status === 'approved'" class="visual-card__qr">
+                <img
+                  :src="`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(approvedInfo?.payment_url || PAYMENT_URL)}&size=160x160&bgcolor=2a1a0e&color=ffdd2d&margin=6`"
+                  alt="QR для оплаты"
+                  class="visual-card__qr-img"
+                  loading="lazy"
+                />
+              </div>
             </div>
             <div class="visual-card__amount">
               <span class="visual-card__amount-label">{{ user?.status === 'paid' ? 'Оплачено' : 'К оплате' }}</span>
@@ -261,15 +270,12 @@
               Оплатить участие
             </a>
 
-            <!-- QR code for payment -->
-            <div class="payment-qr">
-              <p class="payment-qr__label">Или отсканируйте QR</p>
-              <img
-                :src="`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(approvedInfo?.payment_url || PAYMENT_URL)}&size=180x180&bgcolor=2a1a0e&color=ffdd2d&margin=8`"
-                alt="QR для оплаты"
-                class="payment-qr__img"
-                loading="lazy"
-              />
+            <!-- Nickname notice -->
+            <div class="payment-nickname-notice">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>В комментарии к оплате укажите ваш никнейм: <strong>{{ user?.nickname }}</strong></span>
             </div>
           </div>
 
@@ -691,10 +697,11 @@ function handleLogout() {
   margin: 0 auto;
   display: grid;
   grid-template-columns: 270px 1fr 1fr;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto 1fr auto;
   grid-template-areas:
     "profile details  payment"
-    "profile telegram location";
+    "profile location location"
+    "profile telegram telegram";
   gap: 1.25rem;
   height: calc(100vh - 5.5rem - 3rem);
 }
@@ -1545,31 +1552,45 @@ function handleLogout() {
   box-shadow: 0 2px 10px rgba(255, 221, 45, 0.3);
 }
 
-/* Payment QR Code */
-.payment-qr {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(26, 17, 14, 0.6);
-  border: 1px solid rgba(255, 221, 45, 0.2);
-  border-radius: 14px;
+/* QR code inside visual card */
+.visual-card__qr {
+  flex-shrink: 0;
 }
 
-.payment-qr__label {
-  font-size: 0.8rem;
-  color: var(--sage);
-  margin: 0;
-  letter-spacing: 0.03em;
-}
-
-.payment-qr__img {
-  width: 160px;
-  height: 160px;
-  border-radius: 10px;
+.visual-card__qr-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
   display: block;
+  border: 2px solid rgba(255, 221, 45, 0.3);
+}
+
+/* Nickname notice under pay button */
+.payment-nickname-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 0.875rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 179, 71, 0.08);
+  border: 1px solid rgba(255, 179, 71, 0.25);
+  border-radius: 12px;
+  color: var(--sage);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.payment-nickname-notice svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--fire-glow);
+  margin-top: 1px;
+}
+
+.payment-nickname-notice strong {
+  color: var(--fire-glow);
+  font-weight: 700;
 }
 
 /* Paid Confirmation */
