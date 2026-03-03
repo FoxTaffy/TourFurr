@@ -11,6 +11,7 @@ export interface GracePeriodStatus {
   secondsRemaining: number | null
   willBeDeletedAt: Date | null
   exists: boolean
+  isVerified: boolean
 }
 
 /**
@@ -33,7 +34,8 @@ export async function checkGracePeriodStatus(email: string): Promise<GracePeriod
         minutesRemaining: null,
         secondsRemaining: null,
         willBeDeletedAt: null,
-        exists: false
+        exists: false,
+        isVerified: false
       }
     }
 
@@ -46,7 +48,8 @@ export async function checkGracePeriodStatus(email: string): Promise<GracePeriod
         minutesRemaining: null,
         secondsRemaining: null,
         willBeDeletedAt: null,
-        exists: true
+        exists: true,
+        isVerified: true
       }
     }
 
@@ -64,7 +67,8 @@ export async function checkGracePeriodStatus(email: string): Promise<GracePeriod
         minutesRemaining: 0,
         secondsRemaining: 0,
         willBeDeletedAt: deletionTime,
-        exists: true
+        exists: true,
+        isVerified: false
       }
     }
 
@@ -73,7 +77,8 @@ export async function checkGracePeriodStatus(email: string): Promise<GracePeriod
       minutesRemaining: remainingMinutes,
       secondsRemaining: remainingSeconds,
       willBeDeletedAt: deletionTime,
-      exists: true
+      exists: true,
+      isVerified: false
     }
   } catch (err) {
     logger.error('Error checking grace period:', err)
@@ -82,7 +87,8 @@ export async function checkGracePeriodStatus(email: string): Promise<GracePeriod
       minutesRemaining: null,
       secondsRemaining: null,
       willBeDeletedAt: null,
-      exists: false
+      exists: false,
+      isVerified: false
     }
   }
 }

@@ -991,8 +991,8 @@ async function checkEmail() {
   if (!isUnique) {
     // Check if existing account is unverified (still within grace period)
     const status = await checkGracePeriodStatus(form.email)
-    if (status.exists && !status.isExpired) {
-      // Account exists but not verified - redirect to verification page
+    if (status.exists && !status.isExpired && !status.isVerified) {
+      // Account exists but not yet verified - redirect to verification page
       router.push({ path: '/auth/verify-email', query: { email: form.email } })
       return
     }

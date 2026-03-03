@@ -93,7 +93,8 @@ function particleStyle(i: number) {
   justify-content: center;
   padding: 2rem 1rem;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Particles */
