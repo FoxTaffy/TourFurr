@@ -139,7 +139,7 @@
           <svg class="success-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          <p>Код отправлен на <strong>{{ resetEmail }}</strong>. Проверьте вашу почту.</p>
+          <p>Если аккаунт с этим email существует — код подтверждения отправлен. Проверьте почту (в том числе папку «Спам»).</p>
         </div>
 
         <!-- Submit Button -->
@@ -322,7 +322,6 @@ import { supabase } from '../../services/supabase'
 import YandexSmartCaptcha from '../common/YandexSmartCaptcha.vue'
 import * as yup from 'yup'
 import { createPasswordResetCode, sendPasswordResetEmail, invalidateOldResetCodes } from '../../utils/passwordReset'
-import { safeStorage } from '../../utils/safeStorage'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -488,17 +487,20 @@ async function handleResetSubmit() {
 
   isResetLoading.value = true
 
+  // Always show the same initial UI immediately — prevents user enumeration via response timing
+  resetSubmitted.value = true
+
   try {
     const cleanEmail = resetEmail.value.trim().toLowerCase()
 
-    // Check if user exists
-    const { data: user } = await supabase
+    // Check if user exists (use maybeSingle to avoid error when no rows found)
+    const { data: existingUser } = await supabase
       .from('users')
       .select('id')
       .eq('email', cleanEmail)
-      .single()
+      .maybeSingle()
 
-    if (user) {
+    if (existingUser) {
       // Invalidate old codes first
       await invalidateOldResetCodes(cleanEmail)
 
@@ -506,42 +508,46 @@ async function handleResetSubmit() {
       const result = await createPasswordResetCode(cleanEmail)
 
       if (result.success && result.code) {
-        // Send password reset email via resend.com
+        // Send password reset email
         const sendResult = await sendPasswordResetEmail(cleanEmail, result.code)
 
         if (!sendResult.success) {
-          resetError.value = sendResult.error || 'Ошибка отправки письма'
+          // Show error after a delay so timing stays consistent
+          setTimeout(() => {
+            resetSubmitted.value = false
+            resetError.value = sendResult.error || 'Ошибка отправки письма'
+          }, 1500)
           return
         }
 
-        // Show success and switch to code input
-        resetSubmitted.value = true
+        // Success — switch to code input
         setTimeout(() => {
-          resetStep.value = 'code'
           resetSubmitted.value = false
+          resetStep.value = 'code'
           startResendTimer()
-          // Auto-focus first code input
-          setTimeout(() => {
-            codeInputRefs.value[0]?.focus()
-          }, 100)
+          setTimeout(() => { codeInputRefs.value[0]?.focus() }, 100)
         }, 1500)
       } else {
-        resetError.value = result.error || 'Ошибка создания кода'
+        setTimeout(() => {
+          resetSubmitted.value = false
+          resetError.value = result.error || 'Ошибка создания кода'
+        }, 1500)
       }
     } else {
-      // User doesn't exist - show generic message for security
-      resetSubmitted.value = true
+      // User not found — wait same delay, then reset (same UX, no info leak)
       setTimeout(() => {
-        resetError.value = 'Если аккаунт с этим email существует, код будет отправлен на почту'
         resetSubmitted.value = false
-      }, 2000)
+      }, 1500)
     }
   } catch (err) {
     console.error('Reset error:', err)
-    resetError.value = 'Ошибка отправки. Попробуйте позже.'
+    setTimeout(() => {
+      resetSubmitted.value = false
+      resetError.value = 'Ошибка отправки. Попробуйте позже.'
+    }, 1500)
+  } finally {
+    isResetLoading.value = false
   }
-
-  isResetLoading.value = false
 }
 
 function resetForgotForm() {
@@ -784,10 +790,8 @@ async function handlePasswordUpdate() {
     // Show success
     passwordUpdateSuccess.value = true
 
-    // Sign out if user was logged in
-    await supabase.auth.signOut()
-    safeStorage.removeItem('auth_token')
-    safeStorage.removeItem('current_user')
+    // Clear all auth state via store (sign out + clear storage + reactive state)
+    await authStore.logout()
 
     // After 2 seconds, reset form and show login
     setTimeout(() => {

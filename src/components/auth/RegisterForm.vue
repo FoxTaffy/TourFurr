@@ -318,8 +318,8 @@
         <!-- Content -->
         <h3 class="success-title">Регистрация успешна! 🎉</h3>
         <p class="success-text">
-          Мы отправили письмо с подтверждением на вашу почту.<br>
-          Пожалуйста, проверьте ваш email и перейдите по ссылке для активации аккаунта.
+          Мы отправили 6-значный код подтверждения на вашу почту.<br>
+          Введите код из письма для активации аккаунта.
         </p>
 
         <!-- Email hint -->
@@ -1127,6 +1127,10 @@ async function handleSubmit() {
   isLoading.value = false
 
   if (result.success) {
+    // Reset captcha token after successful registration
+    captchaToken.value = null
+    captchaRef.value?.reset()
+
     // Redirect to email verification page with email in query params
     const email = (result as any).email || form.email
     const emailSent = (result as any).emailSent

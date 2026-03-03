@@ -15,20 +15,19 @@ export interface GracePeriodStatus {
 
 /**
  * Проверяет статус grace period для пользователя
+ * Использует SECURITY DEFINER RPC — доступна без аутентификации.
+ * Прямые SELECT от анонимного пользователя блокируются RLS.
  * @param email Email пользователя
  * @returns Статус grace period
  */
 export async function checkGracePeriodStatus(email: string): Promise<GracePeriodStatus> {
   try {
-    // Получить информацию о пользователе
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('created_at, email_verified')
-      .eq('email', email.toLowerCase())
-      .maybeSingle()
+    // Используем SECURITY DEFINER RPC, которая обходит RLS и работает без авторизации
+    const { data, error } = await supabase
+      .rpc('get_grace_period_status', { p_email: email.toLowerCase() })
 
-    // Пользователь не найден
-    if (error || !user) {
+    // Пользователь не найден (RPC вернула пустой массив)
+    if (error || !data || (Array.isArray(data) && data.length === 0)) {
       return {
         isExpired: true,
         minutesRemaining: null,
@@ -38,8 +37,10 @@ export async function checkGracePeriodStatus(email: string): Promise<GracePeriod
       }
     }
 
-    // Пользователь уже подтвержден
-    if (user.email_verified) {
+    const row = Array.isArray(data) ? data[0] : data
+
+    // Пользователь уже подтверждён
+    if (row.is_verified) {
       return {
         isExpired: false,
         minutesRemaining: null,
@@ -50,7 +51,7 @@ export async function checkGracePeriodStatus(email: string): Promise<GracePeriod
     }
 
     // Вычислить оставшееся время
-    const createdAt = new Date(user.created_at)
+    const createdAt = new Date(row.created_at_ts)
     const deletionTime = new Date(createdAt.getTime() + GRACE_PERIOD_MINUTES * 60 * 1000)
     const now = new Date()
     const remainingMs = deletionTime.getTime() - now.getTime()
@@ -58,7 +59,6 @@ export async function checkGracePeriodStatus(email: string): Promise<GracePeriod
     const remainingMinutes = Math.floor(remainingSeconds / 60)
 
     if (remainingMs <= 0) {
-      // Время истекло
       return {
         isExpired: true,
         minutesRemaining: 0,
@@ -68,7 +68,6 @@ export async function checkGracePeriodStatus(email: string): Promise<GracePeriod
       }
     }
 
-    // Время еще есть
     return {
       isExpired: false,
       minutesRemaining: remainingMinutes,
@@ -109,13 +108,12 @@ export function formatRemainingTime(seconds: number): string {
  */
 export async function isUnverifiedUser(email: string): Promise<boolean> {
   try {
-    const { data: user } = await supabase
-      .from('users')
-      .select('email_verified')
-      .eq('email', email.toLowerCase())
-      .maybeSingle()
-
-    return !!user && !user.email_verified
+    // Используем RPC для обхода RLS
+    const { data, error } = await supabase
+      .rpc('get_grace_period_status', { p_email: email.toLowerCase() })
+    if (error || !data || (Array.isArray(data) && data.length === 0)) return false
+    const row = Array.isArray(data) ? data[0] : data
+    return row.user_exists && !row.is_verified
   } catch {
     return false
   }
@@ -128,13 +126,12 @@ export async function isUnverifiedUser(email: string): Promise<boolean> {
  */
 export async function getUserCreatedAt(email: string): Promise<Date | null> {
   try {
-    const { data: user } = await supabase
-      .from('users')
-      .select('created_at')
-      .eq('email', email.toLowerCase())
-      .maybeSingle()
-
-    return user ? new Date(user.created_at) : null
+    // Используем RPC для обхода RLS
+    const { data, error } = await supabase
+      .rpc('get_grace_period_status', { p_email: email.toLowerCase() })
+    if (error || !data || (Array.isArray(data) && data.length === 0)) return null
+    const row = Array.isArray(data) ? data[0] : data
+    return row.created_at_ts ? new Date(row.created_at_ts) : null
   } catch {
     return null
   }
