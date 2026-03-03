@@ -9,11 +9,13 @@ interface Props {
   siteKey: string
   language?: string
   invisible?: boolean
+  robustness?: 'low' | 'medium' | 'high'
 }
 
 const props = withDefaults(defineProps<Props>(), {
   language: 'ru',
-  invisible: false
+  invisible: false,
+  robustness: 'medium'
 })
 
 const emit = defineEmits<{
@@ -70,6 +72,7 @@ function renderWidget() {
       sitekey: props.siteKey,
       hl: props.language,
       invisible: props.invisible,
+      robustness: props.robustness,
       callback: (token: string) => {
         emit('verify', token)
       },
