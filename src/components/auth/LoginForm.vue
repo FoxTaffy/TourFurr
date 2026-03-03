@@ -319,6 +319,7 @@ import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { supabase } from '../../services/supabase'
+import { verifyTurnstileToken } from '../../utils/turnstile'
 import YandexSmartCaptcha from '../common/YandexSmartCaptcha.vue'
 import * as yup from 'yup'
 import { createPasswordResetCode, sendPasswordResetEmail, invalidateOldResetCodes } from '../../utils/passwordReset'
@@ -417,11 +418,9 @@ async function handleSubmit() {
 
   // Server-side CAPTCHA verification
   if (showCaptcha.value && captchaToken.value) {
-    const { data: verifyData, error: verifyError } = await supabase.functions.invoke('turnstile-verify', {
-      body: { token: captchaToken.value }
-    })
+    const isCaptchaValid = await verifyTurnstileToken(captchaToken.value)
 
-    if (verifyError || !verifyData?.success) {
+    if (!isCaptchaValid) {
       captchaError.value = 'Проверка CAPTCHA не пройдена. Попробуйте снова.'
       captchaToken.value = null
       return

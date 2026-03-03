@@ -194,6 +194,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
+import { verifyTurnstileToken } from '../utils/turnstile'
 import YandexSmartCaptcha from './common/YandexSmartCaptcha.vue'
 import * as yup from 'yup'
 
@@ -383,12 +384,10 @@ async function handleSubmit() {
 
   try {
     // Step 1: Verify captcha token with Edge Function
-    const { data: verifyData, error: verifyError } = await supabase.functions.invoke('turnstile-verify', {
-      body: { token: captchaToken.value }
-    })
+    const isCaptchaValid = await verifyTurnstileToken(captchaToken.value)
 
-    if (verifyError || !verifyData?.success) {
-      console.error('Captcha verification failed:', verifyError || verifyData)
+    if (!isCaptchaValid) {
+      console.error('Captcha verification failed')
       captchaError.value = 'Проверка безопасности не пройдена. Попробуйте еще раз'
       captchaRef.value?.reset()
       return
