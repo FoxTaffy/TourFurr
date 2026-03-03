@@ -6,6 +6,25 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 const SMARTCAPTCHA_SECRET_KEY = Deno.env.get('SMARTCAPTCHA_SECRET_KEY')
 const SMARTCAPTCHA_VERIFY_URL = 'https://smartcaptcha.yandexcloud.net/validate'
 
+const defaultAllowedHeaders = 'authorization, x-client-info, apikey, content-type'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': defaultAllowedHeaders,
+  'Access-Control-Max-Age': '86400',
+  Vary: 'Origin, Access-Control-Request-Headers',
+}
+
+function resolveRequestedHeaders(requestedHeaders: string | null): string {
+  if (!requestedHeaders || !requestedHeaders.trim()) {
+    return defaultAllowedHeaders
+  }
+
+  // Reflect requested headers to keep compatibility with browser/Supabase preflight variants.
+  return requestedHeaders
+}
+
 interface SmartCaptchaResponse {
   status: 'ok' | 'failed'
   message?: string
@@ -20,11 +39,11 @@ interface RequestBody {
 serve(async (req) => {
   // CORS preflight
   if (req.method === 'OPTIONS') {
+    const requestedHeaders = req.headers.get('access-control-request-headers')
     return new Response('ok', {
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        ...corsHeaders,
+        'Access-Control-Allow-Headers': resolveRequestedHeaders(requestedHeaders),
       },
     })
   }
@@ -33,7 +52,7 @@ serve(async (req) => {
     if (req.method !== 'POST') {
       return new Response(
         JSON.stringify({ success: false, error: 'Method not allowed' }),
-        { status: 405, headers: { 'Content-Type': 'application/json' } }
+        { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -41,7 +60,7 @@ serve(async (req) => {
       console.error('SMARTCAPTCHA_SECRET_KEY not configured')
       return new Response(
         JSON.stringify({ success: false, error: 'Server configuration error' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -50,7 +69,7 @@ serve(async (req) => {
     if (!token || typeof token !== 'string') {
       return new Response(
         JSON.stringify({ success: false, error: 'Token is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -88,10 +107,7 @@ serve(async (req) => {
       }),
       {
         status: isSuccess ? 200 : 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   } catch (error) {
@@ -103,10 +119,7 @@ serve(async (req) => {
       }),
       {
         status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   }
