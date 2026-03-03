@@ -1,126 +1,227 @@
 <template>
   <div class="teams-page">
-    <!-- Animated Background -->
+    <!-- Animated background -->
     <div class="bg-forest"></div>
     <div class="fog"></div>
 
     <!-- Header -->
     <Header :isDashboard="true" />
 
+    <!-- HERO BAR — The Wall -->
+    <div class="wall-hero">
+      <div class="wall-overlay"></div>
+      <div class="wall-content">
+        <p class="wall-eyebrow">Семь Королевств</p>
+        <h1 class="wall-title">Великие Дома</h1>
+        <p class="wall-subtitle">Выбери знамя, под которым встретишь ТурФурр</p>
+      </div>
+      <div class="wall-gradient-bottom"></div>
+    </div>
+
     <!-- Main Content -->
     <main class="teams-main">
-      <h1 class="page-title">Великие Дома</h1>
-      <p class="page-subtitle">Выберите свой дом и сразитесь за его честь</p>
 
       <div v-if="isLoading" class="loading">
         <div class="page-spinner"></div>
         <p>Загрузка домов...</p>
       </div>
 
-      <div v-else class="teams-grid">
-        <div
-          v-for="team in teams"
-          :key="team.id"
-          class="team-card"
-          :style="{ '--team-color': team.color, '--team-bg': team.color + '20' }"
-        >
-          <!-- Team Header -->
-          <div class="team-header">
-            <div class="team-crest-wrapper">
+      <template v-else>
+        <!-- Houses grid (all except Night's Watch) -->
+        <div class="houses-grid">
+          <div
+            v-for="team in mainHouses"
+            :key="team.id"
+            class="house-card"
+            :style="{ '--tc': team.color, '--tc20': team.color + '20', '--tc40': team.color + '40' }"
+          >
+            <!-- Card Banner -->
+            <div class="card-banner">
+              <div class="banner-glow"></div>
               <img
                 :src="getCrestSrc(team)"
                 :alt="team.name"
-                class="team-crest-large"
+                class="banner-crest"
                 @error="($event.target as HTMLImageElement).style.display = 'none'"
               />
-              <span class="team-crest-letter">{{ team.name[0] }}</span>
-            </div>
-            <div class="team-info">
-              <h2 class="team-name">{{ team.name }}</h2>
-              <p class="team-description">{{ team.description }}</p>
-            </div>
-            <div class="member-count-badge">
-              {{ getMemberCount(team.id) }}
-            </div>
-          </div>
-
-          <!-- House Lore Toggle -->
-          <button
-            class="toggle-lore-btn"
-            @click="expandedLore[team.id] = !expandedLore[team.id]"
-          >
-            <span>{{ expandedLore[team.id] ? 'Скрыть описание' : (HOUSE_LORE[team.slug]?.isOrder ? 'Об ордене' : 'О доме') }}</span>
-            <svg
-              class="toggle-icon"
-              :class="{ rotated: expandedLore[team.id] }"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-            </svg>
-          </button>
-
-          <!-- House Lore Section -->
-          <div v-if="expandedLore[team.id] && HOUSE_LORE[team.slug]" class="house-lore">
-            <p class="lore-hook">{{ HOUSE_LORE[team.slug].hookQuestion }}</p>
-            <p class="lore-emblem"><span class="lore-label">Герб:</span> {{ HOUSE_LORE[team.slug].emblem }}</p>
-            <div class="lore-full-desc">
-              <p v-for="(para, i) in HOUSE_LORE[team.slug].fullDescription.split('\n\n')" :key="i">{{ para }}</p>
-            </div>
-            <div class="lore-traits">
-              <p class="lore-traits-title">{{ HOUSE_LORE[team.slug].isOrder ? 'Вступай в Ночной Дозор, если ты:' : 'Выбери этот дом, если ты:' }}</p>
-              <ul>
-                <li v-for="(trait, i) in HOUSE_LORE[team.slug].traits" :key="i">✅ {{ trait }}</li>
-              </ul>
-            </div>
-            <div class="lore-flavor">
-              <p v-for="(line, i) in HOUSE_LORE[team.slug].flavorText.split('\n\n')" :key="i">{{ line }}</p>
-            </div>
-            <p class="lore-closing">{{ HOUSE_LORE[team.slug].closingRemark }}</p>
-          </div>
-
-          <!-- Toggle Members -->
-          <button
-            class="toggle-members-btn"
-            @click="toggleMembers(team.id)"
-          >
-            <span>{{ expandedTeams[team.id] ? 'Скрыть участников' : 'Показать участников' }}</span>
-            <svg
-              class="toggle-icon"
-              :class="{ rotated: expandedTeams[team.id] }"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-            </svg>
-          </button>
-
-          <!-- Members List -->
-          <div v-if="expandedTeams[team.id]" class="members-list">
-            <div v-if="!members[team.id] || members[team.id].length === 0" class="empty-members">
-              Пока нет участников
-            </div>
-            <div
-              v-for="member in members[team.id]"
-              :key="member.id"
-              class="member-item"
-            >
-              <div class="member-avatar">
-                <img v-if="member.avatar_url" :src="member.avatar_url" :alt="member.nickname" />
-                <span v-else class="member-initial">{{ member.nickname?.[0]?.toUpperCase() }}</span>
+              <div class="banner-text">
+                <span class="banner-tag">{{ HOUSE_LORE[team.slug]?.isOrder ? 'Орден' : 'Великий Дом' }}</span>
+                <h2 class="banner-name">{{ team.name }}</h2>
+                <p class="banner-motto">{{ team.description }}</p>
               </div>
-              <span class="member-nickname">{{ member.nickname }}</span>
-              <span class="member-status" :class="member.status">
-                {{ statusLabels[member.status] || member.status }}
-              </span>
+              <div class="banner-count">
+                <span class="count-num">{{ getMemberCount(team.id) }}</span>
+                <span class="count-label">участников</span>
+              </div>
             </div>
+
+            <!-- Hook question -->
+            <p v-if="HOUSE_LORE[team.slug]" class="card-hook">
+              <span class="hook-icon">{{ HOUSE_LORE[team.slug].emoji }}</span>
+              {{ HOUSE_LORE[team.slug].hookQuestion }}
+            </p>
+
+            <!-- Action row -->
+            <div class="card-actions">
+              <button class="action-btn lore-btn" @click="expandedLore[team.id] = !expandedLore[team.id]">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                {{ expandedLore[team.id] ? 'Свернуть' : (HOUSE_LORE[team.slug]?.isOrder ? 'Об ордене' : 'О доме') }}
+              </button>
+              <button class="action-btn members-btn" @click="toggleMembers(team.id)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                {{ expandedTeams[team.id] ? 'Скрыть' : 'Участники' }}
+              </button>
+            </div>
+
+            <!-- Lore panel -->
+            <Transition name="expand">
+              <div v-if="expandedLore[team.id] && HOUSE_LORE[team.slug]" class="lore-panel">
+                <div class="lore-emblem-row">
+                  <span class="lore-badge">Герб</span>
+                  <span class="lore-emblem-text">{{ HOUSE_LORE[team.slug].emblem }}</span>
+                </div>
+
+                <div class="lore-desc">
+                  <p v-for="(para, i) in HOUSE_LORE[team.slug].fullDescription.split('\n\n')" :key="i">{{ para }}</p>
+                </div>
+
+                <div class="lore-traits-box">
+                  <p class="traits-heading">
+                    {{ HOUSE_LORE[team.slug].isOrder ? 'Вступай в Ночной Дозор, если ты:' : `Выбери ${team.name}, если ты:` }}
+                  </p>
+                  <ul class="traits-list">
+                    <li v-for="(trait, i) in HOUSE_LORE[team.slug].traits" :key="i">
+                      <span class="trait-check">✦</span>{{ trait }}
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="lore-flavor-block">
+                  <p v-for="(line, i) in HOUSE_LORE[team.slug].flavorText.split('\n\n')" :key="i">{{ line }}</p>
+                </div>
+
+                <p class="lore-closing">{{ HOUSE_LORE[team.slug].closingRemark }}</p>
+              </div>
+            </Transition>
+
+            <!-- Members panel -->
+            <Transition name="expand">
+              <div v-if="expandedTeams[team.id]" class="members-panel">
+                <div v-if="!members[team.id] || members[team.id].length === 0" class="empty-members">
+                  Пока нет участников
+                </div>
+                <div v-for="member in members[team.id]" :key="member.id" class="member-row">
+                  <div class="member-avatar">
+                    <img v-if="member.avatar_url" :src="member.avatar_url" :alt="member.nickname" />
+                    <span v-else class="member-initial">{{ member.nickname?.[0]?.toUpperCase() }}</span>
+                  </div>
+                  <span class="member-name">{{ member.nickname }}</span>
+                  <span class="member-status" :class="member.status">
+                    {{ statusLabels[member.status] || member.status }}
+                  </span>
+                </div>
+              </div>
+            </Transition>
           </div>
         </div>
-      </div>
 
-      <!-- Back to Dashboard -->
+        <!-- Night's Watch — full-width special card -->
+        <div
+          v-if="nightsWatch"
+          class="nw-card"
+          :style="{ '--tc': nightsWatch.color, '--tc20': nightsWatch.color + '20' }"
+        >
+          <div class="nw-inner">
+            <div class="nw-left">
+              <img
+                :src="getCrestSrc(nightsWatch)"
+                :alt="nightsWatch.name"
+                class="nw-crest"
+                @error="($event.target as HTMLImageElement).style.display = 'none'"
+              />
+            </div>
+            <div class="nw-center">
+              <span class="nw-tag">Орден</span>
+              <h2 class="nw-name">{{ nightsWatch.name }}</h2>
+              <p class="nw-motto">{{ nightsWatch.description }}</p>
+              <p v-if="HOUSE_LORE['nights-watch']" class="nw-hook">
+                {{ HOUSE_LORE['nights-watch'].hookQuestion }}
+              </p>
+            </div>
+            <div class="nw-right">
+              <span class="nw-count-num">{{ getMemberCount(nightsWatch.id) }}</span>
+              <span class="nw-count-label">участников</span>
+            </div>
+          </div>
+
+          <div class="card-actions nw-actions">
+            <button class="action-btn lore-btn nw-lore-btn" @click="expandedLore[nightsWatch.id] = !expandedLore[nightsWatch.id]">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+              </svg>
+              {{ expandedLore[nightsWatch.id] ? 'Свернуть' : 'Об ордене' }}
+            </button>
+            <button class="action-btn members-btn" @click="toggleMembers(nightsWatch.id)">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              {{ expandedTeams[nightsWatch.id] ? 'Скрыть' : 'Участники' }}
+            </button>
+          </div>
+
+          <Transition name="expand">
+            <div v-if="expandedLore[nightsWatch.id] && HOUSE_LORE['nights-watch']" class="lore-panel nw-lore-panel">
+              <div class="lore-emblem-row">
+                <span class="lore-badge">Герб</span>
+                <span class="lore-emblem-text">{{ HOUSE_LORE['nights-watch'].emblem }}</span>
+              </div>
+              <div class="lore-desc">
+                <p v-for="(para, i) in HOUSE_LORE['nights-watch'].fullDescription.split('\n\n')" :key="i">{{ para }}</p>
+              </div>
+              <div class="lore-traits-box">
+                <p class="traits-heading">Вступай в Ночной Дозор, если ты:</p>
+                <ul class="traits-list">
+                  <li v-for="(trait, i) in HOUSE_LORE['nights-watch'].traits" :key="i">
+                    <span class="trait-check">✦</span>{{ trait }}
+                  </li>
+                </ul>
+              </div>
+              <div class="lore-flavor-block">
+                <p v-for="(line, i) in HOUSE_LORE['nights-watch'].flavorText.split('\n\n')" :key="i">{{ line }}</p>
+              </div>
+              <p class="lore-closing">{{ HOUSE_LORE['nights-watch'].closingRemark }}</p>
+            </div>
+          </Transition>
+
+          <Transition name="expand">
+            <div v-if="expandedTeams[nightsWatch.id]" class="members-panel">
+              <div v-if="!members[nightsWatch.id] || members[nightsWatch.id].length === 0" class="empty-members">
+                Пока нет участников
+              </div>
+              <div v-for="member in members[nightsWatch.id]" :key="member.id" class="member-row">
+                <div class="member-avatar">
+                  <img v-if="member.avatar_url" :src="member.avatar_url" :alt="member.nickname" />
+                  <span v-else class="member-initial">{{ member.nickname?.[0]?.toUpperCase() }}</span>
+                </div>
+                <span class="member-name">{{ member.nickname }}</span>
+                <span class="member-status" :class="member.status">
+                  {{ statusLabels[member.status] || member.status }}
+                </span>
+              </div>
+            </div>
+          </Transition>
+        </div>
+      </template>
+
+      <!-- Back -->
       <div class="back-section">
         <router-link to="/dashboard" class="back-btn">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +235,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useTeamsStore, HOUSE_LORE } from '../stores/teams'
 import Header from '../components/Header.vue'
 
@@ -161,6 +262,9 @@ const statusLabels: Record<string, string> = {
   rejected: 'Отклонено'
 }
 
+const mainHouses = computed(() => teams.value.filter(t => t.slug !== 'nights-watch'))
+const nightsWatch = computed(() => teams.value.find(t => t.slug === 'nights-watch') ?? null)
+
 function getCrestSrc(team: { crest_url: string | null; slug: string }): string {
   if (team.crest_url) return team.crest_url
   return CREST_MAP[team.slug] || ''
@@ -181,8 +285,6 @@ async function toggleMembers(teamId: string) {
 onMounted(async () => {
   await teamsStore.fetchTeams()
   teams.value = teamsStore.teams
-
-  // Pre-fetch member counts for all teams
   for (const team of teams.value) {
     await teamsStore.fetchTeamMembers(team.id)
   }
@@ -192,198 +294,464 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* ================================================
+   PAGE SHELL
+   ================================================ */
 .teams-page {
   min-height: 100vh;
   position: relative;
 }
 
+/* ================================================
+   WALL HERO
+   ================================================ */
+.wall-hero {
+  position: relative;
+  height: clamp(240px, 35vw, 420px);
+  background:
+    url('/images/crests/the-wall-bg.png') center 30% / cover no-repeat;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.wall-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(26, 17, 14, 0.55) 0%,
+    rgba(26, 17, 14, 0.2) 40%,
+    rgba(26, 17, 14, 0.0) 60%
+  );
+}
+
+.wall-gradient-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(to bottom, transparent, var(--forest-deep));
+}
+
+.wall-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  text-align: center;
+  padding-bottom: 3.5rem;
+  padding-top: 5rem; /* clear header */
+}
+
+.wall-eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 0.4rem;
+}
+
+.wall-title {
+  font-family: 'Merriweather', serif;
+  font-size: clamp(2.2rem, 6vw, 3.8rem);
+  color: var(--cream);
+  text-shadow:
+    0 0 40px rgba(255, 179, 71, 0.6),
+    0 2px 8px rgba(0,0,0,0.8);
+  line-height: 1.1;
+  margin-bottom: 0.6rem;
+}
+
+.wall-subtitle {
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  color: var(--sage);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+}
+
+/* ================================================
+   MAIN
+   ================================================ */
 .teams-main {
   position: relative;
   z-index: 10;
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 2rem;
-  padding-top: 6rem;
+  padding: 2rem 1.5rem 4rem;
 }
 
-.page-title {
-  font-family: 'Merriweather', serif;
-  font-size: clamp(1.8rem, 4vw, 2.5rem);
-  color: var(--fire-glow);
-  text-align: center;
-  margin-bottom: 0.5rem;
-}
-
-.page-subtitle {
-  text-align: center;
-  color: var(--sage);
-  font-size: 1rem;
-  margin-bottom: 2rem;
-}
-
-/* Loading */
+/* ================================================
+   LOADING
+   ================================================ */
 .loading {
   text-align: center;
-  padding: 3rem;
+  padding: 4rem;
   color: var(--sage);
 }
 
+/* ================================================
+   HOUSES GRID (5 houses)
+   ================================================ */
+.houses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
 
-/* Teams Grid */
-.teams-grid {
+/* ================================================
+   HOUSE CARD
+   ================================================ */
+.house-card {
+  background: rgba(26, 17, 14, 0.88);
+  border: 1px solid var(--tc40, rgba(139,111,71,0.35));
+  border-top: 3px solid var(--tc, var(--fire));
+  border-radius: 18px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  backdrop-filter: blur(18px);
+  animation: cardIn 0.5s ease-out both;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
-.team-card {
-  background: rgba(42, 31, 26, 0.85);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(139, 111, 71, 0.4);
-  border-left: 4px solid var(--team-color, var(--fire));
-  border-radius: 16px;
-  padding: 1.5rem;
-  animation: fadeIn 0.4s ease-out;
+.house-card:hover {
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--tc, var(--fire)) 25%, transparent);
+  transform: translateY(-3px);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Team Header */
-.team-header {
+/* Banner (top part of card) */
+.card-banner {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 1rem;
+  padding: 1.25rem 1.25rem 1rem;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--tc, var(--fire)) 12%, transparent) 0%,
+    transparent 70%
+  );
+  overflow: hidden;
 }
 
-.team-crest-wrapper {
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
+.banner-glow {
+  position: absolute;
+  top: -40px;
+  left: -40px;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--tc, var(--fire)) 18%, transparent);
+  filter: blur(35px);
+  pointer-events: none;
 }
 
-.team-crest-large {
-  width: 48px;
-  height: 48px;
+.banner-crest {
+  width: 64px;
+  height: 64px;
   object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
   position: relative;
   z-index: 1;
 }
 
-.team-crest-letter {
-  font-family: 'Merriweather', serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--team-color, var(--fire));
-  position: absolute;
-}
-
-.team-info {
+.banner-text {
   flex: 1;
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
-.team-name {
+.banner-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--tc, var(--fire-glow));
+  background: color-mix(in srgb, var(--tc, var(--fire)) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tc, var(--fire)) 35%, transparent);
+  border-radius: 4px;
+  padding: 2px 7px;
+  margin-bottom: 0.35rem;
+}
+
+.banner-name {
   font-family: 'Merriweather', serif;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   color: var(--cream);
+  line-height: 1.2;
   margin-bottom: 0.25rem;
 }
 
-.team-description {
-  font-size: 0.85rem;
+.banner-motto {
+  font-size: 0.78rem;
   color: var(--sage);
   line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.member-count-badge {
-  min-width: 36px;
-  height: 36px;
+.banner-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 44px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.count-num {
+  font-family: 'Merriweather', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--tc, var(--fire-glow));
+  line-height: 1;
+}
+
+.count-label {
+  font-size: 0.62rem;
+  color: var(--sage);
+  text-align: center;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+/* Hook question */
+.card-hook {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--cream);
+  line-height: 1.5;
+  border-top: 1px solid rgba(139, 111, 71, 0.15);
+  flex: 1;
+}
+
+.hook-icon {
+  font-style: normal;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ================================================
+   ACTION ROW
+   ================================================ */
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid rgba(139, 111, 71, 0.12);
+}
+
+.action-btn {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.75rem;
   border-radius: 10px;
-  background: var(--team-bg, rgba(255, 107, 53, 0.15));
-  color: var(--team-color, var(--fire));
-  font-weight: 700;
-  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: none;
+}
+
+.action-btn svg {
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
 }
 
-/* Toggle Button */
-.toggle-members-btn {
+.lore-btn {
+  background: color-mix(in srgb, var(--tc, var(--fire)) 12%, rgba(26,17,14,0.6));
+  color: var(--tc, var(--fire-glow));
+  border: 1px solid color-mix(in srgb, var(--tc, var(--fire)) 30%, transparent);
+}
+
+.lore-btn:hover {
+  background: color-mix(in srgb, var(--tc, var(--fire)) 22%, rgba(26,17,14,0.8));
+  border-color: color-mix(in srgb, var(--tc, var(--fire)) 60%, transparent);
+}
+
+.members-btn {
+  background: rgba(42, 31, 26, 0.5);
+  color: var(--sage);
+  border: 1px solid rgba(139, 111, 71, 0.2);
+}
+
+.members-btn:hover {
+  background: rgba(42, 31, 26, 0.8);
+  color: var(--cream);
+  border-color: rgba(139, 111, 71, 0.45);
+}
+
+/* ================================================
+   LORE PANEL
+   ================================================ */
+.lore-panel {
+  margin: 0 1.25rem 1rem;
+  padding: 1.1rem 1rem;
+  background: rgba(18, 11, 9, 0.55);
+  border: 1px solid rgba(139, 111, 71, 0.18);
+  border-left: 3px solid var(--tc, var(--fire));
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.lore-emblem-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.75rem;
-  margin-top: 1rem;
-  background: rgba(26, 17, 14, 0.4);
-  border: 1px solid rgba(139, 111, 71, 0.25);
-  border-radius: 10px;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.lore-badge {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tc, var(--fire-glow));
+  background: color-mix(in srgb, var(--tc, var(--fire)) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tc, var(--fire)) 30%, transparent);
+  border-radius: 4px;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+
+.lore-emblem-text {
+  font-size: 0.82rem;
   color: var(--sage);
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
 }
 
-.toggle-members-btn:hover {
-  background: rgba(26, 17, 14, 0.6);
-  color: var(--cream);
-  border-color: var(--team-color, var(--fire));
-}
-
-.toggle-icon {
-  width: 18px;
-  height: 18px;
-  transition: transform 0.3s ease;
-}
-
-.toggle-icon.rotated {
-  transform: rotate(180deg);
-}
-
-/* Members List */
-.members-list {
-  margin-top: 1rem;
+.lore-desc {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.lore-desc p {
+  font-size: 0.87rem;
+  color: var(--cream);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.lore-traits-box {
+  background: rgba(26, 17, 14, 0.5);
+  border-radius: 10px;
+  padding: 0.8rem 0.9rem;
+}
+
+.traits-heading {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--cream);
+  margin: 0 0 0.5rem 0;
+}
+
+.traits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.traits-list li {
+  font-size: 0.84rem;
+  color: var(--sage);
+  line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.trait-check {
+  color: var(--tc, var(--fire-glow));
+  font-size: 0.65rem;
+  margin-top: 0.25rem;
+  flex-shrink: 0;
+}
+
+.lore-flavor-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.6rem 0.8rem;
+  border-left: 2px solid rgba(139, 111, 71, 0.25);
+}
+
+.lore-flavor-block p {
+  font-size: 0.84rem;
+  color: var(--cream);
+  font-style: italic;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.lore-closing {
+  font-size: 0.8rem;
+  color: var(--sage);
+  text-align: center;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(139, 111, 71, 0.15);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ================================================
+   MEMBERS PANEL
+   ================================================ */
+.members-panel {
+  margin: 0 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .empty-members {
   text-align: center;
   padding: 1rem;
   color: var(--sage);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-style: italic;
 }
 
-.member-item {
+.member-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 0.75rem;
-  background: rgba(26, 17, 14, 0.3);
+  gap: 0.7rem;
+  padding: 0.55rem 0.8rem;
+  background: rgba(26, 17, 14, 0.4);
   border-radius: 10px;
-  transition: background 0.2s ease;
+  transition: background 0.2s;
 }
 
-.member-item:hover {
-  background: rgba(26, 17, 14, 0.5);
+.member-row:hover {
+  background: rgba(26, 17, 14, 0.65);
 }
 
 .member-avatar {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   overflow: hidden;
   background: var(--forest-mid);
@@ -400,197 +768,206 @@ onMounted(async () => {
 }
 
 .member-initial {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--fire-glow);
 }
 
-.member-nickname {
+.member-name {
   flex: 1;
   color: var(--cream);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 500;
 }
 
 .member-status {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  padding: 3px 8px;
+  padding: 2px 8px;
   border-radius: 6px;
 }
 
-.member-status.pending {
-  background: rgba(255, 179, 71, 0.2);
-  color: var(--fire-glow);
+.member-status.pending  { background: rgba(255,179,71,0.18); color: var(--fire-glow); }
+.member-status.approved { background: rgba(34,197,94,0.18);  color: #22c55e; }
+.member-status.rejected { background: rgba(239,68,68,0.18);  color: #ef4444; }
+
+/* ================================================
+   NIGHT'S WATCH — special full-width card
+   ================================================ */
+.nw-card {
+  background: rgba(14, 10, 9, 0.92);
+  border: 1px solid rgba(85, 85, 100, 0.45);
+  border-top: 3px solid #555565;
+  border-radius: 18px;
+  overflow: hidden;
+  backdrop-filter: blur(18px);
+  animation: cardIn 0.6s 0.3s ease-out both;
+  transition: box-shadow 0.3s ease;
 }
 
-.member-status.approved {
-  background: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
+.nw-card:hover {
+  box-shadow: 0 8px 32px rgba(85, 85, 100, 0.2);
 }
 
-.member-status.rejected {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-}
-
-/* House Lore */
-.toggle-lore-btn {
+.nw-inner {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.6rem;
-  margin-top: 1rem;
-  background: rgba(26, 17, 14, 0.3);
-  border: 1px solid rgba(139, 111, 71, 0.2);
-  border-radius: 10px;
-  color: var(--team-color, var(--fire));
-  font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  letter-spacing: 0.03em;
+  gap: 1.5rem;
+  padding: 1.5rem 1.75rem;
+  background: linear-gradient(135deg, rgba(85,85,100,0.08) 0%, transparent 60%);
 }
 
-.toggle-lore-btn:hover {
-  background: rgba(26, 17, 14, 0.5);
-  border-color: var(--team-color, var(--fire));
+.nw-crest {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  flex-shrink: 0;
+  opacity: 0.85;
+  filter: drop-shadow(0 2px 10px rgba(0,0,0,0.6)) grayscale(0.3);
 }
 
-.house-lore {
-  margin-top: 1rem;
-  padding: 1.25rem 1rem;
-  background: rgba(26, 17, 14, 0.4);
-  border: 1px solid rgba(139, 111, 71, 0.2);
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  animation: fadeIn 0.25s ease-out;
+.nw-center {
+  flex: 1;
+  min-width: 0;
 }
 
-.lore-hook {
+.nw-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #9090a8;
+  background: rgba(85,85,100,0.2);
+  border: 1px solid rgba(85,85,100,0.4);
+  border-radius: 4px;
+  padding: 2px 7px;
+  margin-bottom: 0.35rem;
+}
+
+.nw-name {
   font-family: 'Merriweather', serif;
-  font-size: 0.95rem;
-  color: var(--team-color, var(--fire-glow));
-  font-style: italic;
-  text-align: center;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(139, 111, 71, 0.2);
-  margin: 0;
+  font-size: 1.4rem;
+  color: var(--cream);
+  margin-bottom: 0.25rem;
 }
 
-.lore-emblem {
+.nw-motto {
   font-size: 0.82rem;
-  color: var(--sage);
-  margin: 0;
-}
-
-.lore-label {
-  font-weight: 700;
-  color: var(--team-color, var(--fire-glow));
-}
-
-.lore-full-desc {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.lore-full-desc p {
-  font-size: 0.88rem;
-  color: var(--cream);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.lore-traits {
-  background: rgba(42, 31, 26, 0.5);
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-}
-
-.lore-traits-title {
-  font-weight: 700;
-  font-size: 0.88rem;
-  color: var(--cream);
-  margin: 0 0 0.5rem 0;
-}
-
-.lore-traits ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.lore-traits li {
-  font-size: 0.85rem;
-  color: var(--sage);
+  color: #9090a8;
   line-height: 1.4;
+  margin-bottom: 0.5rem;
 }
 
-.lore-flavor {
+.nw-hook {
+  font-size: 0.88rem;
+  font-style: italic;
+  color: var(--sage);
+  line-height: 1.5;
+}
+
+.nw-right {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  align-items: center;
+  flex-shrink: 0;
 }
 
-.lore-flavor p {
-  font-size: 0.85rem;
-  color: var(--cream);
-  font-style: italic;
-  margin: 0;
+.nw-count-num {
+  font-family: 'Merriweather', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #9090a8;
+  line-height: 1;
 }
 
-.lore-closing {
-  font-size: 0.82rem;
-  color: var(--sage);
-  text-align: center;
-  border-top: 1px solid rgba(139, 111, 71, 0.2);
-  padding-top: 0.6rem;
-  margin: 0;
+.nw-count-label {
+  font-size: 0.65rem;
+  color: #666680;
+  letter-spacing: 0.05em;
 }
 
-/* Back Section */
+.nw-actions {
+  border-top-color: rgba(85,85,100,0.18);
+  padding: 0.75rem 1.75rem;
+}
+
+.nw-lore-btn {
+  --tc: #9090a8;
+}
+
+.nw-lore-panel {
+  --tc: #9090a8;
+  margin: 0 1.75rem 1rem;
+  border-left-color: #555565;
+}
+
+/* ================================================
+   EXPAND TRANSITION
+   ================================================ */
+.expand-enter-active,
+.expand-leave-active {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(-6px);
+}
+
+.expand-enter-to,
+.expand-leave-from {
+  opacity: 1;
+  max-height: 2000px;
+  transform: translateY(0);
+}
+
+/* ================================================
+   BACK
+   ================================================ */
 .back-section {
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 2.5rem;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* ================================================
+   RESPONSIVE
+   ================================================ */
+@media (max-width: 900px) {
+  .houses-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
   .teams-main {
-    padding: 1rem;
-    padding-top: 5.5rem;
+    padding: 1.25rem 1rem 3rem;
   }
 
-  .team-header {
+  .houses-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wall-title {
+    font-size: 2.2rem;
+  }
+
+  .nw-inner {
     flex-wrap: wrap;
-    gap: 0.75rem;
+    padding: 1.25rem;
+    gap: 1rem;
   }
 
-  .team-crest-wrapper {
-    width: 44px;
-    height: 44px;
+  .nw-crest {
+    width: 56px;
+    height: 56px;
   }
 
-  .team-crest-large {
-    width: 40px;
-    height: 40px;
-  }
-
-  .team-name {
-    font-size: 1.1rem;
-  }
-
-  .team-description {
-    font-size: 0.8rem;
+  .banner-crest {
+    width: 52px;
+    height: 52px;
   }
 }
 </style>
