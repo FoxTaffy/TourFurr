@@ -827,7 +827,7 @@ import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { vMaska } from 'maska/vue'
 import { useAuthStore } from '../../stores/auth'
-import { supabase } from '../../services/supabase'
+import { verifyTurnstileToken } from '../../utils/turnstile'
 import { checkGracePeriodStatus } from '../../utils/gracePeriod'
 import TelegramInput from './TelegramInput.vue'
 import YandexSmartCaptcha from '../common/YandexSmartCaptcha.vue'
@@ -1096,11 +1096,9 @@ async function handleSubmit() {
   }
 
   // Server-side CAPTCHA verification
-  const { data: verifyData, error: verifyError } = await supabase.functions.invoke('turnstile-verify', {
-    body: { token: captchaToken.value }
-  })
+  const isCaptchaValid = await verifyTurnstileToken(captchaToken.value)
 
-  if (verifyError || !verifyData?.success) {
+  if (!isCaptchaValid) {
     captchaError.value = 'Проверка CAPTCHA не пройдена. Попробуйте снова.'
     captchaToken.value = null
     return
