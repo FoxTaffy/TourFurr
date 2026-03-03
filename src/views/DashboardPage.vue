@@ -22,26 +22,14 @@
           </div>
 
           <div class="avatar-section">
-            <div class="avatar-with-badge-preview">
-              <!-- Square screen avatar -->
-              <div class="avatar" @click="isEditing && triggerAvatarUpload()">
-                <img v-if="avatarPreview || user?.avatar" :src="avatarPreview || user?.avatar" alt="Avatar" />
-                <span v-else class="avatar-letter">{{ user?.nickname?.[0]?.toUpperCase() }}</span>
-                <div v-if="isEditing" class="avatar-overlay">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  </svg>
-                </div>
-                <div class="avatar-label">Профиль</div>
-              </div>
-              <!-- Badge 3:4 preview -->
-              <div class="badge-preview">
-                <div class="badge-preview__img">
-                  <img v-if="avatarPreview || user?.avatar" :src="avatarPreview || user?.avatar" alt="Badge" />
-                  <span v-else class="avatar-letter">{{ user?.nickname?.[0]?.toUpperCase() }}</span>
-                </div>
-                <div class="badge-preview__label">Бейджик</div>
+            <div class="avatar" @click="isEditing && triggerAvatarUpload()">
+              <img v-if="avatarPreview || user?.avatar" :src="avatarPreview || user?.avatar" alt="Avatar" />
+              <span v-else class="avatar-letter">{{ user?.nickname?.[0]?.toUpperCase() }}</span>
+              <div v-if="isEditing" class="avatar-overlay">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
               </div>
             </div>
             <input
@@ -821,18 +809,10 @@ function handleLogout() {
   margin-bottom: 1.5rem;
 }
 
-/* Side-by-side avatar + badge preview */
-.avatar-with-badge-preview {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-}
-
 .avatar {
   width: 120px;
   height: 120px;
+  margin: 0 auto;
   border-radius: 12px;
   overflow: hidden;
   background: var(--forest-mid);
@@ -841,7 +821,6 @@ function handleLogout() {
   justify-content: center;
   border: 3px solid var(--fire);
   position: relative;
-  flex-shrink: 0;
 }
 
 .avatar img {
@@ -854,55 +833,6 @@ function handleLogout() {
   font-family: 'Playfair Display', serif;
   font-size: 2.5rem;
   color: var(--fire-glow);
-}
-
-.avatar-label {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0,0,0,0.55);
-  color: #fff;
-  font-size: 0.6rem;
-  text-align: center;
-  padding: 2px 0;
-  letter-spacing: 0.04em;
-}
-
-/* 3:4 Badge Preview */
-.badge-preview {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  flex-shrink: 0;
-}
-
-.badge-preview__img {
-  width: 90px;
-  height: 120px;
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--forest-mid);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px dashed var(--fire-glow);
-  position: relative;
-}
-
-.badge-preview__img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.badge-preview__label {
-  font-size: 0.62rem;
-  color: var(--fire-glow);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .profile-name {
