@@ -44,6 +44,42 @@
             </div>
           </div>
 
+          <!-- House Lore Toggle -->
+          <button
+            class="toggle-lore-btn"
+            @click="expandedLore[team.id] = !expandedLore[team.id]"
+          >
+            <span>{{ expandedLore[team.id] ? 'Скрыть описание' : (HOUSE_LORE[team.slug]?.isOrder ? 'Об ордене' : 'О доме') }}</span>
+            <svg
+              class="toggle-icon"
+              :class="{ rotated: expandedLore[team.id] }"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+
+          <!-- House Lore Section -->
+          <div v-if="expandedLore[team.id] && HOUSE_LORE[team.slug]" class="house-lore">
+            <p class="lore-hook">{{ HOUSE_LORE[team.slug].hookQuestion }}</p>
+            <p class="lore-emblem"><span class="lore-label">Герб:</span> {{ HOUSE_LORE[team.slug].emblem }}</p>
+            <div class="lore-full-desc">
+              <p v-for="(para, i) in HOUSE_LORE[team.slug].fullDescription.split('\n\n')" :key="i">{{ para }}</p>
+            </div>
+            <div class="lore-traits">
+              <p class="lore-traits-title">{{ HOUSE_LORE[team.slug].isOrder ? 'Вступай в Ночной Дозор, если ты:' : 'Выбери этот дом, если ты:' }}</p>
+              <ul>
+                <li v-for="(trait, i) in HOUSE_LORE[team.slug].traits" :key="i">✅ {{ trait }}</li>
+              </ul>
+            </div>
+            <div class="lore-flavor">
+              <p v-for="(line, i) in HOUSE_LORE[team.slug].flavorText.split('\n\n')" :key="i">{{ line }}</p>
+            </div>
+            <p class="lore-closing">{{ HOUSE_LORE[team.slug].closingRemark }}</p>
+          </div>
+
           <!-- Toggle Members -->
           <button
             class="toggle-members-btn"
@@ -99,7 +135,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useTeamsStore } from '../stores/teams'
+import { useTeamsStore, HOUSE_LORE } from '../stores/teams'
 import Header from '../components/Header.vue'
 
 const CREST_MAP: Record<string, string> = {
@@ -107,7 +143,8 @@ const CREST_MAP: Record<string, string> = {
   lannister: '/images/crests/lannister.png',
   tyrell: '/images/crests/tyrell.png',
   baratheon: '/images/crests/baratheon.png',
-  martell: '/images/crests/martell.png'
+  martell: '/images/crests/martell.png',
+  'nights-watch': '/images/crests/nights-watch.png'
 }
 
 const teamsStore = useTeamsStore()
@@ -116,6 +153,7 @@ const teams = ref(teamsStore.teams)
 const members = ref(teamsStore.members)
 const isLoading = ref(true)
 const expandedTeams = ref<Record<string, boolean>>({})
+const expandedLore = ref<Record<string, boolean>>({})
 
 const statusLabels: Record<string, string> = {
   pending: 'На рассмотрении',
@@ -394,6 +432,129 @@ onMounted(async () => {
 .member-status.rejected {
   background: rgba(239, 68, 68, 0.2);
   color: #ef4444;
+}
+
+/* House Lore */
+.toggle-lore-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.6rem;
+  margin-top: 1rem;
+  background: rgba(26, 17, 14, 0.3);
+  border: 1px solid rgba(139, 111, 71, 0.2);
+  border-radius: 10px;
+  color: var(--team-color, var(--fire));
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.03em;
+}
+
+.toggle-lore-btn:hover {
+  background: rgba(26, 17, 14, 0.5);
+  border-color: var(--team-color, var(--fire));
+}
+
+.house-lore {
+  margin-top: 1rem;
+  padding: 1.25rem 1rem;
+  background: rgba(26, 17, 14, 0.4);
+  border: 1px solid rgba(139, 111, 71, 0.2);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.lore-hook {
+  font-family: 'Merriweather', serif;
+  font-size: 0.95rem;
+  color: var(--team-color, var(--fire-glow));
+  font-style: italic;
+  text-align: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(139, 111, 71, 0.2);
+  margin: 0;
+}
+
+.lore-emblem {
+  font-size: 0.82rem;
+  color: var(--sage);
+  margin: 0;
+}
+
+.lore-label {
+  font-weight: 700;
+  color: var(--team-color, var(--fire-glow));
+}
+
+.lore-full-desc {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.lore-full-desc p {
+  font-size: 0.88rem;
+  color: var(--cream);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.lore-traits {
+  background: rgba(42, 31, 26, 0.5);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+.lore-traits-title {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--cream);
+  margin: 0 0 0.5rem 0;
+}
+
+.lore-traits ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.lore-traits li {
+  font-size: 0.85rem;
+  color: var(--sage);
+  line-height: 1.4;
+}
+
+.lore-flavor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.lore-flavor p {
+  font-size: 0.85rem;
+  color: var(--cream);
+  font-style: italic;
+  margin: 0;
+}
+
+.lore-closing {
+  font-size: 0.82rem;
+  color: var(--sage);
+  text-align: center;
+  border-top: 1px solid rgba(139, 111, 71, 0.2);
+  padding-top: 0.6rem;
+  margin: 0;
 }
 
 /* Back Section */
