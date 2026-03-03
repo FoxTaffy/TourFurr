@@ -10,6 +10,7 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  Vary: 'Origin, Access-Control-Request-Headers',
 }
 
 interface SmartCaptchaResponse {
@@ -26,7 +27,12 @@ interface RequestBody {
 serve(async (req) => {
   // CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    const requestedHeaders = req.headers.get('access-control-request-headers')
+    return new Response('ok', {
+      headers: requestedHeaders
+        ? { ...corsHeaders, 'Access-Control-Allow-Headers': requestedHeaders }
+        : corsHeaders,
+    })
   }
 
   try {
