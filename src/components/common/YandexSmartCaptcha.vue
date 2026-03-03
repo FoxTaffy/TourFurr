@@ -73,6 +73,8 @@ function renderWidget() {
       hl: props.language,
       invisible: props.invisible,
       robustness: props.robustness,
+      robustnessLevel: props.robustness,
+      'robustness-level': props.robustness,
       callback: (token: string) => {
         emit('verify', token)
       },

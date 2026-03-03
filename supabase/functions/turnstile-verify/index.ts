@@ -4,29 +4,23 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 const SMARTCAPTCHA_SECRET_KEY = Deno.env.get('SMARTCAPTCHA_SECRET_KEY')
 const SMARTCAPTCHA_VERIFY_URL = 'https://smartcaptcha.yandexcloud.net/validate'
 
-const allowedCorsHeaders = ['authorization', 'x-client-info', 'apikey', 'content-type']
+const defaultAllowedHeaders = 'authorization, x-client-info, apikey, content-type'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': allowedCorsHeaders.join(', '),
+  'Access-Control-Allow-Headers': defaultAllowedHeaders,
   'Access-Control-Max-Age': '86400',
   Vary: 'Origin, Access-Control-Request-Headers',
 }
 
-function resolveAllowedHeaders(requestedHeaders: string | null): string {
-  if (!requestedHeaders) return allowedCorsHeaders.join(', ')
+function resolveRequestedHeaders(requestedHeaders: string | null): string {
+  if (!requestedHeaders || !requestedHeaders.trim()) {
+    return defaultAllowedHeaders
+  }
 
-  const requested = requestedHeaders
-    .split(',')
-    .map((header) => header.trim().toLowerCase())
-    .filter(Boolean)
-
-  const allowed = requested.filter((header, index) =>
-    allowedCorsHeaders.includes(header) && requested.indexOf(header) === index
-  )
-
-  return allowed.length > 0 ? allowed.join(', ') : allowedCorsHeaders.join(', ')
+  // Reflect requested headers to keep compatibility with browser/Supabase preflight variants.
+  return requestedHeaders
 }
 
 interface SmartCaptchaResponse {
@@ -47,7 +41,7 @@ serve(async (req) => {
     return new Response('ok', {
       headers: {
         ...corsHeaders,
-        'Access-Control-Allow-Headers': resolveAllowedHeaders(requestedHeaders),
+        'Access-Control-Allow-Headers': resolveRequestedHeaders(requestedHeaders),
       },
     })
   }
