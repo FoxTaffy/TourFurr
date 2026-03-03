@@ -248,9 +248,9 @@
           </div>
 
           <!-- T-Bank payment link (for approved users who haven't paid) -->
-          <div v-if="user?.status === 'approved' && approvedInfo?.payment_url" class="tbank-payment-section">
+          <div v-if="user?.status === 'approved'" class="tbank-payment-section">
             <a
-              :href="approvedInfo.payment_url"
+              :href="approvedInfo?.payment_url || PAYMENT_URL"
               target="_blank"
               rel="noopener noreferrer"
               class="tbank-payment-btn"
@@ -260,6 +260,17 @@
               </svg>
               Оплатить участие
             </a>
+
+            <!-- QR code for payment -->
+            <div class="payment-qr">
+              <p class="payment-qr__label">Или отсканируйте QR</p>
+              <img
+                :src="`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(approvedInfo?.payment_url || PAYMENT_URL)}&size=180x180&bgcolor=2a1a0e&color=ffdd2d&margin=8`"
+                alt="QR для оплаты"
+                class="payment-qr__img"
+                loading="lazy"
+              />
+            </div>
           </div>
 
           <!-- Paid confirmation -->
@@ -287,40 +298,6 @@
               <strong>Оплата подтверждена</strong>
               <p>Ваше участие оплачено. Добро пожаловать на TourFurr 3!</p>
             </div>
-          </div>
-        </div>
-
-        <!-- Telegram Group Card (for approved/paid with telegram_link) -->
-        <div v-if="(user?.status === 'approved' || user?.status === 'paid') && approvedInfo?.telegram_link" class="telegram-card">
-          <div class="card-header">
-            <svg class="card-header-icon" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.327.015.095.034.312.019.482z"/>
-            </svg>
-            <h3>Группа участников</h3>
-          </div>
-          <div class="telegram-info">
-            <div class="telegram-security-notice">
-              <div class="warning-icon">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                </svg>
-              </div>
-              <div class="warning-content">
-                <strong>Конфиденциальная ссылка!</strong>
-                <p>Ссылка доступна только одобренным участникам. Пожалуйста, не передавайте её посторонним.</p>
-              </div>
-            </div>
-            <a
-              :href="approvedInfo.telegram_link"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="telegram-join-btn"
-            >
-              <svg fill="currentColor" viewBox="0 0 24 24" style="width:20px;height:20px;flex-shrink:0">
-                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.327.015.095.034.312.019.482z"/>
-              </svg>
-              Войти в группу Telegram
-            </a>
           </div>
         </div>
 
@@ -361,6 +338,40 @@
           </div>
         </div>
 
+        <!-- Telegram Group Card (for approved/paid with telegram_link) -->
+        <div v-if="(user?.status === 'approved' || user?.status === 'paid') && approvedInfo?.telegram_link" class="telegram-card">
+          <div class="card-header">
+            <svg class="card-header-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.327.015.095.034.312.019.482z"/>
+            </svg>
+            <h3>Группа участников</h3>
+          </div>
+          <div class="telegram-info">
+            <div class="telegram-security-notice">
+              <div class="warning-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </div>
+              <div class="warning-content">
+                <strong>Конфиденциальная ссылка!</strong>
+                <p>Ссылка доступна только одобренным участникам. Пожалуйста, не передавайте её посторонним.</p>
+              </div>
+            </div>
+            <a
+              :href="approvedInfo.telegram_link"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="telegram-join-btn"
+            >
+              <svg fill="currentColor" viewBox="0 0 24 24" style="width:20px;height:20px;flex-shrink:0">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.327.015.095.034.312.019.482z"/>
+              </svg>
+              Войти в группу Telegram
+            </a>
+          </div>
+        </div>
+
         <!-- Error Card -->
         <div v-if="(user?.status === 'approved' || user?.status === 'paid') && infoError" class="error-card">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -389,6 +400,9 @@ const authStore = useAuthStore()
 
 // Default event price used when approvedInfo is not yet loaded
 const DEFAULT_EVENT_PRICE = 9900
+
+// Fallback payment URL — used when payment_url is not set in the DB
+const PAYMENT_URL = 'https://www.tinkoff.ru/rm/r_siiTwKksNK.AxwPmVgKGC/GwrnL13713'
 
 const user = computed(() => authStore.user)
 
@@ -656,7 +670,8 @@ function handleLogout() {
 
 <style scoped>
 .dashboard-page {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   position: relative;
 }
 
@@ -664,16 +679,24 @@ function handleLogout() {
 .dashboard-main {
   position: relative;
   z-index: 10;
-  padding: 2rem;
-  padding-top: 6rem;
+  padding: 1.5rem 2rem;
+  padding-top: 5.5rem;
+  height: 100vh;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .dashboard-grid {
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 280px 1fr 1fr;
-  gap: 1.5rem;
+  grid-template-columns: 270px 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "profile details  payment"
+    "profile telegram location";
+  gap: 1.25rem;
+  height: calc(100vh - 5.5rem - 3rem);
 }
 
 /* Card Base Styles */
@@ -697,10 +720,27 @@ function handleLogout() {
 
 /* Profile Card */
 .profile-card {
+  grid-area: profile;
   text-align: center;
-  grid-row: span 2;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139,111,71,0.4) transparent;
+}
+
+.details-card {
+  grid-area: details;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139,111,71,0.4) transparent;
+}
+
+.payment-card {
+  grid-area: payment;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139,111,71,0.4) transparent;
 }
 
 
@@ -849,9 +889,10 @@ function handleLogout() {
 }
 
 .card-header h3 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'TourFurr', 'Merriweather', serif;
   font-size: 1.25rem;
   color: var(--fire-glow);
+  letter-spacing: 0.03em;
   margin: 0;
 }
 
@@ -1504,6 +1545,33 @@ function handleLogout() {
   box-shadow: 0 2px 10px rgba(255, 221, 45, 0.3);
 }
 
+/* Payment QR Code */
+.payment-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(26, 17, 14, 0.6);
+  border: 1px solid rgba(255, 221, 45, 0.2);
+  border-radius: 14px;
+}
+
+.payment-qr__label {
+  font-size: 0.8rem;
+  color: var(--sage);
+  margin: 0;
+  letter-spacing: 0.03em;
+}
+
+.payment-qr__img {
+  width: 160px;
+  height: 160px;
+  border-radius: 10px;
+  display: block;
+}
+
 /* Paid Confirmation */
 .paid-confirmation {
   display: flex;
@@ -1591,12 +1659,26 @@ function handleLogout() {
 
 /* Location Card */
 .location-card {
-  grid-column: 1 / -1;
+  grid-area: location;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.location-card .location-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 0.75rem;
 }
 
 /* Telegram Card */
 .telegram-card {
-  grid-column: 1 / -1;
+  grid-area: telegram;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139,111,71,0.4) transparent;
 }
 
 .telegram-info {
@@ -1745,7 +1827,10 @@ function handleLogout() {
   border: 2px solid rgba(139, 111, 71, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: box-shadow 0.3s ease;
-  min-height: 350px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .map-container:hover {
@@ -1754,9 +1839,11 @@ function handleLogout() {
 
 .yandex-map {
   width: 100%;
-  height: 350px;
+  flex: 1;
+  min-height: 0;
   border: none;
   border-radius: 8px;
+  display: block;
 }
 
 /* Error Card */
@@ -1764,7 +1851,7 @@ function handleLogout() {
   background: rgba(239, 68, 68, 0.1);
   border-color: rgba(239, 68, 68, 0.4);
   text-align: center;
-  grid-column: span 2;
+  grid-column: 2 / -1;
 }
 
 .error-card svg {
@@ -1780,37 +1867,67 @@ function handleLogout() {
 }
 
 /* Responsive */
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 250px 1fr 1fr;
+  }
+}
+
 @media (max-width: 1024px) {
+  .dashboard-page {
+    height: auto;
+    overflow: auto;
+  }
+  .dashboard-main {
+    height: auto;
+    overflow: auto;
+    padding: 1.25rem;
+    padding-top: 5.5rem;
+  }
   .dashboard-grid {
     grid-template-columns: 1fr 1fr;
-  }
-
-  .profile-card {
-    grid-column: span 2;
-    grid-row: auto;
-  }
-
-  .location-card {
-    grid-column: span 2;
+    grid-template-rows: auto;
+    grid-template-areas:
+      "profile details"
+      "profile payment"
+      "location location"
+      "telegram telegram";
+    height: auto;
+    gap: 1rem;
   }
 }
 
 @media (max-width: 768px) {
+  .dashboard-page {
+    height: auto;
+    overflow: auto;
+  }
   .dashboard-main {
+    height: auto;
+    overflow: auto;
     padding: 1rem;
-    padding-top: 5.5rem;
+    padding-top: 5rem;
   }
 
   .dashboard-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    grid-template-rows: auto;
+    grid-template-areas:
+      "profile"
+      "details"
+      "payment"
+      "location"
+      "telegram";
+    height: auto;
+    gap: 0.875rem;
   }
 
-  .profile-card,
-  .location-card,
-  .error-card,
-  .house-picker-card {
-    grid-column: auto;
+  .profile-card {
+    overflow-y: visible;
+  }
+
+  .location-card {
+    min-height: 0;
   }
 
   .avatar-badge-warning {
@@ -1906,12 +2023,37 @@ function handleLogout() {
 
   .map-container {
     border-radius: 8px;
+    height: 280px;
+    flex: none;
+  }
+
+  .yandex-map {
+    height: 280px;
+    flex: none;
+  }
+
+  .location-card .location-details {
+    flex: none;
+    gap: 0.75rem;
+  }
+
+  /* Кнопки — touch-friendly */
+  .edit-btn,
+  .teams-profile-btn,
+  .admin-btn,
+  .save-btn,
+  .cancel-btn,
+  .schedule-card-btn,
+  .tbank-payment-btn,
+  .telegram-join-btn {
+    min-height: 44px;
+    font-size: 0.95rem;
   }
 }
 
-/* Payment Status Card */
+/* Payment Status Card — скрыт, дублируется в payment-card */
 .payment-status-card {
-  grid-column: span 2;
+  display: none;
 }
 
 .payment-status-banner {

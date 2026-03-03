@@ -42,9 +42,10 @@
   }
   
   h1 {
-      font-family: 'Merriweather', serif;
+      font-family: 'TourFurr', 'Merriweather', serif;
       font-size: clamp(3rem, 8vw, 6rem);
       font-weight: 900;
+      letter-spacing: 0.06em;
       background: linear-gradient(135deg, var(--fire-glow) 0%, var(--amber) 50%, var(--fire) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;

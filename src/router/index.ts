@@ -51,7 +51,7 @@ const routes: RouteRecordRaw[] = [
     path: '/teams',
     name: 'Teams',
     component: () => import('../views/TeamsPage.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiresApproved: true }
   },
   {
     path: '/schedule',

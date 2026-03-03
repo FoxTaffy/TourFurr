@@ -30,7 +30,7 @@
             <li v-if="showAuthButtons && !isAuthenticated">
               <a href="/auth" class="auth-button">Войти</a>
             </li>
-            <li v-if="showAuthButtons && isAuthenticated">
+            <li v-if="showAuthButtons && isAuthenticated && (currentUser?.status === 'approved' || currentUser?.status === 'paid')">
               <a href="/teams" class="teams-nav-link">Великие Дома</a>
             </li>
             <li v-if="showAuthButtons && isAuthenticated">
@@ -55,7 +55,7 @@
               </svg>
               Расписание
             </a>
-            <a href="/teams" class="teams-btn">
+            <a v-if="currentUser && (currentUser.status === 'approved' || currentUser.status === 'paid')" href="/teams" class="teams-btn">
               <svg class="teams-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
               </svg>
@@ -189,10 +189,11 @@
   }
 
   .logo-text {
-      font-family: 'Merriweather', serif;
+      font-family: 'TourFurr', 'Merriweather', serif;
       font-size: 1.8rem;
       font-weight: 700;
       color: var(--fire-glow);
+      letter-spacing: 0.05em;
       transition: all 0.3s ease;
   }
 
