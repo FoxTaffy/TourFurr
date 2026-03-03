@@ -753,29 +753,72 @@ export const useAuthStore = defineStore('auth', () => {
     const storedUser = safeStorage.getItem('current_user')
     const cachedUser = safeJsonParse<User | null>(storedUser, null)
 
-    if (!cachedUser) {
-      await logout()
+    if (cachedUser) {
+      user.value = cachedUser
+
+      // Fetch fresh data from database to get updated status
+      try {
+        const { data, error: dbError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', cachedUser.id)
+          .single()
+
+        if (!dbError && data) {
+          const freshUser = mapDbUserToUser(data)
+          user.value = freshUser
+          safeStorage.setItem('current_user', JSON.stringify(freshUser))
+        }
+      } catch (err) {
+        // Keep cached user if fetch fails
+        logger.error('Failed to fetch fresh user data:', err)
+      }
       return
     }
 
-    user.value = cachedUser
+    // No cached user but token exists — try to load from active Supabase session.
+    // This happens after email verification when the user was never explicitly logged in.
+    const initialized = await initUserFromSession()
+    if (!initialized) {
+      // Truly no user found — sign out cleanly
+      await logout()
+    }
+  }
 
-    // Fetch fresh data from database to get updated status
+  /**
+   * Tries to restore full user data from the current Supabase session.
+   * Useful after email verification when a session may already exist
+   * but `current_user` was never stored in safeStorage.
+   * Returns true if user was successfully loaded.
+   */
+  async function initUserFromSession(): Promise<boolean> {
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token || !session?.user) return false
+
+      // Ensure token is persisted in both reactive state and storage
+      token.value = session.access_token
+      safeStorage.setItem('auth_token', session.access_token)
+
       const { data, error: dbError } = await supabase
         .from('users')
         .select('*')
-        .eq('id', cachedUser.id)
-        .single()
+        .eq('id', session.user.id)
+        .maybeSingle()
 
-      if (!dbError && data) {
-        const freshUser = mapDbUserToUser(data)
-        user.value = freshUser
-        safeStorage.setItem('current_user', JSON.stringify(freshUser))
+      if (dbError || !data) {
+        logger.error('initUserFromSession: user not found in DB', dbError)
+        return false
       }
+
+      const mappedUser = mapDbUserToUser(data)
+      user.value = mappedUser
+      safeStorage.setItem('current_user', JSON.stringify(mappedUser))
+      logger.log('User session restored from Supabase session:', mappedUser.email)
+      return true
     } catch (err) {
-      // Keep cached user if fetch fails
-      logger.error('Failed to fetch fresh user data:', err)
+      logger.error('initUserFromSession error:', err)
+      return false
     }
   }
 
@@ -981,6 +1024,7 @@ export const useAuthStore = defineStore('auth', () => {
     checkEmailUnique,
     checkNicknameUnique,
     fetchUser,
+    initUserFromSession,
     logout,
     clearError,
     updateProfile,

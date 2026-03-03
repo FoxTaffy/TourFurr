@@ -95,6 +95,7 @@ import VerificationCodeInput from '../components/auth/VerificationCodeInput.vue'
 import { createVerificationCode, sendVerificationEmail, invalidateOldCodes } from '../utils/emailVerification'
 import { checkGracePeriodStatus, formatRemainingTime, type GracePeriodStatus } from '../utils/gracePeriod'
 import { logger } from '../utils/logger'
+import { useAuthStore } from '../stores/auth'
 
 const route = useRoute()
 const router = useRouter()
@@ -181,13 +182,21 @@ onUnmounted(() => {
 
 async function handleVerified() {
   try {
-    // Redirect to login with success message.
-    // Email verification state should be updated by secure backend logic.
-    router.push('/auth?verified=true')
+    // Try to restore user session (works when Supabase auto-creates a session
+    // during signUp with email confirmation disabled, or after a fresh login).
+    const authStore = useAuthStore()
+    const initialized = await authStore.initUserFromSession()
+
+    if (initialized) {
+      // Session found and user data loaded — go directly to dashboard
+      router.push('/dashboard')
+    } else {
+      // No active session — redirect to login with verified=true flag
+      router.push('/auth?verified=true')
+    }
   } catch (err: any) {
     logger.error('Error in handleVerified:', err)
-    alert('Произошла ошибка. Попробуйте войти в систему.')
-    router.push('/auth')
+    router.push('/auth?verified=true')
   }
 }
 

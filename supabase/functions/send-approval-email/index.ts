@@ -128,101 +128,142 @@ serve(async (req) => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0a0806;">
-  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+<body style="margin:0;padding:0;background-color:#0d0a07;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0d0a07;">
     <tr>
-      <td align="center" style="padding: 40px 0;">
-        <table role="presentation" style="width: 600px; max-width: 100%; border-collapse: collapse; background: linear-gradient(135deg, #2a1f1a 0%, #1a1410 100%); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);">
-          <!-- Header -->
+      <td align="center" style="padding:40px 16px;">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;border-radius:20px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.8);">
+
+          <!-- ═══ HEADER ═══ -->
           <tr>
-            <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, rgba(255, 107, 53, 0.15), rgba(255, 179, 71, 0.1));">
-              <h1 style="margin: 0; color: #FFB347; font-size: 32px; font-weight: 700; text-shadow: 0 2px 10px rgba(255, 107, 53, 0.3);">
-                🎭 TourFurr 2026
-              </h1>
+            <td style="background:linear-gradient(135deg,#3d1f0a 0%,#1f0e05 50%,#2a1206 100%);padding:0;">
+              <div style="height:4px;background:linear-gradient(90deg,${isApproved ? '#22c55e,#86efac,#22c55e' : '#ef4444,#fca5a5,#ef4444'});"></div>
+              <table width="100%" role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:36px 48px 28px;text-align:center;">
+                    <div style="font-size:42px;line-height:1;margin-bottom:12px;">🐾&nbsp;🔥&nbsp;🐾</div>
+                    <h1 style="margin:0 0 6px;font-size:36px;font-weight:800;letter-spacing:-0.5px;background:linear-gradient(135deg,#FFB347,#FF6B35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;color:#FFB347;">TourFurr 2026</h1>
+                    <p style="margin:0;color:#c8a070;font-size:14px;letter-spacing:2px;text-transform:uppercase;">Меховой конвент</p>
+                  </td>
+                </tr>
+              </table>
+              <div style="height:3px;background:linear-gradient(90deg,transparent,${isApproved ? '#22c55e40' : '#ef444440'},${isApproved ? '#86efac80' : '#fca5a580'},${isApproved ? '#22c55e40' : '#ef444440'},transparent);"></div>
             </td>
           </tr>
 
-          <!-- Content -->
+          <!-- ═══ STATUS BANNER ═══ -->
           <tr>
-            <td style="padding: 40px;">
-              <div style="text-align: center; padding: 30px; background: ${isApproved ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; border: 2px solid ${isApproved ? '#22c55e' : '#ef4444'}; border-radius: 12px; margin-bottom: 30px;">
-                <div style="font-size: 64px; margin-bottom: 10px;">
-                  ${isApproved ? '🎉' : '😔'}
-                </div>
-                <h2 style="margin: 0; color: ${isApproved ? '#22c55e' : '#ef4444'}; font-size: 28px; font-weight: 700;">
-                  ${isApproved ? 'Заявка одобрена!' : 'Заявка отклонена'}
-                </h2>
-              </div>
+            <td style="background:${isApproved ? 'linear-gradient(135deg,#052010,#071a0f)' : 'linear-gradient(135deg,#1a0505,#120304)'};padding:32px 48px;text-align:center;border-bottom:1px solid ${isApproved ? '#0f3320' : '#2a0808'};">
+              <div style="display:inline-block;font-size:64px;line-height:1;margin-bottom:12px;">${isApproved ? '🎉' : '😔'}</div>
+              <h2 style="margin:8px 0 0;font-size:32px;font-weight:800;color:${isApproved ? '#4ade80' : '#f87171'};">${isApproved ? 'Заявка одобрена!' : 'Заявка отклонена'}</h2>
+            </td>
+          </tr>
 
-              <p style="margin: 0 0 20px; color: #F5DEB3; font-size: 18px; font-weight: 600;">
-                Здравствуйте, ${nickname}!
-              </p>
+          <!-- ═══ BODY ═══ -->
+          <tr>
+            <td style="background:#1a1008;padding:36px 48px;">
+
+              <p style="margin:0 0 24px;font-size:18px;color:#F5DEB3;font-weight:600;">Здравствуйте, <span style="color:#FFB347;">${nickname}</span>!</p>
 
               ${isApproved ? `
-              <p style="margin: 0 0 30px; color: #C8B896; font-size: 16px; line-height: 1.6;">
-                Поздравляем! Ваша заявка на участие в TourFurr 2026 была одобрена. Мы рады видеть вас на нашем мероприятии!
+              <p style="margin:0 0 28px;color:#c0a882;font-size:16px;line-height:1.7;">
+                Поздравляем! Ваша заявка на участие в <strong style="color:#FFB347;">TourFurr 2026</strong> была одобрена.<br>
+                Мы очень рады видеть вас среди участников нашего конвента! 🐾
               </p>
 
-              <div style="padding: 20px; background: rgba(59, 130, 246, 0.1); border-left: 4px solid #60a5fa; border-radius: 8px; margin: 0 0 30px;">
-                <p style="margin: 0 0 15px; color: #93c5fd; font-size: 14px; font-weight: 600;">
-                  📋 Следующие шаги:
-                </p>
-                <ol style="margin: 0; padding-left: 20px; color: #C8B896; font-size: 14px; line-height: 1.8;">
-                  <li>Зайдите в <strong style="color: #FFB347;">личный кабинет</strong> на сайте</li>
-                  <li>Ознакомьтесь с <strong style="color: #FFB347;">информацией о локации</strong></li>
-                  <li>Выполните <strong style="color: #FFB347;">оплату</strong> онлайн в личном кабинете</li>
-                  <li>Отправьте <strong style="color: #FFB347;">чек об оплате</strong> организаторам (при необходимости)</li>
-                </ol>
-              </div>
+              <!-- Next steps -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+                <tr>
+                  <td style="background:#0f0a06;border:1px solid #1e3a20;border-left:4px solid #22c55e;border-radius:12px;padding:20px 24px;">
+                    <p style="margin:0 0 14px;color:#4ade80;font-size:14px;font-weight:700;">📋 Следующие шаги</p>
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                      <tr><td style="padding:5px 0;color:#a0c0a0;font-size:14px;">
+                        <span style="display:inline-block;width:22px;height:22px;background:#22c55e20;border:1px solid #22c55e60;border-radius:50%;text-align:center;line-height:22px;font-size:11px;font-weight:700;color:#4ade80;margin-right:10px;">1</span>
+                        Войдите в <strong style="color:#F5DEB3;">личный кабинет</strong> на сайте
+                      </td></tr>
+                      <tr><td style="padding:5px 0;color:#a0c0a0;font-size:14px;">
+                        <span style="display:inline-block;width:22px;height:22px;background:#22c55e20;border:1px solid #22c55e60;border-radius:50%;text-align:center;line-height:22px;font-size:11px;font-weight:700;color:#4ade80;margin-right:10px;">2</span>
+                        Ознакомьтесь с <strong style="color:#F5DEB3;">информацией о локации</strong>
+                      </td></tr>
+                      <tr><td style="padding:5px 0;color:#a0c0a0;font-size:14px;">
+                        <span style="display:inline-block;width:22px;height:22px;background:#22c55e20;border:1px solid #22c55e60;border-radius:50%;text-align:center;line-height:22px;font-size:11px;font-weight:700;color:#4ade80;margin-right:10px;">3</span>
+                        Произведите <strong style="color:#F5DEB3;">оплату</strong> в личном кабинете
+                      </td></tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
 
-              <div style="text-align: center; padding: 20px 0;">
-                <a href="https://www.tourfurr.camp/dashboard" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #FF6B35, #FFB347); color: #1a1410; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);">
-                  Перейти в личный кабинет
-                </a>
-              </div>
+              <!-- Important notice -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+                <tr>
+                  <td style="background:#0f0a06;border:1px solid #3a2510;border-left:4px solid #FF6B35;border-radius:12px;padding:20px 24px;">
+                    <p style="margin:0 0 12px;color:#FFB347;font-size:14px;font-weight:700;">⚠️ Важно</p>
+                    <ul style="margin:0;padding-left:18px;color:#a08060;font-size:14px;line-height:1.8;">
+                      <li>Оплата до <strong style="color:#FFB347;">30 мая 2026</strong></li>
+                      <li>Координаты локации <strong style="color:#FFB347;">конфиденциальны</strong> — не делитесь ими публично</li>
+                      <li>При вопросах — пишите организаторам в Telegram</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
 
-              <div style="padding: 20px; background: rgba(255, 107, 53, 0.1); border-left: 4px solid #FF6B35; border-radius: 8px; margin: 30px 0 0;">
-                <p style="margin: 0 0 10px; color: #FFB347; font-size: 14px; font-weight: 600;">
-                  ⚠️ Важно:
-                </p>
-                <ul style="margin: 0; padding-left: 20px; color: #C8B896; font-size: 14px; line-height: 1.6;">
-                  <li>Оплата должна быть произведена до <strong style="color: #FFB347;">30 мая 2026</strong></li>
-                  <li>Координаты локации <strong style="color: #FFB347;">конфиденциальны</strong> - не делитесь ими публично</li>
-                  <li>При возникновении вопросов свяжитесь с организаторами в Telegram</li>
-                </ul>
-              </div>
+              <!-- CTA button -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                <tr>
+                  <td style="border-radius:12px;background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 6px 24px rgba(34,197,94,0.3);">
+                    <a href="https://www.tourfurr.camp/dashboard" style="display:inline-block;padding:14px 40px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">🎪 Перейти в личный кабинет</a>
+                  </td>
+                </tr>
+              </table>
               ` : `
-              <p style="margin: 0 0 30px; color: #C8B896; font-size: 16px; line-height: 1.6;">
-                К сожалению, Вам отказано в участии.
+              <p style="margin:0 0 28px;color:#c0a882;font-size:16px;line-height:1.7;">
+                К сожалению, ваша заявка на участие в <strong style="color:#FFB347;">TourFurr 2026</strong> в этот раз не была одобрена.
               </p>
 
-              <div style="padding: 20px; background: rgba(59, 130, 246, 0.1); border-left: 4px solid #60a5fa; border-radius: 8px; margin: 0 0 30px;">
-                <p style="margin: 0; color: #C8B896; font-size: 14px; line-height: 1.6;">
-                  Если вы не согласны с решением, пожалуйста, напишите одному из организаторов в контактах на сайте.
-                </p>
-              </div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+                <tr>
+                  <td style="background:#0f0a06;border:1px solid #3a1010;border-left:4px solid #ef4444;border-radius:12px;padding:20px 24px;">
+                    <p style="margin:0 0 10px;color:#f87171;font-size:14px;font-weight:700;">💬 Что можно сделать?</p>
+                    <p style="margin:0;color:#a08060;font-size:14px;line-height:1.7;">
+                      Если вы не согласны с решением или хотите уточнить причину отказа — напишите нашим организаторам. Мы рассмотрим ваш вопрос.
+                    </p>
+                  </td>
+                </tr>
+              </table>
 
-              <div style="text-align: center; padding: 20px 0;">
-                <a href="https://www.tourfurr.camp/#contacts" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #FF6B35, #FFB347); color: #1a1410; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);">
-                  Перейти к контактам
-                </a>
-              </div>
+              <!-- CTA button -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                <tr>
+                  <td style="border-radius:12px;background:linear-gradient(135deg,#FF6B35,#e8541e);box-shadow:0 6px 24px rgba(255,107,53,0.3);">
+                    <a href="https://www.tourfurr.camp/#contacts" style="display:inline-block;padding:14px 40px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">📬 Связаться с организаторами</a>
+                  </td>
+                </tr>
+              </table>
               `}
+
             </td>
           </tr>
 
-          <!-- Footer -->
+          <!-- ═══ FOOTER ═══ -->
           <tr>
-            <td style="padding: 30px 40px; background: rgba(26, 20, 16, 0.5); border-top: 1px solid rgba(139, 111, 71, 0.3);">
-              <p style="margin: 0 0 10px; color: #8B6F47; font-size: 12px; line-height: 1.5; text-align: center;">
-                С уважением,<br>
-                Команда TourFurr 2026
-              </p>
-              <p style="margin: 0; color: #8B6F47; font-size: 11px; text-align: center;">
-                Это автоматическое письмо, пожалуйста, не отвечайте на него.
-              </p>
+            <td style="background:#0f0a06;border-top:1px solid #2a1a0a;padding:24px 48px;">
+              <table width="100%" role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="text-align:center;">
+                    <p style="margin:0 0 6px;color:#6b4f2f;font-size:13px;">С теплом,&nbsp;<strong style="color:#8B6F47;">Команда TourFurr 2026</strong></p>
+                    <p style="margin:0 0 12px;color:#4a3520;font-size:11px;">Это автоматическое письмо — пожалуйста, не отвечайте на него.</p>
+                    <a href="https://www.tourfurr.camp" style="color:#FF6B35;font-size:12px;text-decoration:none;">tourfurr.camp</a>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
+          <tr>
+            <td style="height:4px;background:linear-gradient(90deg,${isApproved ? '#22c55e,#86efac,#22c55e' : '#ef4444,#fca5a5,#ef4444'});"></td>
+          </tr>
+
         </table>
       </td>
     </tr>
@@ -233,36 +274,37 @@ serve(async (req) => {
 
     // Plain text version
     const textContent = isApproved ? `
-TourFurr 2026 - Заявка одобрена!
+TourFurr 2026 — Заявка одобрена! 🎉
 
 Здравствуйте, ${rawNickname}!
 
-Поздравляем! Ваша заявка на участие в TourFurr 2026 была одобрена.
+Поздравляем! Ваша заявка на участие одобрена.
 
 Следующие шаги:
-1. Зайдите в личный кабинет на сайте: https://www.tourfurr.camp/dashboard
+1. Войдите в личный кабинет: https://www.tourfurr.camp/dashboard
 2. Ознакомьтесь с информацией о локации
-3. Выполните оплату онлайн в личном кабинете
-4. Подтверждение оплаты сохраняется автоматически
+3. Произведите оплату в личном кабинете
 
-ВАЖНО:
+Важно:
 - Оплата до 30 мая 2026
-- Координаты локации конфиденциальны
-- При вопросах свяжитесь с организаторами
+- Координаты локации конфиденциальны — не сообщайте их публично
+- При вопросах — обращайтесь к организаторам в Telegram
 
-С уважением,
-Команда TourFurr 2026
+──────────────────────────────
+С теплом, Команда TourFurr 2026
+https://www.tourfurr.camp
     ` : `
-TourFurr 2026 - Заявка отклонена
+TourFurr 2026 — Решение по заявке
 
 Здравствуйте, ${rawNickname}!
 
-К сожалению, Вам отказано в участии.
+К сожалению, ваша заявка на участие в TourFurr 2026 не была одобрена.
 
-Если вы не согласны с решением, пожалуйста, напишите одному из организаторов в контактах на сайте: https://www.tourfurr.camp/#contacts
+Если вы не согласны с решением или хотите уточнить причину — напишите нашим организаторам: https://www.tourfurr.camp/#contacts
 
-С уважением,
-Команда TourFurr 2026
+──────────────────────────────
+С теплом, Команда TourFurr 2026
+https://www.tourfurr.camp
     `
 
     // Send email via Resend API

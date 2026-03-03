@@ -134,74 +134,99 @@ serve(async (req) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Код сброса пароля TourFurr</title>
+  <title>Сброс пароля — TourFurr 2026</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0a0806;">
-  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+<body style="margin:0;padding:0;background-color:#0d0a07;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0d0a07;">
     <tr>
-      <td align="center" style="padding: 40px 0;">
-        <table role="presentation" style="width: 600px; max-width: 100%; border-collapse: collapse; background: linear-gradient(135deg, #2a1f1a 0%, #1a1410 100%); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);">
-          <!-- Header -->
+      <td align="center" style="padding:40px 16px;">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;border-radius:20px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.8);">
+
+          <!-- ═══ HEADER ═══ -->
           <tr>
-            <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, rgba(255, 107, 53, 0.15), rgba(255, 179, 71, 0.1));">
-              <h1 style="margin: 0; color: #FFB347; font-size: 32px; font-weight: 700; text-shadow: 0 2px 10px rgba(255, 107, 53, 0.3);">
-                🎭 TourFurr 2026
-              </h1>
+            <td style="background:linear-gradient(135deg,#3d1f0a 0%,#1f0e05 50%,#2a1206 100%);padding:0;">
+              <div style="height:4px;background:linear-gradient(90deg,#FF6B35,#FFB347,#FF6B35);"></div>
+              <table width="100%" role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:36px 48px 28px;text-align:center;">
+                    <div style="font-size:42px;line-height:1;margin-bottom:12px;">🐾&nbsp;🔥&nbsp;🐾</div>
+                    <h1 style="margin:0 0 6px;font-size:36px;font-weight:800;letter-spacing:-0.5px;background:linear-gradient(135deg,#FFB347,#FF6B35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;color:#FFB347;">TourFurr 2026</h1>
+                    <p style="margin:0;color:#c8a070;font-size:14px;letter-spacing:2px;text-transform:uppercase;">Меховой конвент</p>
+                  </td>
+                </tr>
+              </table>
+              <div style="height:3px;background:linear-gradient(90deg,transparent,#FF6B3540,#FFB34780,#FF6B3540,transparent);"></div>
             </td>
           </tr>
 
-          <!-- Content -->
+          <!-- ═══ BODY ═══ -->
           <tr>
-            <td style="padding: 40px;">
-              <h2 style="margin: 0 0 20px; color: #F5DEB3; font-size: 24px; font-weight: 600;">
-                Сброс пароля
-              </h2>
+            <td style="background:#1a1008;padding:40px 48px 36px;">
 
-              <p style="margin: 0 0 30px; color: #C8B896; font-size: 16px; line-height: 1.6;">
-                Вы запросили сброс пароля для вашего аккаунта TourFurr. Для подтверждения введите код на сайте:
+              <!-- Title -->
+              <h2 style="margin:0 0 8px;font-size:26px;font-weight:700;color:#F5DEB3;">🔐 Сброс пароля</h2>
+              <div style="width:48px;height:3px;background:linear-gradient(90deg,#FF6B35,#FFB347);border-radius:2px;margin-bottom:24px;"></div>
+
+              <p style="margin:0 0 28px;color:#c0a882;font-size:16px;line-height:1.7;">
+                Вы запросили сброс пароля для аккаунта&nbsp;<strong style="color:#FFB347;">TourFurr 2026</strong>.<br>
+                Введите код ниже на сайте для подтверждения:
               </p>
 
-              <!-- Code Box -->
-              <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 0 0 30px;">
+              <!-- ── Code block ── -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
                 <tr>
-                  <td align="center" style="padding: 30px; background: rgba(255, 107, 53, 0.1); border: 2px solid #FF6B35; border-radius: 12px;">
-                    <div style="font-size: 48px; font-weight: 700; letter-spacing: 8px; color: #FFB347; font-family: 'Courier New', monospace; text-shadow: 0 2px 10px rgba(255, 107, 53, 0.5);">
-                      ${code}
-                    </div>
+                  <td style="background:linear-gradient(135deg,#2c1505,#1f0e03);border:2px solid #FF6B35;border-radius:16px;padding:32px 24px;text-align:center;box-shadow:0 0 40px rgba(255,107,53,0.15) inset;">
+                    <p style="margin:0 0 10px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#FF6B3590;">КОД СБРОСА ПАРОЛЯ</p>
+                    <div style="font-size:52px;font-weight:800;letter-spacing:12px;color:#FFB347;font-family:'Courier New',Courier,monospace;text-shadow:0 0 30px rgba(255,179,71,0.4);">${code}</div>
+                    <p style="margin:12px 0 0;font-size:13px;color:#8B6F47;">Действителен&nbsp;<strong style="color:#FF6B35;">15 минут</strong></p>
                   </td>
                 </tr>
               </table>
 
-              <!-- Important Info -->
-              <div style="padding: 20px; background: rgba(59, 130, 246, 0.1); border-left: 4px solid #60a5fa; border-radius: 8px; margin: 0 0 30px;">
-                <p style="margin: 0 0 10px; color: #93c5fd; font-size: 14px; font-weight: 600;">
-                  ⏰ Важно:
-                </p>
-                <ul style="margin: 0; padding-left: 20px; color: #C8B896; font-size: 14px; line-height: 1.6;">
-                  <li>Код действителен <strong style="color: #FFB347;">15 минут</strong></li>
-                  <li>После подтверждения кода вы сможете установить новый пароль</li>
-                  <li>Никому не сообщайте этот код</li>
-                </ul>
-              </div>
+              <!-- ── Info block ── -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+                <tr>
+                  <td style="background:#0f0a06;border:1px solid #3a2510;border-left:4px solid #FF6B35;border-radius:12px;padding:20px 24px;">
+                    <p style="margin:0 0 12px;color:#FFB347;font-size:14px;font-weight:700;">⚠️ Важно</p>
+                    <ul style="margin:0;padding-left:18px;color:#a08060;font-size:14px;line-height:1.8;">
+                      <li>Не передавайте код третьим лицам</li>
+                      <li>Если вы не запрашивали сброс — просто проигнорируйте письмо. Ваш пароль останется без изменений</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
 
-              <p style="margin: 0 0 10px; color: #C8B896; font-size: 14px; line-height: 1.6;">
-                Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо. Ваш пароль останется без изменений.
-              </p>
+              <!-- ── CTA button ── -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                <tr>
+                  <td style="border-radius:12px;background:linear-gradient(135deg,#FF6B35,#e8541e);box-shadow:0 6px 24px rgba(255,107,53,0.35);">
+                    <a href="https://www.tourfurr.camp/auth/verify-reset-code" style="display:inline-block;padding:14px 36px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.5px;">🔑 Сбросить пароль</a>
+                  </td>
+                </tr>
+              </table>
+
             </td>
           </tr>
 
-          <!-- Footer -->
+          <!-- ═══ FOOTER ═══ -->
           <tr>
-            <td style="padding: 30px 40px; background: rgba(26, 20, 16, 0.5); border-top: 1px solid rgba(139, 111, 71, 0.3);">
-              <p style="margin: 0 0 10px; color: #8B6F47; font-size: 12px; line-height: 1.5; text-align: center;">
-                С уважением,<br>
-                Команда TourFurr 2026
-              </p>
-              <p style="margin: 0; color: #8B6F47; font-size: 11px; text-align: center;">
-                Это автоматическое письмо, пожалуйста, не отвечайте на него.
-              </p>
+            <td style="background:#0f0a06;border-top:1px solid #2a1a0a;padding:24px 48px;">
+              <table width="100%" role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="text-align:center;">
+                    <p style="margin:0 0 6px;color:#6b4f2f;font-size:13px;">С теплом,&nbsp;<strong style="color:#8B6F47;">Команда TourFurr 2026</strong></p>
+                    <p style="margin:0 0 12px;color:#4a3520;font-size:11px;">Это автоматическое письмо — пожалуйста, не отвечайте на него.</p>
+                    <a href="https://www.tourfurr.camp" style="color:#FF6B35;font-size:12px;text-decoration:none;">tourfurr.camp</a>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
+          <tr>
+            <td style="height:4px;background:linear-gradient(90deg,#FF6B35,#FFB347,#FF6B35);"></td>
+          </tr>
+
         </table>
       </td>
     </tr>
@@ -212,7 +237,7 @@ serve(async (req) => {
 
     // Plain text version
     const textContent = `
-TourFurr 2026 - Сброс пароля
+TourFurr 2026 — Сброс пароля 🔐
 
 Ваш код подтверждения: ${code}
 
@@ -220,12 +245,11 @@ TourFurr 2026 - Сброс пароля
 После подтверждения кода вы сможете установить новый пароль.
 
 Никому не сообщайте этот код.
+Если вы не запрашивали сброс пароля — просто проигнорируйте письмо.
 
-Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.
-
----
-С уважением,
-Команда TourFurr 2026
+──────────────────────────────
+С теплом, Команда TourFurr 2026
+https://www.tourfurr.camp
     `
 
     // Send email via Resend API
