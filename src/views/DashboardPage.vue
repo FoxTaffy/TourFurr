@@ -794,8 +794,8 @@ function handleLogout() {
 }
 
 .avatar {
-  width: 160px;
-  height: 120px;
+  width: 120px;
+  height: 160px;
   margin: 0 auto;
   border-radius: 12px;
   overflow: hidden;
@@ -1979,8 +1979,8 @@ function handleLogout() {
   }
 
   .avatar {
-    width: 120px;
-    height: 90px;
+    width: 90px;
+    height: 120px;
   }
 
   .profile-name {
