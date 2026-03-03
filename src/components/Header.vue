@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div :class="{'header-dashboard': isDashboard}">
       <header>
         <nav>
           <a :href="isDashboard ? '/' : '#'" class="logo">
@@ -298,6 +298,11 @@
   }
 
   @media (max-width: 768px) {
+      /* Hide header completely on dashboard for mobile */
+      .header-dashboard {
+          display: none;
+      }
+
       nav {
           padding: 0.875rem 1rem;
       }

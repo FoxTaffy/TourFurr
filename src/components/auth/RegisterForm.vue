@@ -1351,11 +1351,12 @@ function redirectToLogin() {
 }
 
 .avatar-preview img {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 90px;
   margin: 0 auto;
-  border-radius: 50%;
+  border-radius: 10px;
   object-fit: cover;
+  display: block;
 }
 
 .upload-text {

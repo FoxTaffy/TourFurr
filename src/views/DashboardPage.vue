@@ -18,7 +18,7 @@
             <svg class="warning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
-            <span>Аватар будет напечатан на вашем физическом бейджике!</span>
+            <span>Аватар будет напечатан на бейджике в формате 4:3</span>
           </div>
 
           <div class="avatar-section">
@@ -209,6 +209,18 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
             Расписание мероприятия
+          </button>
+
+          <!-- Великие Дома — only on mobile, replaces header button -->
+          <button
+            v-if="(user?.status === 'approved' || user?.status === 'paid')"
+            class="teams-card-btn-mobile"
+            @click="router.push('/teams')"
+          >
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
+            </svg>
+            Великие Дома
           </button>
         </div>
 
@@ -782,10 +794,10 @@ function handleLogout() {
 }
 
 .avatar {
-  width: 120px;
+  width: 160px;
   height: 120px;
   margin: 0 auto;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
   background: var(--forest-mid);
   display: flex;
@@ -802,7 +814,7 @@ function handleLogout() {
 
 .avatar-letter {
   font-family: 'Playfair Display', serif;
-  font-size: 3rem;
+  font-size: 2.5rem;
   color: var(--fire-glow);
 }
 
@@ -1927,7 +1939,7 @@ function handleLogout() {
     height: auto;
     overflow: auto;
     padding: 1rem;
-    padding-top: 5rem;
+    padding-top: 1rem;
   }
 
   .dashboard-grid {
@@ -1951,6 +1963,10 @@ function handleLogout() {
     min-height: 0;
   }
 
+  .teams-card-btn-mobile {
+    display: flex;
+  }
+
   .avatar-badge-warning {
     font-size: 0.7rem;
     padding: 0.6rem 0.75rem;
@@ -1963,8 +1979,8 @@ function handleLogout() {
   }
 
   .avatar {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 90px;
   }
 
   .profile-name {
@@ -2224,6 +2240,36 @@ function handleLogout() {
 .edit-btn svg {
   width: 18px;
   height: 18px;
+}
+
+/* Великие Дома в карточке — только мобайл */
+.teams-card-btn-mobile {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  margin-top: 0.75rem;
+  background: linear-gradient(135deg, rgba(139, 111, 71, 0.25) 0%, rgba(61, 45, 36, 0.4) 100%);
+  border: 1.5px solid rgba(139, 111, 71, 0.5);
+  border-radius: 14px;
+  color: var(--fire-glow);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.teams-card-btn-mobile svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.teams-card-btn-mobile:hover {
+  background: linear-gradient(135deg, rgba(139, 111, 71, 0.4) 0%, rgba(61, 45, 36, 0.6) 100%);
+  border-color: var(--fire-glow);
 }
 
 .schedule-card-btn {
