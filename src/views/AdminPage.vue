@@ -2523,6 +2523,19 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 
+  .admin-main {
+    padding: 0.75rem;
+    padding-top: calc(56px + 0.75rem);
+  }
+
+  .stat-widget {
+    padding: 0.875rem;
+  }
+
+  .stat-number {
+    font-size: 1.25rem;
+  }
+
   .filter-chips {
     overflow-x: auto;
     flex-wrap: nowrap;
@@ -2532,6 +2545,40 @@ onMounted(() => {
   .chip {
     white-space: nowrap;
     flex-shrink: 0;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+  }
+
+  .user-card-top {
+    gap: 0.5rem;
+  }
+
+  .users-list {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .admin-main {
+    padding: 0.5rem;
+    padding-top: calc(56px + 0.5rem);
+  }
+
+  .stat-number {
+    font-size: 1.1rem;
+  }
+
+  .section-title {
+    font-size: 1rem;
+  }
+
+  .chip {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
   }
 }
 

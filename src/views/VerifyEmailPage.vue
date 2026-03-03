@@ -615,8 +615,13 @@ async function handleResend() {
 }
 
 @media (max-width: 640px) {
+  .verify-page {
+    padding: 1rem 0.75rem;
+  }
+
   .verify-container {
     padding: 0.5rem;
+    border-radius: 18px;
   }
 
   .grace-period-timer {
@@ -632,6 +637,54 @@ async function handleResend() {
 
   .expired-message {
     padding: 1.5rem;
+  }
+
+  .fallback-code-value {
+    font-size: 1.5rem;
+    letter-spacing: 4px;
+  }
+
+  .rate-limit-warning {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .warning-icon {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 400px) {
+  .verify-page {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .verify-container {
+    border-radius: 14px;
+  }
+
+  .timer-value {
+    font-size: 1.4rem;
+  }
+
+  .fallback-code-value {
+    font-size: 1.25rem;
+    letter-spacing: 2px;
+    padding: 0.5rem;
+  }
+
+  .expired-message h3 {
+    font-size: 1.2rem;
+  }
+
+  .expired-message p {
+    font-size: 0.85rem;
+  }
+
+  .back-to-auth-btn {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
   }
 }
 </style>

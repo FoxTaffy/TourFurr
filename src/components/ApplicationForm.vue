@@ -795,5 +795,59 @@ async function handleSubmit() {
     transform: scale(0.85);
     transform-origin: center;
   }
+
+  .status-banner {
+    padding: 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .status-banner h3 {
+    font-size: 1rem;
+  }
+
+  .status-banner p {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .application-form-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .form-title {
+    font-size: 1.3rem;
+  }
+
+  .form-description {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-textarea,
+  .form-select {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  .submit-btn {
+    padding: 12px 20px;
+    font-size: 0.95rem;
+    min-height: 44px;
+  }
+
+  .event-status-info {
+    padding: 1rem;
+  }
+
+  .status-label,
+  .status-value {
+    font-size: 0.85rem;
+  }
+
+  .captcha-wrapper :deep(> div) {
+    transform: scale(0.8);
+    transform-origin: center;
+  }
 }
 </style>

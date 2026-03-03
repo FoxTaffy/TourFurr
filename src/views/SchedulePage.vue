@@ -457,4 +457,62 @@ onUnmounted(() => {
     font-size: 0.85rem;
   }
 }
+
+@media (max-width: 480px) {
+  .schedule-main {
+    padding: 0.5rem;
+    padding-top: 5rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .day-tabs {
+    gap: 0.375rem;
+    margin-bottom: 1rem;
+  }
+
+  .day-tab {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.78rem;
+    border-radius: 8px;
+  }
+
+  .day-date {
+    font-size: 0.68rem;
+  }
+
+  .events-table th,
+  .event-row td {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .time-value {
+    font-size: 0.75rem;
+  }
+
+  .event-title {
+    font-size: 0.8rem;
+  }
+
+  .col-time {
+    width: 50px;
+  }
+
+  .events-table-wrapper {
+    border-radius: 10px;
+  }
+
+  .back-section {
+    margin-top: 1rem;
+  }
+}
 </style>

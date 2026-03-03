@@ -18,18 +18,30 @@
             <svg class="warning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
-            <span>Аватар будет напечатан на бейджике в формате 4:3</span>
+            <span>На бейджике аватар будет напечатан <strong>вертикально&nbsp;(3:4)</strong>. Загрузите фото в формате&nbsp;3:4, иначе края обрежутся</span>
           </div>
 
           <div class="avatar-section">
-            <div class="avatar" @click="isEditing && triggerAvatarUpload()">
-              <img v-if="avatarPreview || user?.avatar" :src="avatarPreview || user?.avatar" alt="Avatar" />
-              <span v-else class="avatar-letter">{{ user?.nickname?.[0]?.toUpperCase() }}</span>
-              <div v-if="isEditing" class="avatar-overlay">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
+            <div class="avatar-with-badge-preview">
+              <!-- Square screen avatar -->
+              <div class="avatar" @click="isEditing && triggerAvatarUpload()">
+                <img v-if="avatarPreview || user?.avatar" :src="avatarPreview || user?.avatar" alt="Avatar" />
+                <span v-else class="avatar-letter">{{ user?.nickname?.[0]?.toUpperCase() }}</span>
+                <div v-if="isEditing" class="avatar-overlay">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                </div>
+                <div class="avatar-label">Профиль</div>
+              </div>
+              <!-- Badge 3:4 preview -->
+              <div class="badge-preview">
+                <div class="badge-preview__img">
+                  <img v-if="avatarPreview || user?.avatar" :src="avatarPreview || user?.avatar" alt="Badge" />
+                  <span v-else class="avatar-letter">{{ user?.nickname?.[0]?.toUpperCase() }}</span>
+                </div>
+                <div class="badge-preview__label">Бейджик</div>
               </div>
             </div>
             <input
@@ -39,7 +51,7 @@
               style="display: none"
               @change="handleAvatarChange"
             />
-            <p v-if="isEditing" class="avatar-hint">Нажмите для изменения</p>
+            <p v-if="isEditing" class="avatar-hint">Нажмите на аватар для изменения</p>
           </div>
 
           <template v-if="!isEditing">
@@ -96,6 +108,22 @@
               </svg>
               Админ-панель
             </button>
+
+            <!-- Mobile-only navigation buttons -->
+            <div class="mobile-nav-actions">
+              <a href="/" class="home-mobile-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                На главную
+              </a>
+              <button class="logout-mobile-btn" @click="handleLogout">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                Выйти
+              </button>
+            </div>
           </template>
 
           <template v-else>
@@ -793,10 +821,18 @@ function handleLogout() {
   margin-bottom: 1.5rem;
 }
 
+/* Side-by-side avatar + badge preview */
+.avatar-with-badge-preview {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
 .avatar {
   width: 120px;
   height: 120px;
-  margin: 0 auto;
   border-radius: 12px;
   overflow: hidden;
   background: var(--forest-mid);
@@ -804,6 +840,8 @@ function handleLogout() {
   align-items: center;
   justify-content: center;
   border: 3px solid var(--fire);
+  position: relative;
+  flex-shrink: 0;
 }
 
 .avatar img {
@@ -816,6 +854,55 @@ function handleLogout() {
   font-family: 'Playfair Display', serif;
   font-size: 2.5rem;
   color: var(--fire-glow);
+}
+
+.avatar-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 0.6rem;
+  text-align: center;
+  padding: 2px 0;
+  letter-spacing: 0.04em;
+}
+
+/* 3:4 Badge Preview */
+.badge-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.badge-preview__img {
+  width: 90px;
+  height: 120px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--forest-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--fire-glow);
+  position: relative;
+}
+
+.badge-preview__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.badge-preview__label {
+  font-size: 0.62rem;
+  color: var(--fire-glow);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .profile-name {
@@ -1980,7 +2067,16 @@ function handleLogout() {
 
   .avatar {
     width: 90px;
-    height: 120px;
+    height: 90px; /* квадрат на мобильном */
+  }
+
+  .badge-preview__img {
+    width: 67px;
+    height: 90px;
+  }
+
+  .badge-preview__img .avatar-letter {
+    font-size: 1.6rem;
   }
 
   .profile-name {
@@ -2078,6 +2174,8 @@ function handleLogout() {
   .edit-btn,
   .teams-profile-btn,
   .admin-btn,
+  .home-mobile-btn,
+  .logout-mobile-btn,
   .save-btn,
   .cancel-btn,
   .schedule-card-btn,
@@ -2085,6 +2183,176 @@ function handleLogout() {
   .telegram-join-btn {
     min-height: 44px;
     font-size: 0.95rem;
+  }
+
+  /* Show mobile nav actions */
+  .mobile-nav-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .home-mobile-btn {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(139, 111, 71, 0.12);
+    border: 1px solid rgba(139, 111, 71, 0.35);
+    border-radius: 12px;
+    color: var(--sage);
+    font-family: 'Lora', serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .home-mobile-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .home-mobile-btn:hover {
+    background: rgba(139, 111, 71, 0.22);
+    color: var(--cream);
+  }
+
+  .logout-mobile-btn {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(255, 107, 53, 0.12);
+    border: 1px solid rgba(255, 107, 53, 0.35);
+    border-radius: 12px;
+    color: var(--fire-glow);
+    font-family: 'Lora', serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .logout-mobile-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .logout-mobile-btn:hover {
+    background: rgba(255, 107, 53, 0.22);
+    border-color: rgba(255, 107, 53, 0.55);
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 480px) {
+  .dashboard-main {
+    padding: 0.5rem;
+    padding-top: 0.5rem;
+  }
+
+  .dashboard-grid {
+    gap: 0.625rem;
+  }
+
+  .profile-card,
+  .details-card,
+  .payment-card,
+  .location-card,
+  .error-card {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .avatar {
+    width: 76px;
+    height: 76px; /* квадрат */
+  }
+
+  .badge-preview__img {
+    width: 57px;
+    height: 76px;
+  }
+
+  .avatar-letter {
+    font-size: 1.8rem;
+  }
+
+  .mobile-nav-actions {
+    gap: 0.375rem;
+  }
+
+  .home-mobile-btn,
+  .logout-mobile-btn {
+    font-size: 0.85rem;
+    padding: 10px 8px;
+    gap: 6px;
+  }
+
+  .home-mobile-btn svg,
+  .logout-mobile-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .profile-name {
+    font-size: 1.1rem;
+  }
+
+  .card-header h3 {
+    font-size: 1rem;
+  }
+
+  .status-badge {
+    font-size: 0.8rem;
+    padding: 6px 14px;
+  }
+
+  .contact-item {
+    font-size: 0.8rem;
+  }
+
+  .detail-label,
+  .detail-value {
+    font-size: 0.82rem;
+  }
+
+  .edit-btn,
+  .teams-profile-btn,
+  .admin-btn,
+  .save-btn,
+  .cancel-btn,
+  .schedule-card-btn,
+  .tbank-payment-btn,
+  .telegram-join-btn {
+    min-height: 44px;
+    font-size: 0.9rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .visual-card__amount-value {
+    font-size: 1.5rem;
+  }
+
+  .pm-badge {
+    font-size: 0.62rem;
+    padding: 0.2rem 0.45rem;
+  }
+
+  .map-container,
+  .yandex-map {
+    height: 220px;
+  }
+
+  .avatar-badge-warning {
+    font-size: 0.68rem;
+    padding: 0.5rem 0.6rem;
   }
 }
 
@@ -2363,6 +2631,11 @@ function handleLogout() {
 .admin-btn svg {
   width: 18px;
   height: 18px;
+}
+
+/* Mobile-only logout — hidden on desktop */
+.logout-mobile-btn {
+  display: none;
 }
 
 .edit-form {
