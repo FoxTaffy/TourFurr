@@ -77,8 +77,12 @@
               Редактировать
             </button>
 
-            <!-- Teams Button -->
-            <button class="teams-profile-btn" @click="router.push('/teams')">
+            <!-- Teams Button — только для одобренных участников -->
+            <button
+              v-if="user?.status === 'approved' || user?.status === 'paid'"
+              class="teams-profile-btn"
+              @click="router.push('/teams')"
+            >
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
               </svg>
@@ -98,15 +102,35 @@
             <div class="edit-form">
               <div class="form-group">
                 <label>Никнейм</label>
-                <input v-model="editForm.nickname" type="text" />
+                <input
+                  v-model="editForm.nickname"
+                  type="text"
+                  placeholder="3-30 символов, буквы/цифры/_"
+                  :class="{ 'has-error': editErrors.nickname }"
+                />
+                <p v-if="editErrors.nickname" class="error-text">{{ editErrors.nickname }}</p>
               </div>
               <div class="form-group">
                 <label>Телефон</label>
-                <input v-model="editForm.phone" type="tel" />
+                <input
+                  v-model="editForm.phone"
+                  v-maska
+                  data-maska="+7 (###) ###-##-##"
+                  type="tel"
+                  placeholder="+7 (XXX) XXX-XX-XX"
+                  :class="{ 'has-error': editErrors.phone }"
+                />
+                <p v-if="editErrors.phone" class="error-text">{{ editErrors.phone }}</p>
               </div>
               <div class="form-group">
                 <label>Telegram</label>
-                <input v-model="editForm.telegram" type="text" />
+                <input
+                  v-model="editForm.telegram"
+                  type="text"
+                  placeholder="@username или t.me/username"
+                  :class="{ 'has-error': editErrors.telegram }"
+                />
+                <p v-if="editErrors.telegram" class="error-text">{{ editErrors.telegram }}</p>
               </div>
               <div class="form-group">
                 <label>О себе</label>
@@ -355,6 +379,8 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
+import { vMaska } from 'maska/vue'
+import * as yup from 'yup'
 import Header from '../components/Header.vue'
 import TeamBadge from '../components/TeamBadge.vue'
 
@@ -411,6 +437,34 @@ const avatarInput = ref<HTMLInputElement | null>(null)
 const avatarPreview = ref<string | null>(null)
 const newAvatarFile = ref<File | null>(null)
 
+// Profile edit validation schema (same rules as registration)
+const editSchema = yup.object({
+  nickname: yup.string()
+    .required('Никнейм обязателен')
+    .min(3, 'Минимум 3 символа')
+    .max(30, 'Максимум 30 символов')
+    .matches(/^[a-zA-Z0-9_]+$/, 'Только буквы, цифры и подчеркивание'),
+  phone: yup.string()
+    .required('Телефон обязателен')
+    .matches(/^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/, 'Неверный формат: +7 (XXX) XXX-XX-XX'),
+  telegram: yup.string()
+    .required('Telegram обязателен')
+    .test('valid-telegram', 'Только латинские символы, цифры и _', function (value) {
+      if (!value) return false
+      const username = value
+        .replace(/^https?:\/\//, '')
+        .replace(/^t\.me\//, '')
+        .replace(/^@/, '')
+      return /^[a-zA-Z0-9_]+$/.test(username)
+    })
+})
+
+const editErrors = ref<Record<string, string>>({
+  nickname: '',
+  phone: '',
+  telegram: ''
+})
+
 const editForm = ref({
   nickname: '',
   phone: '',
@@ -430,6 +484,7 @@ function startEditing() {
       bringingPet: user.value.bringingPet,
       petDescription: user.value.petDescription || ''
     }
+    editErrors.value = { nickname: '', phone: '', telegram: '' }
     avatarPreview.value = null
     newAvatarFile.value = null
     isEditing.value = true
@@ -456,6 +511,35 @@ function handleAvatarChange(event: Event) {
 }
 
 async function saveProfile() {
+  // Clear previous errors
+  editErrors.value = { nickname: '', phone: '', telegram: '' }
+
+  // Validate inputs
+  try {
+    await editSchema.validate(editForm.value, { abortEarly: false })
+  } catch (err: any) {
+    err.inner?.forEach((e: any) => {
+      if (e.path && e.path in editErrors.value) {
+        editErrors.value[e.path] = e.message
+      }
+    })
+    return
+  }
+
+  // Check nickname uniqueness only if it changed
+  if (editForm.value.nickname !== user.value?.nickname) {
+    const { data: existing } = await supabase
+      .from('users')
+      .select('id')
+      .eq('nickname', editForm.value.nickname)
+      .neq('id', user.value!.id)
+      .maybeSingle()
+    if (existing) {
+      editErrors.value.nickname = 'Этот никнейм уже занят'
+      return
+    }
+  }
+
   isSaving.value = true
 
   const updates: any = {
@@ -2109,6 +2193,19 @@ function handleLogout() {
 .form-group textarea {
   resize: vertical;
   min-height: 60px;
+}
+
+.form-group input.has-error,
+.form-group textarea.has-error {
+  border-color: #e53e3e !important;
+  box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2);
+}
+
+.error-text {
+  color: #fc8181;
+  font-size: 0.78rem;
+  margin-top: 4px;
+  margin-bottom: 0;
 }
 
 .edit-actions {

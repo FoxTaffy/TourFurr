@@ -64,12 +64,18 @@ function validateFile(file: File): { valid: boolean; error?: string; fileType?: 
 }
 
 // Security: Generate secure file name
-function generateSecureFileName(file: File): string {
+// Optionally includes sanitized nickname prefix for easy identification in storage
+function generateSecureFileName(file: File, nickname?: string): string {
   const fileType = getActualFileType(file)
   const ext = fileType
     ? (fileType.extension === '.jpeg' ? '.jpg' : fileType.extension)
     : '.jpg'  // Fallback
-  return `${crypto.randomUUID()}${ext}`
+  const uuid = crypto.randomUUID()
+  if (nickname) {
+    const safeNick = nickname.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 30).toLowerCase()
+    if (safeNick) return `${safeNick}_${uuid}${ext}`
+  }
+  return `${uuid}${ext}`
 }
 
 // Security: Safe JSON parse
@@ -482,7 +488,8 @@ export const useAuthStore = defineStore('auth', () => {
         }
 
         // Security: Generate secure filename based on MIME type
-        const fileName = generateSecureFileName(data.avatar)
+        // Include nickname prefix so files are easy to identify in Supabase Storage
+        const fileName = generateSecureFileName(data.avatar, data.nickname)
         // Use detected MIME type (may be different from file.type if extension was used)
         const actualMimeType = fileValidation.fileType?.mimeType || data.avatar.type
 
@@ -884,7 +891,7 @@ export const useAuthStore = defineStore('auth', () => {
           try {
             const url = new URL(user.value.avatar)
             const oldFileName = url.pathname.split('/').pop()
-            if (oldFileName && /^[a-f0-9-]+\.(jpg|png|webp)$/i.test(oldFileName)) {
+            if (oldFileName && /^[a-zA-Z0-9_-]+\.(jpg|png|webp)$/i.test(oldFileName)) {
               await supabase.storage.from('avatars').remove([oldFileName])
             }
           } catch {
@@ -893,7 +900,8 @@ export const useAuthStore = defineStore('auth', () => {
         }
 
         // Security: Generate secure filename based on MIME type
-        const fileName = generateSecureFileName(updates.avatar)
+        // Include nickname prefix so files are easy to identify in Supabase Storage
+        const fileName = generateSecureFileName(updates.avatar, user.value?.nickname)
         // Use detected MIME type (may be different from file.type if extension was used)
         const actualMimeType = fileValidation.fileType?.mimeType || updates.avatar.type
 

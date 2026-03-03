@@ -38,7 +38,7 @@
     </div>
 
     <button
-      v-if="isComplete && !isVerifying"
+      v-if="isComplete && !isVerifying && !isSuccess"
       @click="verifyCode"
       class="verify-btn"
       :disabled="isVerifying"
@@ -46,9 +46,9 @@
       Подтвердить
     </button>
 
-    <div v-if="isVerifying" class="spinner">
+    <div v-if="isVerifying || isSuccess" class="spinner" :class="{ success: isSuccess }">
       <div class="spinner-circle"></div>
-      <p>Проверка кода...</p>
+      <p>{{ isSuccess ? 'Переход в личный кабинет...' : 'Проверка кода...' }}</p>
     </div>
   </div>
 </template>
@@ -70,12 +70,14 @@ const inputRefs = ref<HTMLInputElement[]>([])
 const error = ref<string>('')
 const hasError = ref(false)
 const isVerifying = ref(false)
+const isSuccess = ref(false) // stays true after successful verification to keep spinner visible
 const isResending = ref(false)
 
 // Resend timer
 const timeLeft = ref(60) // 60 seconds cooldown
 const canResend = ref(false)
 let timer: number | null = null
+let autoSubmitTimer: ReturnType<typeof setTimeout> | null = null
 
 const isComplete = computed(() => code.value.every(digit => digit !== ''))
 
@@ -89,6 +91,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (timer) clearInterval(timer)
+  if (autoSubmitTimer) clearTimeout(autoSubmitTimer)
 })
 
 function startTimer() {
@@ -131,7 +134,8 @@ function handleInput(index: number, event: Event) {
 
   // Auto-submit when all 6 digits are entered
   if (isComplete.value) {
-    setTimeout(() => verifyCode(), 300)
+    if (autoSubmitTimer) clearTimeout(autoSubmitTimer)
+    autoSubmitTimer = setTimeout(() => verifyCode(), 300)
   }
 }
 
@@ -173,12 +177,13 @@ function handlePaste(event: ClipboardEvent) {
 
   // Auto-submit if pasted all 6 digits
   if (digits.length === 6) {
-    setTimeout(() => verifyCode(), 300)
+    if (autoSubmitTimer) clearTimeout(autoSubmitTimer)
+    autoSubmitTimer = setTimeout(() => verifyCode(), 300)
   }
 }
 
 async function verifyCode() {
-  if (!isComplete.value || isVerifying.value) return
+  if (!isComplete.value || isVerifying.value || isSuccess.value) return
 
   isVerifying.value = true
   error.value = ''
@@ -193,7 +198,10 @@ async function verifyCode() {
     const result = await verifyCodeFn(props.email, codeString)
 
     if (result.success) {
+      // Keep spinner visible until the parent navigates away (prevents flicker)
+      isSuccess.value = true
       emit('verified')
+      return // skip finally reset
     } else {
       error.value = result.error || 'Неверный код'
       hasError.value = true
@@ -204,9 +212,9 @@ async function verifyCode() {
   } catch (err: any) {
     error.value = err.message || 'Ошибка проверки кода'
     hasError.value = true
-  } finally {
-    isVerifying.value = false
   }
+  // Only reset loading state on failure; on success we keep spinner via isSuccess
+  isVerifying.value = false
 }
 
 async function resendCode() {
@@ -374,6 +382,12 @@ h2 {
   border-top-color: var(--fire-glow);
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  transition: border-top-color 0.3s ease;
+}
+
+.spinner.success .spinner-circle {
+  border-color: rgba(34, 197, 94, 0.3);
+  border-top-color: #4ade80;
 }
 
 @keyframes spin {
