@@ -2000,15 +2000,6 @@ function handleLogout() {
     height: 90px; /* квадрат на мобильном */
   }
 
-  .badge-preview__img {
-    width: 67px;
-    height: 90px;
-  }
-
-  .badge-preview__img .avatar-letter {
-    font-size: 1.6rem;
-  }
-
   .profile-name {
     font-size: 1.25rem;
   }
@@ -2203,11 +2194,6 @@ function handleLogout() {
   .avatar {
     width: 76px;
     height: 76px; /* квадрат */
-  }
-
-  .badge-preview__img {
-    width: 57px;
-    height: 76px;
   }
 
   .avatar-letter {

@@ -557,6 +557,34 @@
       gap: 1rem;
   }
 
+  .home-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: rgba(100, 160, 140, 0.12);
+      border: 1px solid rgba(100, 160, 140, 0.45);
+      border-radius: 12px;
+      color: var(--sage, #8ab5a0);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+  }
+
+  .home-btn:hover {
+      background: rgba(100, 160, 140, 0.22);
+      border-color: var(--sage, #8ab5a0);
+      transform: translateY(-2px);
+  }
+
+  .home-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+  }
+
   .logout-btn {
       display: flex;
       align-items: center;
