@@ -44,6 +44,9 @@ export async function createVerificationCode(email: string): Promise<{
     const code = generateVerificationCode()
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes from now
 
+    // NOTE: Do NOT chain .select().single() here — the user is not authenticated
+    // yet during registration, so the SELECT policy blocks the read and returns
+    // a 500 (infinite recursion in RLS). We only need to know if INSERT succeeded.
     const { error } = await supabase
       .from('email_verification_codes')
       .insert({
@@ -51,8 +54,6 @@ export async function createVerificationCode(email: string): Promise<{
         code,
         expires_at: expiresAt.toISOString()
       })
-      .select()
-      .single()
 
     if (error) {
       logger.error('Error creating verification code:', error)
@@ -137,7 +138,7 @@ export async function verifyCode(email: string, code: string): Promise<{
       }
       // Check if code matches our custom code
       else if (verificationRecord.code === code) {
-        // Code is correct! Mark as used
+        // Code is correct! Mark as used and set email_verified in one go
         const { error: updateError } = await supabase
           .from('email_verification_codes')
           .update({
@@ -150,7 +151,19 @@ export async function verifyCode(email: string, code: string): Promise<{
           logger.error('Error updating verification code:', updateError)
         }
 
-        logger.log('✅ Verified using custom code')
+        // CRITICAL: Also update users.email_verified so auth guards work correctly.
+        // The RPC (strategy 0) does this atomically; we must do it explicitly in the fallback.
+        const { error: userUpdateError } = await supabase
+          .from('users')
+          .update({ email_verified: true, email_verified_at: new Date().toISOString() })
+          .eq('email', email.toLowerCase())
+
+        if (userUpdateError) {
+          logger.error('Strategy 1: failed to set email_verified:', userUpdateError)
+          // Not a fatal error — code is marked used, RLS will catch bad access
+        }
+
+        logger.log('✅ Verified using custom code (strategy 1)')
         return { success: true }
       } else {
         // Increment attempts for wrong custom code

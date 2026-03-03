@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '../services/supabase'
-import bcrypt from 'bcryptjs'
 import {
   rateLimiter,
   RATE_LIMITS,
@@ -153,6 +152,21 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = safeJsonParse<User | null>(storedUser, null)
   }
 
+  // Subscribe to Supabase auth state changes to keep token in sync.
+  // This handles automatic session refresh and external sign-outs.
+  supabase.auth.onAuthStateChange((_event, session) => {
+    if (session?.access_token) {
+      token.value = session.access_token
+      safeStorage.setItem('auth_token', session.access_token)
+    } else {
+      // Session ended (expired, sign-out from another tab, etc.)
+      token.value = null
+      user.value = null
+      safeStorage.removeItem('auth_token')
+      safeStorage.removeItem('current_user')
+    }
+  })
+
   async function login(email: string, password: string) {
     isLoading.value = true
     error.value = null
@@ -210,15 +224,18 @@ export const useAuthStore = defineStore('auth', () => {
       if (authData.error && authData.error.message.includes('Invalid login credentials')) {
         logger.log('Supabase Auth failed, checking for old user or unverified user...')
 
-        // Check if user exists in database
-        const { data: existingUser } = await supabase
-          .from('users')
-          .select('*')
-          .eq('email', cleanEmail)
-          .maybeSingle()
+        // Use SECURITY DEFINER RPC — works without authentication (RLS bypassed)
+        const { data: loginStatusData, error: loginStatusError } = await supabase
+          .rpc('check_login_status', { p_email: cleanEmail })
+
+        if (loginStatusError) {
+          logger.error('check_login_status RPC error:', loginStatusError)
+        }
+
+        const loginStatus = Array.isArray(loginStatusData) ? loginStatusData[0] : loginStatusData
 
         // Check if it's a new unverified user
-        if (existingUser && !existingUser.email_verified && !existingUser.password_hash) {
+        if (loginStatus?.user_found && !loginStatus.email_verified && !loginStatus.has_password) {
           logger.log('Found unverified new user, sending new verification code...')
 
           // Generate and send new verification code
@@ -259,88 +276,18 @@ export const useAuthStore = defineStore('auth', () => {
         }
 
         // Check if it's an old user with bcrypt password
-        if (existingUser && existingUser.password_hash) {
-          logger.log('Found old user, verifying bcrypt password...')
+        if (loginStatus?.user_found && loginStatus.has_password) {
+          logger.log('Found legacy bcrypt user — migration no longer supported without authentication context.')
 
-          // Verify old bcrypt password
-          const isValidBcrypt = await bcrypt.compare(password, existingUser.password_hash)
-
-          if (isValidBcrypt) {
-            logger.log('Old password valid, migrating to Supabase Auth...')
-
-            // Migrate user to Supabase Auth
-            const { data: migratedAuth, error: migrateError } = await supabase.auth.signUp({
-              email: cleanEmail,
-              password: password,
-              options: {
-                data: {
-                  migrated: true,
-                  original_id: existingUser.id
-                }
-              }
-            })
-
-            if (migrateError || !migratedAuth.user) {
-              logger.error('Migration failed:', migrateError)
-              error.value = 'Ошибка миграции аккаунта. Свяжитесь с поддержкой.'
-              return { success: false, error: error.value }
-            }
-
-            logger.log('Migration successful, migrating user record...')
-
-            // Delete old record and create new one with Supabase Auth ID
-            // Step 1: Save old user data
-            const oldUserData = { ...existingUser }
-
-            // Step 2: Delete old record
-            const { error: deleteError } = await supabase
-              .from('users')
-              .delete()
-              .eq('id', existingUser.id)
-
-            if (deleteError) {
-              logger.error('Failed to delete old user record:', deleteError)
-              error.value = 'Ошибка миграции аккаунта. Свяжитесь с поддержкой.'
-              return { success: false, error: error.value }
-            }
-
-            // Step 3: Insert new record with new Supabase Auth ID
-            const { error: insertError } = await supabase
-              .from('users')
-              .insert({
-                id: migratedAuth.user.id,  // New Supabase Auth ID
-                email: oldUserData.email,
-                password_hash: '',  // Clear old password (now managed by Supabase Auth)
-                nickname: oldUserData.nickname,
-                phone: oldUserData.phone,
-                telegram: oldUserData.telegram,
-                avatar_url: oldUserData.avatar_url,
-                description: oldUserData.description,
-                status: oldUserData.status,
-                email_verified: true,  // Old users are pre-verified
-                agree_rules: oldUserData.agree_rules,
-                agree_privacy: oldUserData.agree_privacy,
-                bringing_pet: oldUserData.bringing_pet,
-                pet_description: oldUserData.pet_description,
-                created_at: oldUserData.created_at  // Preserve original creation date
-              })
-
-            if (insertError) {
-              logger.error('Failed to insert migrated user record:', insertError)
-              error.value = 'Ошибка миграции аккаунта. Свяжитесь с поддержкой.'
-              return { success: false, error: error.value }
-            }
-
-            logger.log('User record migrated successfully')
-
-            // Now try to sign in again with Supabase Auth
-            authData = await supabase.auth.signInWithPassword({
-              email: cleanEmail,
-              password: password
-            })
-
-            logger.log('Migrated user logged in successfully')
-          }
+          // BCrypt migration requires reading the full user record, which cannot be done
+          // from an unauthenticated context after RLS hardening. Guide user to reset password instead.
+          error.value = 'Ваш аккаунт использует устаревший формат пароля. Воспользуйтесь функцией «Забыл пароль» для восстановления доступа.'
+          securityLogger.log({
+            type: 'login_failure',
+            identifier: cleanEmail,
+            details: { reason: 'legacy_bcrypt_account', fingerprint }
+          })
+          return { success: false, error: error.value }
         }
       }
 
@@ -807,7 +754,7 @@ export const useAuthStore = defineStore('auth', () => {
     const cachedUser = safeJsonParse<User | null>(storedUser, null)
 
     if (!cachedUser) {
-      logout()
+      await logout()
       return
     }
 
@@ -832,12 +779,16 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function logout() {
+  async function logout() {
     user.value = null
     token.value = null
     safeStorage.removeItem('auth_token')
     safeStorage.removeItem('current_user')
-    supabase.auth.signOut()
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      logger.error('Error signing out from Supabase:', err)
+    }
   }
 
   function clearError() {
@@ -965,12 +916,15 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     error.value = null
 
+    const userId = user.value.id
+    const avatarUrl = user.value.avatar
+
     try {
       // Delete avatar from storage if exists
-      if (user.value.avatar) {
+      if (avatarUrl) {
         // Security: Extract filename safely using URL parsing
         try {
-          const url = new URL(user.value.avatar)
+          const url = new URL(avatarUrl)
           const fileName = url.pathname.split('/').pop()
           if (fileName && /^[a-f0-9-]+\.(jpg|png|webp)$/i.test(fileName)) {
             await supabase.storage.from('avatars').remove([fileName])
@@ -980,19 +934,31 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      // Delete user from database
+      // Delete user profile from database
       const { error: dbError } = await supabase
         .from('users')
         .delete()
-        .eq('id', user.value.id)
+        .eq('id', userId)
 
       if (dbError) {
         error.value = dbError.message
         return { success: false, error: error.value }
       }
 
-      // Logout
-      logout()
+      // Delete the Supabase Auth account via Edge Function (requires service role key)
+      // This prevents the user from logging in again after deletion
+      try {
+        await supabase.functions.invoke('delete-user-account', {
+          body: { userId }
+        })
+      } catch (fnErr) {
+        // Edge function may not be deployed yet — user profile is already deleted,
+        // so auth account becomes an orphan that will be cleaned up by the cron job.
+        logger.warn('delete-user-account function unavailable, auth orphan will be cleaned by cron:', fnErr)
+      }
+
+      // Clear local auth state and sign out
+      await logout()
 
       return { success: true }
     } catch (err: any) {
