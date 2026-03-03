@@ -1365,7 +1365,7 @@ function redirectToLogin() {
 
 .avatar-preview img {
   width: 90px;
-  height: 120px;
+  height: 90px;
   margin: 0 auto;
   border-radius: 10px;
   object-fit: cover;

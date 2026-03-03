@@ -795,7 +795,7 @@ function handleLogout() {
 
 .avatar {
   width: 120px;
-  height: 160px;
+  height: 120px;
   margin: 0 auto;
   border-radius: 12px;
   overflow: hidden;
