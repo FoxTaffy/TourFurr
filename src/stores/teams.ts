@@ -218,7 +218,10 @@ export const useTeamsStore = defineStore('teams', () => {
       }
 
       if (data && data.length > 0) {
-        teams.value = data
+        // Ensure any FALLBACK teams not in DB (e.g. nights-watch) are appended
+        const dbSlugs = new Set(data.map((t: Team) => t.slug))
+        const missing = FALLBACK_TEAMS.filter(t => !dbSlugs.has(t.slug))
+        teams.value = [...data, ...missing]
         usingFallback.value = false
       } else {
         teams.value = FALLBACK_TEAMS

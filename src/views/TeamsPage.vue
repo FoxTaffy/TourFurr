@@ -27,12 +27,13 @@
       </div>
 
       <template v-else>
-        <!-- Houses grid (all except Night's Watch) -->
+        <!-- All houses + Night's Watch -->
         <div class="houses-grid">
           <div
-            v-for="team in mainHouses"
+            v-for="team in teams"
             :key="team.id"
             class="house-card"
+            :class="{ 'nw': team.slug === 'nights-watch' }"
             :style="{ '--tc': team.color, '--tc20': team.color + '20', '--tc40': team.color + '40' }"
           >
             <!-- Card Banner -->
@@ -57,11 +58,10 @@
 
             <!-- Hook question -->
             <p v-if="HOUSE_LORE[team.slug]" class="card-hook">
-              <span class="hook-icon">{{ HOUSE_LORE[team.slug].emoji }}</span>
-              {{ HOUSE_LORE[team.slug].hookQuestion }}
+              {{ HOUSE_LORE[team.slug].emoji }} {{ HOUSE_LORE[team.slug].hookQuestion }}
             </p>
 
-            <!-- Action row -->
+            <!-- Action row: lore only -->
             <div class="card-actions">
               <button class="action-btn lore-btn" @click="expandedLore[team.id] = !expandedLore[team.id]">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,13 +69,6 @@
                     d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                 </svg>
                 {{ expandedLore[team.id] ? 'Свернуть' : (HOUSE_LORE[team.slug]?.isOrder ? 'Об ордене' : 'О доме') }}
-              </button>
-              <button class="action-btn members-btn" @click="toggleMembers(team.id)">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-                {{ expandedTeams[team.id] ? 'Скрыть' : 'Участники' }}
               </button>
             </div>
 
@@ -110,103 +103,12 @@
               </div>
             </Transition>
 
-            <!-- Members panel -->
-            <Transition name="expand">
-              <div v-if="expandedTeams[team.id]" class="members-panel">
-                <div v-if="!members[team.id] || members[team.id].length === 0" class="empty-members">
-                  Пока нет участников
-                </div>
-                <div v-for="member in members[team.id]" :key="member.id" class="member-row">
-                  <div class="member-avatar">
-                    <img v-if="member.avatar_url" :src="member.avatar_url" :alt="member.nickname" />
-                    <span v-else class="member-initial">{{ member.nickname?.[0]?.toUpperCase() }}</span>
-                  </div>
-                  <span class="member-name">{{ member.nickname }}</span>
-                  <span class="member-status" :class="member.status">
-                    {{ statusLabels[member.status] || member.status }}
-                  </span>
-                </div>
-              </div>
-            </Transition>
-          </div>
-        </div>
-
-        <!-- Night's Watch — full-width special card -->
-        <div
-          v-if="nightsWatch"
-          class="nw-card"
-          :style="{ '--tc': nightsWatch.color, '--tc20': nightsWatch.color + '20' }"
-        >
-          <div class="nw-inner">
-            <div class="nw-left">
-              <img
-                :src="getCrestSrc(nightsWatch)"
-                :alt="nightsWatch.name"
-                class="nw-crest"
-                @error="($event.target as HTMLImageElement).style.display = 'none'"
-              />
-            </div>
-            <div class="nw-center">
-              <span class="nw-tag">Орден</span>
-              <h2 class="nw-name">{{ nightsWatch.name }}</h2>
-              <p class="nw-motto">{{ nightsWatch.description }}</p>
-              <p v-if="HOUSE_LORE['nights-watch']" class="nw-hook">
-                {{ HOUSE_LORE['nights-watch'].hookQuestion }}
-              </p>
-            </div>
-            <div class="nw-right">
-              <span class="nw-count-num">{{ getMemberCount(nightsWatch.id) }}</span>
-              <span class="nw-count-label">участников</span>
-            </div>
-          </div>
-
-          <div class="card-actions nw-actions">
-            <button class="action-btn lore-btn nw-lore-btn" @click="expandedLore[nightsWatch.id] = !expandedLore[nightsWatch.id]">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-              </svg>
-              {{ expandedLore[nightsWatch.id] ? 'Свернуть' : 'Об ордене' }}
-            </button>
-            <button class="action-btn members-btn" @click="toggleMembers(nightsWatch.id)">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-              </svg>
-              {{ expandedTeams[nightsWatch.id] ? 'Скрыть' : 'Участники' }}
-            </button>
-          </div>
-
-          <Transition name="expand">
-            <div v-if="expandedLore[nightsWatch.id] && HOUSE_LORE['nights-watch']" class="lore-panel nw-lore-panel">
-              <div class="lore-emblem-row">
-                <span class="lore-badge">Герб</span>
-                <span class="lore-emblem-text">{{ HOUSE_LORE['nights-watch'].emblem }}</span>
-              </div>
-              <div class="lore-desc">
-                <p v-for="(para, i) in HOUSE_LORE['nights-watch'].fullDescription.split('\n\n')" :key="i">{{ para }}</p>
-              </div>
-              <div class="lore-traits-box">
-                <p class="traits-heading">Вступай в Ночной Дозор, если ты:</p>
-                <ul class="traits-list">
-                  <li v-for="(trait, i) in HOUSE_LORE['nights-watch'].traits" :key="i">
-                    <span class="trait-check">✦</span>{{ trait }}
-                  </li>
-                </ul>
-              </div>
-              <div class="lore-flavor-block">
-                <p v-for="(line, i) in HOUSE_LORE['nights-watch'].flavorText.split('\n\n')" :key="i">{{ line }}</p>
-              </div>
-              <p class="lore-closing">{{ HOUSE_LORE['nights-watch'].closingRemark }}</p>
-            </div>
-          </Transition>
-
-          <Transition name="expand">
-            <div v-if="expandedTeams[nightsWatch.id]" class="members-panel">
-              <div v-if="!members[nightsWatch.id] || members[nightsWatch.id].length === 0" class="empty-members">
+            <!-- Members: always visible -->
+            <div class="members-panel">
+              <div v-if="!members[team.id] || members[team.id].length === 0" class="empty-members">
                 Пока нет участников
               </div>
-              <div v-for="member in members[nightsWatch.id]" :key="member.id" class="member-row">
+              <div v-for="member in members[team.id]" :key="member.id" class="member-row">
                 <div class="member-avatar">
                   <img v-if="member.avatar_url" :src="member.avatar_url" :alt="member.nickname" />
                   <span v-else class="member-initial">{{ member.nickname?.[0]?.toUpperCase() }}</span>
@@ -217,7 +119,7 @@
                 </span>
               </div>
             </div>
-          </Transition>
+          </div>
         </div>
       </template>
 
@@ -235,7 +137,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useTeamsStore, HOUSE_LORE } from '../stores/teams'
 import Header from '../components/Header.vue'
 
@@ -253,7 +155,6 @@ const teamsStore = useTeamsStore()
 const teams = ref(teamsStore.teams)
 const members = ref(teamsStore.members)
 const isLoading = ref(true)
-const expandedTeams = ref<Record<string, boolean>>({})
 const expandedLore = ref<Record<string, boolean>>({})
 
 const statusLabels: Record<string, string> = {
@@ -262,8 +163,7 @@ const statusLabels: Record<string, string> = {
   rejected: 'Отклонено'
 }
 
-const mainHouses = computed(() => teams.value.filter(t => t.slug !== 'nights-watch'))
-const nightsWatch = computed(() => teams.value.find(t => t.slug === 'nights-watch') ?? null)
+// All teams rendered in one unified grid
 
 function getCrestSrc(team: { crest_url: string | null; slug: string }): string {
   if (team.crest_url) return team.crest_url
@@ -272,14 +172,6 @@ function getCrestSrc(team: { crest_url: string | null; slug: string }): string {
 
 function getMemberCount(teamId: string): number {
   return members.value[teamId]?.length || 0
-}
-
-async function toggleMembers(teamId: string) {
-  expandedTeams.value[teamId] = !expandedTeams.value[teamId]
-  if (expandedTeams.value[teamId] && !members.value[teamId]) {
-    await teamsStore.fetchTeamMembers(teamId)
-    members.value = { ...teamsStore.members }
-  }
 }
 
 onMounted(async () => {
@@ -375,8 +267,7 @@ onMounted(async () => {
 .teams-main {
   position: relative;
   z-index: 10;
-  max-width: 1100px;
-  margin: 0 auto;
+  width: 100%;
   padding: 2rem 1.5rem 4rem;
 }
 
@@ -394,8 +285,8 @@ onMounted(async () => {
    ================================================ */
 .houses-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
   margin-bottom: 1.5rem;
 }
 
@@ -429,13 +320,15 @@ onMounted(async () => {
 .card-banner {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  padding: 1.25rem 1.25rem 1rem;
-  background: linear-gradient(135deg,
+  gap: 0.6rem;
+  padding: 1.1rem 1rem 0.9rem;
+  background: linear-gradient(180deg,
     color-mix(in srgb, var(--tc, var(--fire)) 12%, transparent) 0%,
-    transparent 70%
+    transparent 100%
   );
+  text-align: center;
   overflow: hidden;
 }
 
@@ -452,8 +345,8 @@ onMounted(async () => {
 }
 
 .banner-crest {
-  width: 64px;
-  height: 64px;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
   flex-shrink: 0;
   filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
@@ -462,7 +355,7 @@ onMounted(async () => {
 }
 
 .banner-text {
-  flex: 1;
+  width: 100%;
   min-width: 0;
   position: relative;
   z-index: 1;
@@ -483,10 +376,10 @@ onMounted(async () => {
 
 .banner-name {
   font-family: 'Merriweather', serif;
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: var(--cream);
   line-height: 1.2;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 .banner-motto {
@@ -500,18 +393,18 @@ onMounted(async () => {
 }
 
 .banner-count {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 44px;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .count-num {
   font-family: 'Merriweather', serif;
-  font-size: 1.5rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--tc, var(--fire-glow));
   line-height: 1;
@@ -528,22 +421,23 @@ onMounted(async () => {
 /* Hook question */
 .card-hook {
   display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  font-size: 0.85rem;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.25rem;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.78rem;
   font-style: italic;
   color: var(--cream);
-  line-height: 1.5;
+  line-height: 1.45;
   border-top: 1px solid rgba(139, 111, 71, 0.15);
   flex: 1;
 }
 
-.hook-icon {
-  font-style: normal;
-  font-size: 1.1rem;
-  flex-shrink: 0;
-  margin-top: 1px;
+/* NW gets slightly bigger crest */
+.house-card.nw .banner-crest {
+  width: 64px;
+  height: 64px;
 }
 
 /* ================================================
@@ -551,8 +445,7 @@ onMounted(async () => {
    ================================================ */
 .card-actions {
   display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
+  padding: 0.6rem 0.75rem;
   border-top: 1px solid rgba(139, 111, 71, 0.12);
 }
 
@@ -561,11 +454,11 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  padding: 0.55rem 0.75rem;
-  border-radius: 10px;
+  gap: 0.35rem;
+  padding: 0.5rem 0.5rem;
+  border-radius: 8px;
   font-family: 'Inter', sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -582,6 +475,7 @@ onMounted(async () => {
   background: color-mix(in srgb, var(--tc, var(--fire)) 12%, rgba(26,17,14,0.6));
   color: var(--tc, var(--fire-glow));
   border: 1px solid color-mix(in srgb, var(--tc, var(--fire)) 30%, transparent);
+  flex: 1;
 }
 
 .lore-btn:hover {
@@ -589,31 +483,19 @@ onMounted(async () => {
   border-color: color-mix(in srgb, var(--tc, var(--fire)) 60%, transparent);
 }
 
-.members-btn {
-  background: rgba(42, 31, 26, 0.5);
-  color: var(--sage);
-  border: 1px solid rgba(139, 111, 71, 0.2);
-}
-
-.members-btn:hover {
-  background: rgba(42, 31, 26, 0.8);
-  color: var(--cream);
-  border-color: rgba(139, 111, 71, 0.45);
-}
-
 /* ================================================
    LORE PANEL
    ================================================ */
 .lore-panel {
-  margin: 0 1.25rem 1rem;
-  padding: 1.1rem 1rem;
+  margin: 0 0.75rem 0.75rem;
+  padding: 0.9rem 0.85rem;
   background: rgba(18, 11, 9, 0.55);
   border: 1px solid rgba(139, 111, 71, 0.18);
   border-left: 3px solid var(--tc, var(--fire));
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.7rem;
 }
 
 .lore-emblem-row {
@@ -721,10 +603,10 @@ onMounted(async () => {
    MEMBERS PANEL
    ================================================ */
 .members-panel {
-  margin: 0 1.25rem 1rem;
+  padding: 0 0.75rem 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .empty-members {
@@ -792,113 +674,27 @@ onMounted(async () => {
 .member-status.rejected { background: rgba(239,68,68,0.18);  color: #ef4444; }
 
 /* ================================================
-   NIGHT'S WATCH — special full-width card
+   NIGHT'S WATCH — full-width dark card in grid
    ================================================ */
-.nw-card {
-  background: rgba(14, 10, 9, 0.92);
-  border: 1px solid rgba(85, 85, 100, 0.45);
-  border-top: 3px solid #555565;
-  border-radius: 18px;
-  overflow: hidden;
-  backdrop-filter: blur(18px);
-  animation: cardIn 0.6s 0.3s ease-out both;
-  transition: box-shadow 0.3s ease;
+.house-card.nw {
+  /* no special span — sits in grid like others */
+  background: rgba(10, 8, 7, 0.94);
+  border-color: rgba(80, 80, 100, 0.5);
 }
 
-.nw-card:hover {
-  box-shadow: 0 8px 32px rgba(85, 85, 100, 0.2);
+.house-card.nw .card-banner {
+  background: linear-gradient(135deg, rgba(80,80,100,0.1) 0%, transparent 60%);
 }
 
-.nw-inner {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.5rem 1.75rem;
-  background: linear-gradient(135deg, rgba(85,85,100,0.08) 0%, transparent 60%);
-}
-
-.nw-crest {
+.house-card.nw .banner-crest {
   width: 80px;
   height: 80px;
-  object-fit: contain;
-  flex-shrink: 0;
   opacity: 0.85;
-  filter: drop-shadow(0 2px 10px rgba(0,0,0,0.6)) grayscale(0.3);
+  filter: drop-shadow(0 2px 10px rgba(0,0,0,0.7)) grayscale(0.2);
 }
 
-.nw-center {
-  flex: 1;
-  min-width: 0;
-}
-
-.nw-tag {
-  display: inline-block;
-  font-size: 0.65rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: #9090a8;
-  background: rgba(85,85,100,0.2);
-  border: 1px solid rgba(85,85,100,0.4);
-  border-radius: 4px;
-  padding: 2px 7px;
-  margin-bottom: 0.35rem;
-}
-
-.nw-name {
-  font-family: 'Merriweather', serif;
-  font-size: 1.4rem;
-  color: var(--cream);
-  margin-bottom: 0.25rem;
-}
-
-.nw-motto {
-  font-size: 0.82rem;
-  color: #9090a8;
-  line-height: 1.4;
-  margin-bottom: 0.5rem;
-}
-
-.nw-hook {
-  font-size: 0.88rem;
-  font-style: italic;
-  color: var(--sage);
-  line-height: 1.5;
-}
-
-.nw-right {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.nw-count-num {
-  font-family: 'Merriweather', serif;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #9090a8;
-  line-height: 1;
-}
-
-.nw-count-label {
-  font-size: 0.65rem;
-  color: #666680;
-  letter-spacing: 0.05em;
-}
-
-.nw-actions {
-  border-top-color: rgba(85,85,100,0.18);
-  padding: 0.75rem 1.75rem;
-}
-
-.nw-lore-btn {
-  --tc: #9090a8;
-}
-
-.nw-lore-panel {
-  --tc: #9090a8;
-  margin: 0 1.75rem 1rem;
-  border-left-color: #555565;
+.house-card.nw .banner-motto {
+  -webkit-line-clamp: 3;
 }
 
 /* ================================================
@@ -935,39 +731,32 @@ onMounted(async () => {
 /* ================================================
    RESPONSIVE
    ================================================ */
-@media (max-width: 900px) {
-  .houses-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+@media (max-width: 1300px) {
+  .houses-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 1000px) {
+  .houses-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 700px) {
   .teams-main {
-    padding: 1.25rem 1rem 3rem;
+    padding: 1.25rem 0.75rem 3rem;
   }
 
-  .houses-grid {
-    grid-template-columns: 1fr;
-  }
+  .houses-grid { grid-template-columns: repeat(2, 1fr); }
 
   .wall-title {
     font-size: 2.2rem;
   }
 
-  .nw-inner {
-    flex-wrap: wrap;
-    padding: 1.25rem;
-    gap: 1rem;
-  }
-
-  .nw-crest {
-    width: 56px;
-    height: 56px;
-  }
-
   .banner-crest {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
   }
+}
+
+@media (max-width: 420px) {
+  .houses-grid { grid-template-columns: 1fr; }
 }
 </style>
