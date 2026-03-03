@@ -284,8 +284,12 @@
       <button v-if="currentStep > 1" type="button" @click="prevStep" class="btn btn-secondary">
         Назад
       </button>
-      <button v-if="currentStep < 3" type="button" @click="nextStep" class="btn btn-primary">
-        Далее
+      <button v-if="currentStep < 3" type="button" @click="nextStep" :disabled="isStepTransitioning" class="btn btn-primary">
+        <svg v-if="isStepTransitioning" class="spinner" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+        </svg>
+        {{ isStepTransitioning ? 'Проверка...' : 'Далее' }}
       </button>
       <button v-else type="submit" :disabled="isLoading" class="btn btn-primary">
         <svg v-if="isLoading" class="spinner" fill="none" viewBox="0 0 24 24">
@@ -837,6 +841,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const currentStep = ref(1)
+const isStepTransitioning = ref(false)
 const showPassword = ref(false)
 const isLoading = ref(false)
 const serverError = ref('')
@@ -967,13 +972,21 @@ async function validateStep(step: number) {
 }
 
 async function nextStep() {
-  if (await validateStep(currentStep.value)) {
-    // On step 1 → 2 transition, verify email uniqueness before proceeding
-    if (currentStep.value === 1 && form.email) {
-      await checkEmail()
-      if (errors.email) return
+  if (isStepTransitioning.value) return
+  isStepTransitioning.value = true
+  try {
+    if (await validateStep(currentStep.value)) {
+      // On step 1 → 2 transition, verify email uniqueness before proceeding
+      if (currentStep.value === 1 && form.email) {
+        await checkEmail()
+        if (errors.email) return
+      }
+      if (currentStep.value < 3) {
+        currentStep.value++
+      }
     }
-    currentStep.value++
+  } finally {
+    isStepTransitioning.value = false
   }
 }
 

@@ -7,19 +7,10 @@
     <!-- Header -->
     <Header :isDashboard="true" />
 
-    <!-- HERO BAR — The Wall -->
-    <div class="wall-hero">
-      <div class="wall-overlay"></div>
-      <div class="wall-content">
-        <p class="wall-eyebrow">Семь Королевств</p>
-        <h1 class="wall-title">Великие Дома</h1>
-        <p class="wall-subtitle">Выбери знамя, под которым встретишь ТурФурр</p>
-      </div>
-      <div class="wall-gradient-bottom"></div>
-    </div>
-
     <!-- Main Content -->
     <main class="teams-main">
+
+      <h1 class="page-title">Великие Дома</h1>
 
       <div v-if="isLoading" class="loading">
         <div class="page-spinner"></div>
@@ -195,80 +186,30 @@ onMounted(async () => {
 }
 
 /* ================================================
-   WALL HERO
-   ================================================ */
-.wall-hero {
-  position: relative;
-  height: clamp(240px, 35vw, 420px);
-  background:
-    url('/images/crests/the-wall-bg.png') center 30% / cover no-repeat;
-  display: flex;
-  align-items: flex-end;
-  overflow: hidden;
-}
-
-.wall-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(26, 17, 14, 0.55) 0%,
-    rgba(26, 17, 14, 0.2) 40%,
-    rgba(26, 17, 14, 0.0) 60%
-  );
-}
-
-.wall-gradient-bottom {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 120px;
-  background: linear-gradient(to bottom, transparent, var(--forest-deep));
-}
-
-.wall-content {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  text-align: center;
-  padding-bottom: 3.5rem;
-  padding-top: 5rem; /* clear header */
-}
-
-.wall-eyebrow {
-  font-size: 0.75rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--sage);
-  margin-bottom: 0.4rem;
-}
-
-.wall-title {
-  font-family: 'Merriweather', serif;
-  font-size: clamp(2.2rem, 6vw, 3.8rem);
-  color: var(--cream);
-  text-shadow:
-    0 0 40px rgba(255, 179, 71, 0.6),
-    0 2px 8px rgba(0,0,0,0.8);
-  line-height: 1.1;
-  margin-bottom: 0.6rem;
-}
-
-.wall-subtitle {
-  font-size: clamp(0.9rem, 2vw, 1.1rem);
-  color: var(--sage);
-  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
-}
-
-/* ================================================
    MAIN
    ================================================ */
 .teams-main {
   position: relative;
   z-index: 10;
   width: 100%;
-  padding: 2rem 1.5rem 4rem;
+  max-width: 2400px;
+  margin: 0 auto;
+  padding: 5.5rem 1.5rem 4rem;
+}
+
+/* ================================================
+   PAGE TITLE
+   ================================================ */
+.page-title {
+  font-family: 'TourFurr', serif;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  color: var(--cream);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  text-shadow:
+    0 0 40px rgba(255, 179, 71, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.04em;
 }
 
 /* ================================================
@@ -731,6 +672,28 @@ onMounted(async () => {
 /* ================================================
    RESPONSIVE
    ================================================ */
+
+/* 4K / ultrawide (≥2560px) */
+@media (min-width: 2560px) {
+  .teams-main { padding: 6rem 4rem 5rem; }
+  .houses-grid { gap: 1.5rem; }
+  .banner-crest { width: 68px; height: 68px; }
+  .banner-name { font-size: 1.15rem; }
+  .page-title { font-size: 5rem; }
+}
+
+/* 2K QHD (1920≃2559px) */
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .teams-main { padding: 5.5rem 3rem 4rem; }
+  .houses-grid { gap: 1.25rem; }
+  .banner-name { font-size: 1.1rem; }
+}
+
+/* FHD range handled by 6-col default */
+
+/* HD/wide tablets (1301–1919px) */
+/* already 6 cols */
+
 @media (max-width: 1300px) {
   .houses-grid { grid-template-columns: repeat(4, 1fr); }
 }
@@ -741,14 +704,10 @@ onMounted(async () => {
 
 @media (max-width: 700px) {
   .teams-main {
-    padding: 1.25rem 0.75rem 3rem;
+    padding: 5rem 0.75rem 3rem;
   }
 
   .houses-grid { grid-template-columns: repeat(2, 1fr); }
-
-  .wall-title {
-    font-size: 2.2rem;
-  }
 
   .banner-crest {
     width: 48px;
