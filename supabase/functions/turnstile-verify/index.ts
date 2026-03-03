@@ -1,5 +1,3 @@
-// Supabase Edge Function для верификации Yandex SmartCaptcha
-// Документация: https://yandex.cloud/ru/docs/smartcaptcha/concepts/validation
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
