@@ -339,7 +339,7 @@ async function handleSubmit() {
   }
 
   if (registrationStatus.value === 'full') {
-    serverError.value = `Все ${eventConfig.value?.max_participants || 121} мест заняты. Следите за обновлениями в случае освобождения мест`
+    serverError.value = `Все ${eventConfig.value?.max_participants || 111} мест заняты. Следите за обновлениями в случае освобождения мест`
     return
   }
 

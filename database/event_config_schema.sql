@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS event_config (
     -- Registration settings
     registration_open_date TIMESTAMP WITH TIME ZONE NOT NULL,
     registration_close_date TIMESTAMP WITH TIME ZONE,
-    max_participants INTEGER NOT NULL DEFAULT 121,
+    max_participants INTEGER NOT NULL DEFAULT 111,
     waitlist_enabled BOOLEAN DEFAULT true,
 
     -- Payment settings
@@ -79,7 +79,7 @@ INSERT INTO event_config (
     '2026-08-09',
     '2026-03-01 00:00:00+00',
     '2026-05-30 23:59:59+00',
-    121,
+    111,
     true,
     '2026-05-30 23:59:59+00',
     NULL, -- Will be configured later
@@ -90,6 +90,6 @@ INSERT INTO event_config (
 -- Comments for documentation
 COMMENT ON TABLE event_config IS 'Configuration for TourFurr events';
 COMMENT ON COLUMN event_config.registration_open_date IS 'Registration opens March 1, 2026';
-COMMENT ON COLUMN event_config.max_participants IS 'Maximum number of participants (121)';
+COMMENT ON COLUMN event_config.max_participants IS 'Maximum number of participants (111)';
 COMMENT ON COLUMN event_config.payment_deadline IS 'Full payment deadline (May 30, 2026)';
 COMMENT ON COLUMN event_config.waitlist_enabled IS 'Allow waitlist when max participants reached';

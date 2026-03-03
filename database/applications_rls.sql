@@ -371,12 +371,12 @@ Policies applied:
 3. ✅ Helper functions:
    - is_registration_open() - Check registration window
    - get_approved_count() - Count approved applications
-   - is_space_available() - Check if under max_participants (121)
+   - is_space_available() - Check if under max_participants (111)
 
 Registration settings:
 - Opens: March 1, 2026 00:00 UTC
 - Closes: May 30, 2026 23:59 UTC
-- Max participants: 121
+- Max participants: 111
 - Payment deadline: May 30, 2026
 
 ================================================================================

@@ -105,7 +105,7 @@
                 <input
                   v-model="editForm.nickname"
                   type="text"
-                  placeholder="3-30 символов, буквы/цифры/_"
+                  placeholder="3-30 символов, рус/лат буквы, цифры, _"
                   :class="{ 'has-error': editErrors.nickname }"
                 />
                 <p v-if="editErrors.nickname" class="error-text">{{ editErrors.nickname }}</p>
@@ -443,7 +443,7 @@ const editSchema = yup.object({
     .required('Никнейм обязателен')
     .min(3, 'Минимум 3 символа')
     .max(30, 'Максимум 30 символов')
-    .matches(/^[a-zA-Z0-9_]+$/, 'Только буквы, цифры и подчеркивание'),
+    .matches(/^[a-zA-Zа-яёА-ЯЁ0-9_ ]+$/, 'Только буквы (рус/лат), цифры, пробел и подчеркивание'),
   phone: yup.string()
     .required('Телефон обязателен')
     .matches(/^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/, 'Неверный формат: +7 (XXX) XXX-XX-XX'),

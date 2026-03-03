@@ -71,7 +71,7 @@
             id: 3,
             icon: 'fas fa-users',
             label: 'Количество мест',
-            value: '121',
+            value: '111',
             detail: 'Участников'
           }
         ],

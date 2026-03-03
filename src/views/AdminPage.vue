@@ -1075,8 +1075,6 @@ async function checkAdminAndLoad() {
     loadUsers(),
     teamsStore.fetchTeams()
   ])
-  // Background check: is email service accessible?
-  checkEmailService()
 }
 
 onMounted(() => {

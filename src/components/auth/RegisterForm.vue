@@ -97,7 +97,7 @@
         <input
           v-model="form.nickname"
           type="text"
-          placeholder="3-30 символов"
+          placeholder="3-30 символов, рус/лат буквы, цифры, _"
           class="form-input"
           :class="{ 'has-error': errors.nickname }"
           @blur="checkNickname"
@@ -921,7 +921,7 @@ const step2Schema = yup.object({
     .required('Никнейм обязателен')
     .min(3, 'Минимум 3 символа')
     .max(30, 'Максимум 30 символов')
-    .matches(/^[a-zA-Z0-9_]+$/, 'Только буквы, цифры и подчеркивание'),
+    .matches(/^[a-zA-Zа-яёА-ЯЁ0-9_ ]+$/, 'Только буквы (рус/лат), цифры, пробел и подчеркивание'),
   phone: yup.string()
     .required('Телефон обязателен')
     .matches(/^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/, 'Неверный формат телефона'),

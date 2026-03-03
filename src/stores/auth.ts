@@ -72,7 +72,7 @@ function generateSecureFileName(file: File, nickname?: string): string {
     : '.jpg'  // Fallback
   const uuid = crypto.randomUUID()
   if (nickname) {
-    const safeNick = nickname.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 30).toLowerCase()
+    const safeNick = nickname.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 30).toLowerCase() || 'user'
     if (safeNick) return `${safeNick}_${uuid}${ext}`
   }
   return `${uuid}${ext}`

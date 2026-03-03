@@ -2,7 +2,7 @@
 -- This table stores user applications for event participation
 -- Registration opens: March 1, 2026
 -- Payment deadline: May 30, 2026
--- Maximum participants: 121
+-- Maximum participants: 111
 
 CREATE TABLE IF NOT EXISTS applications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

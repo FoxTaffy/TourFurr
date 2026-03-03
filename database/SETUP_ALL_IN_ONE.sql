@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS event_config (
     event_end_date DATE NOT NULL,
     registration_open_date TIMESTAMP WITH TIME ZONE NOT NULL,
     registration_close_date TIMESTAMP WITH TIME ZONE NOT NULL,
-    max_participants INTEGER NOT NULL DEFAULT 121,
+    max_participants INTEGER NOT NULL DEFAULT 111,
     payment_deadline TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -59,7 +59,7 @@ INSERT INTO event_config (
     '2026-08-09',
     '2026-03-01 00:00:00+00',
     '2026-05-30 23:59:59+00',
-    121,
+    111,
     '2026-05-30 23:59:59+00'
 )
 ON CONFLICT DO NOTHING;
