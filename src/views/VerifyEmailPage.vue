@@ -92,10 +92,11 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import VerificationCodeInput from '../components/auth/VerificationCodeInput.vue'
-import { createVerificationCode, sendVerificationEmail, invalidateOldCodes } from '../utils/emailVerification'
+import { sendVerificationEmail, invalidateOldCodes, generateVerificationCode } from '../utils/emailVerification'
 import { checkGracePeriodStatus, formatRemainingTime, type GracePeriodStatus } from '../utils/gracePeriod'
 import { logger } from '../utils/logger'
 import { useAuthStore } from '../stores/auth'
+import { supabase } from '../services/supabase'
 
 const route = useRoute()
 const router = useRouter()
@@ -205,18 +206,21 @@ async function handleResend() {
     // Invalidate old codes first
     await invalidateOldCodes(email.value)
 
-    const result = await createVerificationCode(email.value)
+    const code = generateVerificationCode()
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
 
-    if (result.success && result.code) {
-      const emailResult = await sendVerificationEmail(email.value, result.code)
-      if (!emailResult.success) {
-        // Show code directly if email fails
-        fallbackCode.value = result.code
-      } else {
-        fallbackCode.value = ''
-      }
+    // DB insert and email send in parallel
+    const [, emailResult] = await Promise.all([
+      supabase
+        .from('email_verification_codes')
+        .insert({ email: email.value.toLowerCase(), code, expires_at: expiresAt.toISOString() }),
+      sendVerificationEmail(email.value, code)
+    ])
+
+    if (!emailResult.success) {
+      fallbackCode.value = code
     } else {
-      alert(result.error || 'Не удалось создать код')
+      fallbackCode.value = ''
     }
   } catch (err: any) {
     logger.error('Error resending code:', err)

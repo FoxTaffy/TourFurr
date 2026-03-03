@@ -138,8 +138,8 @@
         this.scrollTo(id)
         this.mobileMenuOpen = false
       },
-      handleLogout() {
-        this.authStore.logout()
+      async handleLogout() {
+        await this.authStore.logout()
         window.location.href = '/auth'
       }
     }

@@ -644,22 +644,31 @@ export const useAuthStore = defineStore('auth', () => {
       let emailError = ''
       let verificationCode = ''
       try {
-        const { createVerificationCode, sendVerificationEmail } = await import('../utils/emailVerification')
+        const { generateVerificationCode, sendVerificationEmail } = await import('../utils/emailVerification')
 
-        const codeResult = await createVerificationCode(cleanEmail)
+        const code = generateVerificationCode()
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
+        verificationCode = code
 
-        if (codeResult.success && codeResult.code) {
-          verificationCode = codeResult.code
-          const emailResult = await sendVerificationEmail(cleanEmail, codeResult.code)
-          emailSent = emailResult.success
-          emailError = emailResult.error || ''
+        // Run DB insert and email send in parallel — email no longer needs DB pre-check
+        const [insertResult, emailResult] = await Promise.all([
+          supabase.from('email_verification_codes').insert({
+            email: cleanEmail,
+            code,
+            expires_at: expiresAt.toISOString()
+          }),
+          sendVerificationEmail(cleanEmail, code)
+        ])
 
-          if (!emailSent) {
-            logger.error('Failed to send verification email:', emailError)
-          }
-        } else {
-          logger.error('Failed to create verification code:', codeResult.error)
-          emailError = codeResult.error || ''
+        if (insertResult.error) {
+          logger.error('Failed to insert verification code:', insertResult.error)
+        }
+
+        emailSent = emailResult.success
+        emailError = emailResult.error || ''
+
+        if (!emailSent) {
+          logger.error('Failed to send verification email:', emailError)
         }
       } catch (codeError: any) {
         logger.error('Error generating verification code:', codeError)

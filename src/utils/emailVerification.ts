@@ -258,25 +258,45 @@ export async function sendVerificationEmail(email: string, code: string): Promis
       return { success: true }
     }
 
-    // PRODUCTION MODE: Use Supabase Edge Function to send email
-    const { error } = await supabase.functions.invoke('send-verification-email', {
-      body: {
-        email,
-        code
+    // PRODUCTION MODE: Use direct fetch to Supabase Edge Function (faster than SDK invoke)
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+    let fetchResponse: Response
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token || supabaseAnonKey
+
+      fetchResponse = await fetch(`${supabaseUrl}/functions/v1/send-verification-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'apikey': supabaseAnonKey
+        },
+        body: JSON.stringify({ email, code })
+      })
+    } catch (netErr: any) {
+      logger.error('Network error sending verification email:', netErr)
+      return {
+        success: false,
+        error: 'Сетевая ошибка при отправке письма'
       }
-    })
+    }
+
+    // Parse response
+    const responseData = await fetchResponse.json().catch(() => ({}))
+    const error: any = fetchResponse.ok ? null : responseData
 
     if (error) {
       logger.error('Error sending verification email:', error)
 
-      // Check if it's a rate limit error.
-      // FunctionsHttpError stores the HTTP response in .context, so check status 429 first.
       const isRateLimit =
-        (error as any).context?.status === 429 ||
-        (error.message && (
-          error.message.includes('rate limit') ||
-          error.message.includes('too many') ||
-          error.message.includes('Email rate limit exceeded')
+        fetchResponse.status === 429 ||
+        (responseData.message && (
+          responseData.message.includes('rate limit') ||
+          responseData.message.includes('too many') ||
+          responseData.message.includes('Email rate limit exceeded')
         ))
 
       if (isRateLimit) {
