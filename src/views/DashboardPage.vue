@@ -1916,6 +1916,15 @@ function handleLogout() {
   font-size: 1rem;
 }
 
+/* Mobile-only — hidden on desktop */
+.mobile-nav-actions {
+  display: none;
+}
+
+.logout-mobile-btn {
+  display: none;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .dashboard-grid {
@@ -2547,15 +2556,6 @@ function handleLogout() {
 .admin-btn svg {
   width: 18px;
   height: 18px;
-}
-
-/* Mobile-only logout — hidden on desktop */
-.mobile-nav-actions {
-  display: none;
-}
-
-.logout-mobile-btn {
-  display: none;
 }
 
 .edit-form {
