@@ -4,17 +4,21 @@ set -e
 echo "=== TourFurr Deploy ==="
 
 # Pull latest code
-echo "[1/3] Pulling latest code..."
+echo "[1/4] Pulling latest code..."
 git pull origin main
 
-# Build and restart container
-echo "[2/3] Building Docker image..."
-docker compose build --no-cache
+# Install dependencies
+echo "[2/4] Installing dependencies..."
+npm install
 
-echo "[3/3] Restarting container..."
-docker compose up -d
+# Build
+echo "[3/4] Building..."
+npm run build
+
+# Reload nginx + restart PM2
+echo "[4/4] Reloading nginx & PM2..."
+nginx -t && systemctl reload nginx
+pm2 restart all
 
 echo ""
 echo "=== Deploy complete! ==="
-echo "Site running on port 3000"
-echo "Use a reverse proxy (nginx/caddy) to serve on port 443 with SSL"
