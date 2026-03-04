@@ -1007,8 +1007,10 @@ async function checkEmail() {
     // Check if existing account is unverified (still within grace period)
     const status = await checkGracePeriodStatus(normalizedEmail)
     if (status.exists && !status.isExpired && !status.isVerified) {
-      // Account exists but not yet verified - redirect to verification page
-      router.push({ path: '/auth/verify-email', query: { email: normalizedEmail } })
+      // Account exists but not yet verified — показываем подсказку вместо автоматического редиректа.
+      // Автоматический редирект ломал UX: браузерный autofill мог сработать сам по себе
+      // и перекидывал пользователя на verify-email без его участия.
+      errors.email = 'Этот email уже зарегистрирован, но не подтверждён. Подтвердите email или зарегистрируйтесь заново после истечения 15 минут.'
       return
     }
     errors.email = 'Этот email уже зарегистрирован'
