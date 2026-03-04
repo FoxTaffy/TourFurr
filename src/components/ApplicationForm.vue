@@ -195,6 +195,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
 import { verifyTurnstileToken } from '../utils/turnstile'
+import logger from '../utils/logger'
 import YandexSmartCaptcha from './common/YandexSmartCaptcha.vue'
 import * as yup from 'yup'
 
@@ -217,8 +218,15 @@ const isLoading = ref(false)
 const serverError = ref('')
 const submitSuccess = ref(false)
 
+interface EventConfig {
+  registration_open_date: string | null
+  registration_close_date: string | null
+  payment_deadline: string
+  max_participants: number
+}
+
 // Event configuration state
-const eventConfig = ref<any>(null)
+const eventConfig = ref<EventConfig | null>(null)
 const approvedCount = ref(0)
 const isLoadingConfig = ref(true)
 const registrationStatus = ref<'not_open' | 'open' | 'closed' | 'full'>('not_open')
@@ -270,45 +278,51 @@ async function loadEventConfig() {
       .single()
 
     if (configError) {
-      console.error('❌ Error loading event config:', configError)
+      logger.error('Error loading event config:', configError)
       serverError.value = 'Не удалось загрузить информацию о конвенте'
       return
     }
 
-    eventConfig.value = config
+    if (!config) {
+      serverError.value = 'Информация о конвенте не найдена'
+      return
+    }
+
+    const currentConfig = config as EventConfig
+    eventConfig.value = currentConfig
 
     // Get approved applications count
     const { data: countData, error: countError } = await supabase.rpc('get_approved_count')
 
     if (countError) {
-      console.error('❌ Error getting approved count:', countError)
+      logger.error('Error getting approved count:', countError)
     } else {
       approvedCount.value = countData || 0
     }
 
     // Check registration status
     const now = new Date()
-    const openDate = config.registration_open_date ? new Date(config.registration_open_date) : null
-    const closeDate = config.registration_close_date ? new Date(config.registration_close_date) : null
+    const openDate = currentConfig.registration_open_date ? new Date(currentConfig.registration_open_date) : null
+    const closeDate = currentConfig.registration_close_date ? new Date(currentConfig.registration_close_date) : null
 
     if (openDate && now < openDate) {
       registrationStatus.value = 'not_open'
     } else if (closeDate && now > closeDate) {
       registrationStatus.value = 'closed'
-    } else if (approvedCount.value >= config.max_participants) {
+    } else if (approvedCount.value >= currentConfig.max_participants) {
       registrationStatus.value = 'full'
     } else {
       registrationStatus.value = 'open'
     }
 
-    console.log('📊 Event config loaded:', {
+    logger.log('Event config loaded:', {
       status: registrationStatus.value,
       approvedCount: approvedCount.value,
-      maxParticipants: config.max_participants
+      maxParticipants: currentConfig.max_participants
     })
 
   } catch (err) {
-    console.error('❌ Error in loadEventConfig:', err)
+    logger.error('Error in loadEventConfig:', err)
     serverError.value = 'Произошла ошибка при загрузке данных'
   } finally {
     isLoadingConfig.value = false
@@ -339,19 +353,25 @@ async function handleSubmit() {
   }
 
   if (registrationStatus.value === 'full') {
-    serverError.value = `Все ${eventConfig.value?.max_participants || 111} мест заняты. Следите за обновлениями в случае освобождения мест`
+    serverError.value = `Все ${eventConfig.value?.max_participants || 155} мест заняты. Следите за обновлениями в случае освобождения мест`
     return
   }
 
   // Validate form
   try {
     await schema.validate(form, { abortEarly: false })
-  } catch (err: any) {
-    err.inner.forEach((e: any) => {
-      if (e.path in errors) {
-        (errors as any)[e.path] = e.message
-      }
-    })
+  } catch (err) {
+    if (err instanceof yup.ValidationError) {
+      err.inner.forEach((validationError) => {
+        const path = validationError.path as keyof typeof errors | undefined
+        if (path && path in errors) {
+          errors[path] = validationError.message
+        }
+      })
+    } else {
+      logger.error('Unexpected validation error:', err)
+      serverError.value = 'Не удалось проверить форму'
+    }
     return
   }
 
@@ -387,7 +407,7 @@ async function handleSubmit() {
     const isCaptchaValid = await verifyTurnstileToken(captchaToken.value)
 
     if (!isCaptchaValid) {
-      console.error('Captcha verification failed')
+      logger.warn('Captcha verification failed')
       captchaError.value = 'Проверка безопасности не пройдена. Попробуйте еще раз'
       captchaRef.value?.reset()
       return
@@ -396,7 +416,7 @@ async function handleSubmit() {
     // Captcha verification successful
 
     // Step 2: Create application in database
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('applications')
       .insert({
         user_id: authStore.user.id,
@@ -410,8 +430,8 @@ async function handleSubmit() {
       .single()
 
     if (error) {
-      console.error('❌ Database error:', error)
-      
+      logger.error('Database error while creating application:', error)
+
       if (error.code === '23505') {
         serverError.value = 'Вы уже подали заявку'
       } else {
@@ -420,7 +440,7 @@ async function handleSubmit() {
       return
     }
 
-    console.log('✅ Application submitted successfully:', data)
+    logger.log('Application submitted successfully')
 
     // Success!
     submitSuccess.value = true
@@ -432,9 +452,9 @@ async function handleSubmit() {
     form.additionalInfo = ''
     captchaToken.value = null
 
-  } catch (err: any) {
-    console.error('❌ Submission error:', err)
-    serverError.value = err.message || 'Произошла ошибка при отправке заявки'
+  } catch (err) {
+    logger.error('Submission error:', err)
+    serverError.value = err instanceof Error ? err.message : 'Произошла ошибка при отправке заявки'
   } finally {
     isLoading.value = false
   }

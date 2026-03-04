@@ -114,6 +114,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../services/supabase'
 import { safeStorage } from '../utils/safeStorage'
+import { logger } from '../utils/logger'
 
 const router = useRouter()
 
@@ -136,6 +137,12 @@ onMounted(async () => {
   if (!resetEmail) {
     // No reset email - redirect to reset password page
     router.push('/reset-password')
+    return
+  }
+
+  const normalizedEmail = resetEmail.trim().toLowerCase()
+  if (normalizedEmail !== resetEmail) {
+    sessionStorage.setItem('reset_email', normalizedEmail)
   }
 })
 
@@ -191,13 +198,13 @@ async function handleSubmit() {
     // Update password via Edge Function
     const { data, error } = await supabase.functions.invoke('update-password', {
       body: {
-        email: resetEmail,
+        email: resetEmail.trim().toLowerCase(),
         newPassword: password.value
       }
     })
 
     if (error) {
-      console.error('Password update error:', error)
+      logger.error('Password update error:', error)
       serverError.value = 'Ошибка обновления пароля. Попробуйте снова.'
       return
     }
@@ -217,7 +224,7 @@ async function handleSubmit() {
     safeStorage.removeItem('auth_token')
     safeStorage.removeItem('current_user')
   } catch (err: any) {
-    console.error('Unexpected error:', err)
+    logger.error('Unexpected error in UpdatePasswordPage:', err)
     serverError.value = 'Произошла ошибка. Попробуйте позже.'
   } finally {
     isLoading.value = false

@@ -95,6 +95,7 @@ import VerificationCodeInput from '../components/auth/VerificationCodeInput.vue'
 import { sendVerificationEmail, invalidateOldCodes, generateVerificationCode } from '../utils/emailVerification'
 import { checkGracePeriodStatus, formatRemainingTime, type GracePeriodStatus } from '../utils/gracePeriod'
 import { logger } from '../utils/logger'
+import { DISABLE_EMAIL } from '../utils/env'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
 
@@ -162,10 +163,12 @@ onMounted(async () => {
     emailError.value = emailErrorParam || 'Не удалось отправить письмо с кодом подтверждения'
   }
 
-  const storedCode = sessionStorage.getItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.value.toLowerCase()}`)
-  if (storedCode) {
-    fallbackCode.value = storedCode
-    sessionStorage.removeItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.value.toLowerCase()}`)
+  if (DISABLE_EMAIL) {
+    const storedCode = sessionStorage.getItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.value.toLowerCase()}`)
+    if (storedCode) {
+      fallbackCode.value = storedCode
+      sessionStorage.removeItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.value.toLowerCase()}`)
+    }
   }
 
   // Начальная проверка grace period
@@ -218,13 +221,19 @@ async function handleResend() {
     ])
 
     if (!emailResult.success) {
-      fallbackCode.value = code
+      emailNotSent.value = true
+      emailError.value = emailResult.error || 'Не удалось отправить письмо с кодом подтверждения'
+      fallbackCode.value = DISABLE_EMAIL ? code : ''
     } else {
+      emailNotSent.value = false
+      emailError.value = ''
       fallbackCode.value = ''
     }
   } catch (err: any) {
     logger.error('Error resending code:', err)
-    alert('Ошибка отправки кода')
+    emailNotSent.value = true
+    emailError.value = 'Ошибка отправки кода'
+    fallbackCode.value = ''
   }
 }
 </script>

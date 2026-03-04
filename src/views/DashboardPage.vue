@@ -173,6 +173,8 @@
                 <button class="cancel-btn" @click="cancelEditing">Отмена</button>
               </div>
 
+              <p v-if="profileActionError" class="error-text">{{ profileActionError }}</p>
+
               <button class="delete-btn" @click="confirmDelete">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -428,6 +430,7 @@ import { vMaska } from 'maska/vue'
 import * as yup from 'yup'
 import Header from '../components/Header.vue'
 import TeamBadge from '../components/TeamBadge.vue'
+import logger from '../utils/logger'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -484,6 +487,17 @@ const isSaving = ref(false)
 const avatarInput = ref<HTMLInputElement | null>(null)
 const avatarPreview = ref<string | null>(null)
 const newAvatarFile = ref<File | null>(null)
+const profileActionError = ref('')
+
+interface ProfileUpdates {
+  nickname?: string
+  phone?: string
+  telegram?: string
+  description?: string
+  avatar?: File
+  bringingPet?: boolean
+  petDescription?: string
+}
 
 // Profile edit validation schema (same rules as registration)
 const editSchema = yup.object({
@@ -535,6 +549,7 @@ function startEditing() {
     editErrors.value = { nickname: '', phone: '', telegram: '' }
     avatarPreview.value = null
     newAvatarFile.value = null
+    profileActionError.value = ''
     isEditing.value = true
   }
 }
@@ -543,6 +558,7 @@ function cancelEditing() {
   isEditing.value = false
   avatarPreview.value = null
   newAvatarFile.value = null
+  profileActionError.value = ''
 }
 
 function triggerAvatarUpload() {
@@ -561,27 +577,42 @@ function handleAvatarChange(event: Event) {
 async function saveProfile() {
   // Clear previous errors
   editErrors.value = { nickname: '', phone: '', telegram: '' }
+  profileActionError.value = ''
 
   // Validate inputs
   try {
     await editSchema.validate(editForm.value, { abortEarly: false })
-  } catch (err: any) {
-    err.inner?.forEach((e: any) => {
-      if (e.path && e.path in editErrors.value) {
-        editErrors.value[e.path] = e.message
-      }
-    })
+  } catch (err) {
+    if (err instanceof yup.ValidationError) {
+      err.inner.forEach((validationError) => {
+        const path = validationError.path
+        if (path && path in editErrors.value) {
+          editErrors.value[path] = validationError.message
+        }
+      })
+      return
+    }
+
+    logger.error('Unexpected profile validation error:', err)
+    profileActionError.value = 'Не удалось проверить введённые данные'
     return
   }
 
   // Check nickname uniqueness only if it changed
   if (editForm.value.nickname !== user.value?.nickname) {
-    const { data: existing } = await supabase
+    const { data: existing, error: existingError } = await supabase
       .from('users')
       .select('id')
       .eq('nickname', editForm.value.nickname)
       .neq('id', user.value!.id)
       .maybeSingle()
+
+    if (existingError) {
+      logger.error('Error checking nickname uniqueness:', existingError)
+      profileActionError.value = 'Не удалось проверить никнейм. Попробуйте ещё раз'
+      return
+    }
+
     if (existing) {
       editErrors.value.nickname = 'Этот никнейм уже занят'
       return
@@ -590,30 +621,36 @@ async function saveProfile() {
 
   isSaving.value = true
 
-  const updates: any = {
-    nickname: editForm.value.nickname,
-    phone: editForm.value.phone,
-    telegram: editForm.value.telegram,
-    description: editForm.value.description,
-    bringingPet: editForm.value.bringingPet,
-    petDescription: editForm.value.petDescription
+  try {
+    const updates: ProfileUpdates = {
+      nickname: editForm.value.nickname,
+      phone: editForm.value.phone,
+      telegram: editForm.value.telegram,
+      description: editForm.value.description,
+      bringingPet: editForm.value.bringingPet,
+      petDescription: editForm.value.petDescription
+    }
+
+    if (newAvatarFile.value) {
+      updates.avatar = newAvatarFile.value
+    }
+
+    const result = await authStore.updateProfile(updates)
+
+    if (result.success) {
+      isEditing.value = false
+      avatarPreview.value = null
+      newAvatarFile.value = null
+      profileActionError.value = ''
+    } else {
+      profileActionError.value = result.error || 'Не удалось сохранить профиль'
+    }
+  } catch (err) {
+    logger.error('Unexpected saveProfile error:', err)
+    profileActionError.value = 'Произошла ошибка при сохранении профиля'
+  } finally {
+    isSaving.value = false
   }
-
-  if (newAvatarFile.value) {
-    updates.avatar = newAvatarFile.value
-  }
-
-  const result = await authStore.updateProfile(updates)
-
-  if (result.success) {
-    isEditing.value = false
-    avatarPreview.value = null
-    newAvatarFile.value = null
-  } else {
-    alert(result.error)
-  }
-
-  isSaving.value = false
 }
 
 async function confirmDelete() {
@@ -623,7 +660,7 @@ async function confirmDelete() {
       if (result.success) {
         router.push('/auth')
       } else {
-        alert(result.error)
+        profileActionError.value = result.error || 'Не удалось удалить аккаунт'
       }
     }
   }

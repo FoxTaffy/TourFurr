@@ -46,6 +46,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ResetCodeInput from '../components/auth/ResetCodeInput.vue'
 import { createPasswordResetCode, sendPasswordResetEmail, invalidateOldResetCodes } from '../utils/passwordReset'
+import { DISABLE_EMAIL } from '../utils/env'
 import { logger } from '../utils/logger'
 
 const route = useRoute()
@@ -66,7 +67,7 @@ onMounted(async () => {
     return
   }
 
-  email.value = emailParam
+  email.value = emailParam.trim().toLowerCase()
 
   // Check if email was sent successfully
   const emailSentParam = route.query.emailSent as string
@@ -77,10 +78,12 @@ onMounted(async () => {
     emailError.value = emailErrorParam || 'Не удалось отправить письмо с кодом сброса пароля'
   }
 
-  const storedCode = sessionStorage.getItem(`${RESET_CODE_STORAGE_PREFIX}${email.value.toLowerCase()}`)
-  if (storedCode) {
-    fallbackCode.value = storedCode
-    sessionStorage.removeItem(`${RESET_CODE_STORAGE_PREFIX}${email.value.toLowerCase()}`)
+  if (DISABLE_EMAIL) {
+    const storedCode = sessionStorage.getItem(`${RESET_CODE_STORAGE_PREFIX}${email.value}`)
+    if (storedCode) {
+      fallbackCode.value = storedCode
+      sessionStorage.removeItem(`${RESET_CODE_STORAGE_PREFIX}${email.value}`)
+    }
   }
 })
 
@@ -93,7 +96,7 @@ async function handleVerified() {
     router.push('/auth/update-password')
   } catch (err: any) {
     logger.error('Error in handleVerified:', err)
-    alert('Произошла ошибка. Попробуйте снова.')
+    router.push('/reset-password')
   }
 }
 
@@ -107,16 +110,22 @@ async function handleResend() {
     if (result.success && result.code) {
       const emailResult = await sendPasswordResetEmail(email.value, result.code)
       if (!emailResult.success) {
-        fallbackCode.value = result.code
+        emailNotSent.value = true
+        emailError.value = emailResult.error || 'Не удалось отправить письмо с кодом сброса пароля'
+        fallbackCode.value = DISABLE_EMAIL ? result.code : ''
       } else {
+        emailNotSent.value = false
+        emailError.value = ''
         fallbackCode.value = ''
       }
     } else {
-      alert(result.error || 'Не удалось создать код')
+      emailNotSent.value = true
+      emailError.value = result.error || 'Не удалось создать код сброса пароля'
     }
   } catch (err: any) {
     logger.error('Error resending code:', err)
-    alert('Ошибка отправки кода')
+    emailNotSent.value = true
+    emailError.value = 'Ошибка отправки кода'
   }
 }
 </script>

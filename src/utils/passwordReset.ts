@@ -186,19 +186,15 @@ export async function sendPasswordResetEmail(email: string, code: string): Promi
     // DEVELOPMENT MODE: Just log the code without sending email
     // This prevents rate limit issues during testing
     if (DISABLE_EMAIL) {
-      // Output to console with highly visible styling
       const separator = '='.repeat(80)
-      console.log('\n' + separator)
-      console.log('%c🚀 РЕЖИМ РАЗРАБОТКИ: Email отправка отключена', 'color: #60a5fa; font-size: 16px; font-weight: bold;')
-      console.log(separator)
-      console.log('%c📧 Email:', 'color: #fbbf24; font-weight: bold;', email)
-      console.log('%c🔑 КОД СБРОСА ПАРОЛЯ:', 'color: #ef4444; font-size: 20px; font-weight: bold;', code)
-      console.log('%c⏰ Действителен:', 'color: #fbbf24; font-weight: bold;', '15 минут')
-      console.log('%c💡 Инструкция:', 'color: #60a5fa; font-weight: bold;', 'Скопируйте код выше и вставьте на странице подтверждения')
-      console.log(separator + '\n')
-
-      // Also log to internal logger
-      logger.log('[DEV MODE] Password reset code for ' + email + ': ' + code)
+      logger.log('\n' + separator)
+      logger.log('🚀 РЕЖИМ РАЗРАБОТКИ: Email отправка отключена')
+      logger.log(separator)
+      logger.log('📧 Email:', email)
+      logger.log('🔑 КОД СБРОСА ПАРОЛЯ:', code)
+      logger.log('⏰ Действителен: 15 минут')
+      logger.log('💡 Инструкция: Скопируйте код выше и вставьте на странице подтверждения')
+      logger.log(separator + '\n')
 
       return { success: true }
     }

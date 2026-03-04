@@ -39,6 +39,10 @@
       </button>
     </div>
 
+    <div v-if="operationMessage" class="operation-message" :class="operationMessageType">
+      {{ operationMessage }}
+    </div>
+
     <!-- Loading State -->
     <div v-if="isLoading" class="loading">
       <div class="spinner"></div>
@@ -226,6 +230,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '../services/supabase'
 import { useAuthStore } from '../stores/auth'
+import logger from '../utils/logger'
 
 const authStore = useAuthStore()
 
@@ -259,7 +264,14 @@ const isLoading = ref(true)
 const error = ref('')
 const activeFilter = ref('all')
 const isUpdating = ref<string | null>(null)
-const maxParticipants = ref(121)
+const maxParticipants = ref(155)
+const operationMessage = ref('')
+const operationMessageType = ref<'success' | 'error'>('success')
+
+function setOperationMessage(message: string, type: 'success' | 'error') {
+  operationMessage.value = message
+  operationMessageType.value = type
+}
 
 const filters = [
   { label: 'Все', value: 'all' },
@@ -351,16 +363,16 @@ async function loadApplications() {
       .order('created_at', { ascending: false })
 
     if (fetchError) {
-      console.error('❌ Error loading applications:', fetchError)
+      logger.error('Error loading applications:', fetchError)
       error.value = 'Не удалось загрузить заявки'
       return
     }
 
     applications.value = data || []
-    console.log('✅ Loaded applications:', applications.value.length)
+    logger.log('Loaded applications:', applications.value.length)
 
   } catch (err) {
-    console.error('❌ Error in loadApplications:', err)
+    logger.error('Error in loadApplications:', err)
     error.value = 'Произошла ошибка при загрузке данных'
   } finally {
     isLoading.value = false
@@ -381,18 +393,19 @@ async function updateApplicationStatus(applicationId: string, newStatus: string)
       .eq('id', applicationId)
 
     if (updateError) {
-      console.error('❌ Error updating application:', updateError)
-      alert('Ошибка при обновлении статуса')
+      logger.error('Error updating application status:', updateError)
+      setOperationMessage('Ошибка при обновлении статуса заявки', 'error')
       return
     }
 
     // Reload applications
     await loadApplications()
-    console.log('✅ Application status updated')
+    setOperationMessage('Статус заявки обновлён', 'success')
+    logger.log('Application status updated:', applicationId, newStatus)
 
   } catch (err) {
-    console.error('❌ Error in updateApplicationStatus:', err)
-    alert('Произошла ошибка при обновлении статуса')
+    logger.error('Error in updateApplicationStatus:', err)
+    setOperationMessage('Произошла ошибка при обновлении статуса заявки', 'error')
   } finally {
     isUpdating.value = null
   }
@@ -411,16 +424,18 @@ async function updatePaymentStatus(applicationId: string, paymentStatus: string)
       .eq('id', applicationId)
 
     if (updateError) {
-      console.error('❌ Error updating payment status:', updateError)
-      alert('Ошибка при обновлении статуса оплаты')
+      logger.error('Error updating payment status:', updateError)
+      setOperationMessage('Ошибка при обновлении статуса оплаты', 'error')
       return
     }
 
-    console.log('✅ Payment status updated')
+    await loadApplications()
+    setOperationMessage('Статус оплаты обновлён', 'success')
+    logger.log('Payment status updated:', applicationId, paymentStatus)
 
   } catch (err) {
-    console.error('❌ Error in updatePaymentStatus:', err)
-    alert('Произошла ошибка при обновлении статуса оплаты')
+    logger.error('Error in updatePaymentStatus:', err)
+    setOperationMessage('Произошла ошибка при обновлении статуса оплаты', 'error')
   } finally {
     isUpdating.value = null
   }
@@ -543,6 +558,23 @@ onMounted(() => {
   background: var(--forest-green);
   border-color: var(--fire-glow);
   color: var(--cream);
+}
+
+.operation-message {
+  margin-bottom: 1.25rem;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(97, 137, 108, 0.35);
+  color: var(--cream);
+}
+
+.operation-message.success {
+  background: rgba(97, 137, 108, 0.2);
+}
+
+.operation-message.error {
+  background: rgba(158, 42, 43, 0.2);
 }
 
 .loading, .empty, .error-message {

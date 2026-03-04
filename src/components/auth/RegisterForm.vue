@@ -903,8 +903,6 @@ const passwordStrength = computed(() => {
   return strength
 })
 
-const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500']
-const strengthTextColors = ['text-red-400', 'text-orange-400', 'text-yellow-400', 'text-green-400']
 const strengthLabels = ['Слабый', 'Средний', 'Хороший', 'Отличный']
 
 // Validation schemas per step
@@ -995,18 +993,22 @@ function prevStep() {
 }
 
 async function checkEmail() {
-  if (!form.email) {
+  const normalizedEmail = form.email.trim().toLowerCase()
+
+  if (!normalizedEmail) {
     errors.email = '' // Clear error if field is empty
     return
   }
+
+  form.email = normalizedEmail
   errors.email = '' // Clear previous error before checking
-  const isUnique = await authStore.checkEmailUnique(form.email)
+  const isUnique = await authStore.checkEmailUnique(normalizedEmail)
   if (!isUnique) {
     // Check if existing account is unverified (still within grace period)
-    const status = await checkGracePeriodStatus(form.email)
+    const status = await checkGracePeriodStatus(normalizedEmail)
     if (status.exists && !status.isExpired && !status.isVerified) {
       // Account exists but not yet verified - redirect to verification page
-      router.push({ path: '/auth/verify-email', query: { email: form.email } })
+      router.push({ path: '/auth/verify-email', query: { email: normalizedEmail } })
       return
     }
     errors.email = 'Этот email уже зарегистрирован'
@@ -1014,12 +1016,16 @@ async function checkEmail() {
 }
 
 async function checkNickname() {
-  if (!form.nickname) {
+  const normalizedNickname = form.nickname.trim()
+
+  if (!normalizedNickname) {
     errors.nickname = '' // Clear error if field is empty
     return
   }
+
+  form.nickname = normalizedNickname
   errors.nickname = '' // Clear previous error before checking
-  const isUnique = await authStore.checkNicknameUnique(form.nickname)
+  const isUnique = await authStore.checkNicknameUnique(normalizedNickname)
   if (!isUnique) {
     errors.nickname = 'Этот никнейм уже занят'
   }
@@ -1144,10 +1150,10 @@ async function handleSubmit() {
     captchaRef.value?.reset()
 
     // Redirect to email verification page with email in query params
-    const email = (result as any).email || form.email
-    const emailSent = (result as any).emailSent
-    const emailError = (result as any).emailError
-    const verificationCode = (result as any).verificationCode || ''
+    const email = result.email || form.email
+    const emailSent = result.emailSent
+    const emailError = result.emailError
+    const verificationCode = result.verificationCode || ''
 
     if (verificationCode) {
       sessionStorage.setItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.toLowerCase()}`, verificationCode)

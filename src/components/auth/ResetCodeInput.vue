@@ -54,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps<{
   email: string
@@ -76,6 +76,7 @@ const isResending = ref(false)
 const timeLeft = ref(60) // 60 seconds cooldown
 const canResend = ref(false)
 let timer: number | null = null
+let autoSubmitTimer: ReturnType<typeof setTimeout> | null = null
 
 const isComplete = computed(() => code.value.every(digit => digit !== ''))
 
@@ -89,6 +90,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (timer) clearInterval(timer)
+  if (autoSubmitTimer) clearTimeout(autoSubmitTimer)
 })
 
 function startTimer() {
@@ -131,7 +133,8 @@ function handleInput(index: number, event: Event) {
 
   // Auto-submit when all 6 digits are entered
   if (isComplete.value) {
-    setTimeout(() => verifyCode(), 300)
+    if (autoSubmitTimer) clearTimeout(autoSubmitTimer)
+    autoSubmitTimer = setTimeout(() => verifyCode(), 300)
   }
 }
 
@@ -173,7 +176,8 @@ function handlePaste(event: ClipboardEvent) {
 
   // Auto-submit if pasted all 6 digits
   if (digits.length === 6) {
-    setTimeout(() => verifyCode(), 300)
+    if (autoSubmitTimer) clearTimeout(autoSubmitTimer)
+    autoSubmitTimer = setTimeout(() => verifyCode(), 300)
   }
 }
 

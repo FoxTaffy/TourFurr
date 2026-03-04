@@ -69,11 +69,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import LoginForm from '../components/auth/LoginForm.vue'
 import RegisterForm from '../components/auth/RegisterForm.vue'
 
+const route = useRoute()
 const activeTab = ref<'login' | 'register'>('login')
+
+function syncActiveTabFromQuery(tabQuery: unknown) {
+  const tab = typeof tabQuery === 'string' ? tabQuery : ''
+  activeTab.value = tab === 'register' ? 'register' : 'login'
+}
+
+syncActiveTabFromQuery(route.query.tab)
+
+watch(
+  () => route.query.tab,
+  (tab) => {
+    syncActiveTabFromQuery(tab)
+  }
+)
 
 function particleStyle(i: number) {
   return {

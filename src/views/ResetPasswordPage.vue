@@ -82,6 +82,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../services/supabase'
 import { createPasswordResetCode, sendPasswordResetEmail, invalidateOldResetCodes } from '../utils/passwordReset'
+import { DISABLE_EMAIL } from '../utils/env'
+import { logger } from '../utils/logger'
 
 const router = useRouter()
 const RESET_CODE_STORAGE_PREFIX = 'reset_code_'
@@ -93,39 +95,52 @@ const submitted = ref(false)
 async function handleSubmit() {
   error.value = ''
 
-  if (!email.value) {
+  const cleanEmail = email.value.trim().toLowerCase()
+
+  if (!cleanEmail) {
     error.value = 'Введите email'
     return
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
     error.value = 'Неверный формат email'
     return
   }
 
+  email.value = cleanEmail
+
   isLoading.value = true
 
   try {
-    const cleanEmail = email.value.trim().toLowerCase()
+    let userExists = false
 
-    // Check if user exists in our database first
-    const { data: user, error: dbError } = await supabase
-      .from('users')
-      .select('id, email')
-      .eq('email', cleanEmail)
-      .single()
+    // Prefer RPC with SECURITY DEFINER (works without auth)
+    const { data: emailExistsData, error: emailExistsError } = await supabase
+      .rpc('check_email_exists', { p_email: cleanEmail })
 
-    if (dbError || !user) {
-      // Don't reveal if user exists or not for security
+    if (emailExistsError) {
+      logger.warn('check_email_exists RPC failed in ResetPasswordPage, fallback to direct query:', emailExistsError)
+
+      const { data: user } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', cleanEmail)
+        .maybeSingle()
+
+      userExists = !!user
+    } else {
+      userExists = !!emailExistsData
+    }
+
+    if (!userExists) {
       submitted.value = true
-      // Still redirect to code page but with email not sent flag
       setTimeout(() => {
         router.push({
           path: '/auth/verify-reset-code',
           query: {
             email: cleanEmail,
             emailSent: 'false',
-            emailError: 'Пользователь с таким email не найден'
+            emailError: 'Если аккаунт существует, письмо будет отправлено. Попробуйте позже.'
           }
         })
       }, 1500)
@@ -149,7 +164,9 @@ async function handleSubmit() {
     if (!sendResult.success) {
       // Show success message anyway for security, but pass code to verify page
       submitted.value = true
-      sessionStorage.setItem(`${RESET_CODE_STORAGE_PREFIX}${cleanEmail.toLowerCase()}`, result.code)
+      if (DISABLE_EMAIL) {
+        sessionStorage.setItem(`${RESET_CODE_STORAGE_PREFIX}${cleanEmail}`, result.code)
+      }
       setTimeout(() => {
         router.push({
           path: '/auth/verify-reset-code',
@@ -172,7 +189,7 @@ async function handleSubmit() {
       })
     }, 2000)
   } catch (err: any) {
-    console.error('Unexpected error:', err)
+    logger.error('Unexpected error in ResetPasswordPage:', err)
     error.value = 'Ошибка отправки. Попробуйте позже.'
   } finally {
     isLoading.value = false

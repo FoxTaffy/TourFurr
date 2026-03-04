@@ -79,9 +79,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '../services/supabase'
+import { logger } from '../utils/logger'
 
 const route = useRoute()
 const router = useRouter()
@@ -89,6 +90,7 @@ const isLoading = ref(true)
 const isSuccess = ref(false)
 const error = ref<string | null>(null)
 const countdown = ref(5)
+let redirectInterval: ReturnType<typeof setInterval> | null = null
 
 // User-friendly error messages
 function getUserFriendlyError(errorMessage: string): string {
@@ -114,15 +116,16 @@ onMounted(async () => {
     // Получаем токены из URL
     const token_hash = route.query.token_hash as string
     const type = route.query.type as string
+    const otpType = type === 'signup' ? 'signup' : type === 'email' ? 'email' : null
 
-    if (!token_hash || type !== 'email') {
+    if (!token_hash || !otpType) {
       throw new Error('Неверная ссылка подтверждения')
     }
 
     // Подтверждаем email через Supabase Auth
     const { data, error: authError } = await supabase.auth.verifyOtp({
       token_hash,
-      type: 'email'
+      type: otpType
     })
 
     if (authError) throw authError
@@ -142,18 +145,28 @@ onMounted(async () => {
     isSuccess.value = true
 
     // Auto-redirect countdown
-    const interval = setInterval(() => {
+    redirectInterval = setInterval(() => {
       countdown.value--
       if (countdown.value <= 0) {
-        clearInterval(interval)
+        if (redirectInterval) {
+          clearInterval(redirectInterval)
+          redirectInterval = null
+        }
         router.push('/auth')
       }
     }, 1000)
   } catch (err: any) {
-    console.error('Email confirmation error:', err)
+    logger.error('Email confirmation error:', err)
     error.value = err.message || 'Произошла ошибка при подтверждении email'
   } finally {
     isLoading.value = false
+  }
+})
+
+onUnmounted(() => {
+  if (redirectInterval) {
+    clearInterval(redirectInterval)
+    redirectInterval = null
   }
 })
 </script>

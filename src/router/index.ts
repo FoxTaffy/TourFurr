@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { supabase } from '../services/supabase'
 import { safeStorage } from '../utils/safeStorage'
+import { logger } from '../utils/logger'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -95,6 +96,41 @@ router.beforeEach(async (to, _from, next) => {
 
   // Check guest routes
   if (to.meta.requiresGuest && isAuthenticated) {
+    // Before bouncing to Dashboard, verify that the user's email is confirmed.
+    // If not — redirect directly to VerifyEmail to avoid a double-redirect chain.
+    try {
+      const storedUserRaw = safeStorage.getItem('current_user')
+      if (storedUserRaw) {
+        let storedUser: any = null
+        try { storedUser = JSON.parse(storedUserRaw) } catch { /* malformed, ignore */ }
+        if (storedUser && !storedUser.emailVerified) {
+          safeStorage.removeItem('auth_token')
+          safeStorage.removeItem('current_user')
+          await supabase.auth.signOut()
+          next({ name: 'VerifyEmail', query: { email: storedUser.email } })
+          return
+        }
+      } else {
+        // No cached user — fetch from Supabase to check email_verified
+        const { data: { user: supaUser } } = await supabase.auth.getUser()
+        if (supaUser) {
+          const { data: dbUser } = await supabase
+            .from('users')
+            .select('email, email_verified')
+            .eq('id', supaUser.id)
+            .single()
+          if (dbUser && !dbUser.email_verified) {
+            safeStorage.removeItem('auth_token')
+            safeStorage.removeItem('current_user')
+            await supabase.auth.signOut()
+            next({ name: 'VerifyEmail', query: { email: dbUser.email } })
+            return
+          }
+        }
+      }
+    } catch {
+      // On error fall through to normal Dashboard redirect
+    }
     next({ name: 'Dashboard' })
     return
   }
@@ -146,7 +182,7 @@ router.beforeEach(async (to, _from, next) => {
         }
       }
     } catch (err) {
-      console.error('Email verification check error:', err)
+      logger.error('Email verification check error:', err)
       // On error, clear auth and redirect to login
       safeStorage.removeItem('auth_token')
       safeStorage.removeItem('current_user')
@@ -181,7 +217,7 @@ router.beforeEach(async (to, _from, next) => {
         }
       }
     } catch (err) {
-      console.error('Approved check error:', err)
+      logger.error('Approved check error:', err)
       next({ name: 'Dashboard' })
       return
     }
@@ -206,7 +242,7 @@ router.beforeEach(async (to, _from, next) => {
 
       if (error || !userData || !userData.is_admin) {
         // User is not admin - redirect to dashboard with warning
-        console.warn('Access denied: User is not an admin')
+        logger.warn('Access denied: User is not an admin')
         next({ name: 'Dashboard' })
         return
       }
@@ -214,7 +250,7 @@ router.beforeEach(async (to, _from, next) => {
       // User is admin - allow access
       next()
     } catch (err) {
-      console.error('Admin check error:', err)
+      logger.error('Admin check error:', err)
       next({ name: 'Dashboard' })
     }
     return

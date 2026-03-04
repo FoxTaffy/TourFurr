@@ -573,6 +573,7 @@ import { useTeamsStore } from '../stores/teams'
 import TeamBadge from '../components/TeamBadge.vue'
 import logoImg from '../assets/logo.png'
 import { safeStorage } from '../utils/safeStorage'
+import logger from '../utils/logger'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -696,33 +697,26 @@ const applicationUsers = computed(() => {
 
 // ---- House Assignment ----
 function getHouseMembers(teamId: string) {
-  return users.value.filter(u => {
-    if (u.team_id === teamId) return true
-    try {
-      return safeStorage.getItem(`user_team_${u.id}`) === teamId
-    } catch { return false }
-  })
+  return users.value.filter(u => u.team_id === teamId)
 }
 
 const unassignedUsers = computed(() => {
-  return users.value.filter(u => {
-    if (u.team_id) return false
-    try {
-      const local = safeStorage.getItem(`user_team_${u.id}`)
-      return !local
-    } catch { return true }
-  }).filter(u => u.status === 'approved' || u.status === 'paid')
+  return users.value
+    .filter(u => !u.team_id)
+    .filter(u => u.status === 'approved' || u.status === 'paid')
 })
 
 async function assignHouse(userId: string, teamId: string | null) {
   isUpdating.value = userId
   try {
-    // Try DB update
-    try {
-      await supabase.from('users').update({ team_id: teamId }).eq('id', userId)
-    } catch { /* column may not exist */ }
+    const { error: dbError } = await supabase.from('users').update({ team_id: teamId }).eq('id', userId)
+    if (dbError) {
+      logger.error('Error assigning house:', dbError)
+      showToast('Не удалось назначить дом: ' + dbError.message, 'error')
+      return
+    }
 
-    // Always update safeStorage
+    // Update safeStorage cache only after successful DB write
     if (teamId) {
       safeStorage.setItem(`user_team_${userId}`, teamId)
     } else {
@@ -735,7 +729,8 @@ async function assignHouse(userId: string, teamId: string | null) {
       user.team_id = teamId
     }
   } catch (err) {
-    console.error('Error assigning house:', err)
+    logger.error('Error assigning house:', err)
+    showToast('Не удалось назначить дом', 'error')
   } finally {
     isUpdating.value = null
   }
@@ -827,18 +822,6 @@ const houseStats = computed(() => {
   for (const u of users.value) {
     if (u.team_id) {
       houseCounts[u.team_id] = (houseCounts[u.team_id] || 0) + 1
-    }
-  }
-
-  // Also check safeStorage fallback
-  for (const u of users.value) {
-    if (!u.team_id) {
-      try {
-        const localTeam = safeStorage.getItem(`user_team_${u.id}`)
-        if (localTeam) {
-          houseCounts[localTeam] = (houseCounts[localTeam] || 0) + 1
-        }
-      } catch { /* ignore */ }
     }
   }
 
@@ -941,7 +924,7 @@ const ALLOWED_STATUSES = ['pending', 'deferred', 'approved', 'paid', 'rejected']
 async function updateStatus(userId: string, status: string) {
   // Validate that status is one of the allowed values before writing to DB
   if (!ALLOWED_STATUSES.includes(status as typeof ALLOWED_STATUSES[number])) {
-    console.error('updateStatus: invalid status value', status)
+    logger.error('updateStatus: invalid status value', status)
     return
   }
   isUpdating.value = userId
@@ -952,7 +935,7 @@ async function updateStatus(userId: string, status: string) {
       .eq('id', userId)
 
     if (error) {
-      console.error('Error updating status:', error)
+      logger.error('Error updating status:', error)
       showToast('Ошибка обновления статуса: ' + error.message, 'error')
       return
     }
@@ -966,9 +949,10 @@ async function updateStatus(userId: string, status: string) {
         await sendApprovalEmail(user.email, user.nickname, status)
       }
     }
-  } catch (err: any) {
-    console.error('Error in updateStatus:', err)
-    showToast('Произошла ошибка: ' + (err.message || 'Неизвестная ошибка'), 'error')
+  } catch (err: unknown) {
+    logger.error('Error in updateStatus:', err)
+    const message = err instanceof Error ? err.message : 'Неизвестная ошибка'
+    showToast('Произошла ошибка: ' + message, 'error')
   } finally {
     isUpdating.value = null
   }
@@ -998,7 +982,7 @@ async function sendApprovalEmail(email: string, nickname: string, status: string
 
     if (!response.ok) {
       const errMsg = responseData?.error || responseData?.message || `HTTP ${response.status}`
-      console.error('Email send failed:', response.status, responseData)
+      logger.error('Email send failed:', response.status, responseData)
 
       if (response.status === 401 || response.status === 403) {
         showToast(`Email не отправлен: нет доступа к Edge Function (${response.status}). Проверьте авторизацию.`, 'error', 8000)
@@ -1014,17 +998,18 @@ async function sendApprovalEmail(email: string, nickname: string, status: string
       return
     }
 
-    console.log('Approval email sent:', responseData)
+    logger.log('Approval email sent:', responseData)
     const statusText = status === 'approved' ? 'одобрении' : 'отклонении'
     showToast(`Email об ${statusText} отправлен на ${email}`, 'success')
 
-  } catch (fetchError: any) {
-    console.error('Email fetch error:', fetchError)
+  } catch (fetchError: unknown) {
+    logger.error('Email fetch error:', fetchError)
+    const message = fetchError instanceof Error ? fetchError.message : ''
 
-    if (fetchError.message?.includes('Failed to fetch') || fetchError.message?.includes('NetworkError')) {
+    if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
       showToast('Email не отправлен: нет связи с Supabase. Проверьте SUPABASE_URL и что Edge Functions задеплоены.', 'error', 10000)
     } else {
-      showToast(`Email не отправлен: ${fetchError.message || 'сетевая ошибка'}`, 'error', 8000)
+      showToast(`Email не отправлен: ${message || 'сетевая ошибка'}`, 'error', 8000)
     }
   }
 }
@@ -1067,7 +1052,7 @@ async function checkEmailService() {
 
 async function checkAdminAndLoad() {
   if (!authStore.user?.isAdmin) {
-    alert('У вас нет прав доступа к админ-панели')
+    showToast('У вас нет прав доступа к админ-панели', 'error')
     router.push('/dashboard')
     return
   }

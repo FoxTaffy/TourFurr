@@ -315,7 +315,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { supabase } from '../../services/supabase'
@@ -323,6 +323,7 @@ import { verifyTurnstileToken } from '../../utils/turnstile'
 import YandexSmartCaptcha from '../common/YandexSmartCaptcha.vue'
 import * as yup from 'yup'
 import { createPasswordResetCode, sendPasswordResetEmail, invalidateOldResetCodes } from '../../utils/passwordReset'
+import { logger } from '../../utils/logger'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -448,10 +449,10 @@ async function handleSubmit() {
     router.push('/dashboard')
   } else {
     // Check if user needs email verification
-    if ((result as any).needsVerification) {
-      const email = (result as any).email || form.email
-      const emailSent = (result as any).emailSent
-      const verificationCode = (result as any).verificationCode || ''
+    if (result.needsVerification) {
+      const email = result.email || form.email
+      const emailSent = result.emailSent
+      const verificationCode = result.verificationCode || ''
 
       if (verificationCode) {
         sessionStorage.setItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.toLowerCase()}`, verificationCode)
@@ -492,14 +493,28 @@ async function handleResetSubmit() {
   try {
     const cleanEmail = resetEmail.value.trim().toLowerCase()
 
-    // Check if user exists (use maybeSingle to avoid error when no rows found)
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', cleanEmail)
-      .maybeSingle()
+    let userExists = false
 
-    if (existingUser) {
+    // Check if user exists via SECURITY DEFINER RPC (works for unauthenticated users)
+    const { data: emailExistsData, error: emailExistsError } = await supabase
+      .rpc('check_email_exists', { p_email: cleanEmail })
+
+    if (emailExistsError) {
+      logger.warn('check_email_exists RPC failed in reset flow, fallback to direct query:', emailExistsError)
+
+      // Fallback for environments where RPC is not deployed
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', cleanEmail)
+        .maybeSingle()
+
+      userExists = !!existingUser
+    } else {
+      userExists = !!emailExistsData
+    }
+
+    if (userExists) {
       // Invalidate old codes first
       await invalidateOldResetCodes(cleanEmail)
 
@@ -539,7 +554,7 @@ async function handleResetSubmit() {
       }, 1500)
     }
   } catch (err) {
-    console.error('Reset error:', err)
+    logger.error('Reset error:', err)
     setTimeout(() => {
       resetSubmitted.value = false
       resetError.value = 'Ошибка отправки. Попробуйте позже.'
@@ -776,7 +791,7 @@ async function handlePasswordUpdate() {
     })
 
     if (error) {
-      console.error('Password update error:', error)
+      logger.error('Password update error:', error)
       passwordError.value = 'Ошибка обновления пароля. Попробуйте снова.'
       return
     }
@@ -797,12 +812,19 @@ async function handlePasswordUpdate() {
       resetForgotForm()
     }, 2000)
   } catch (err: any) {
-    console.error('Unexpected error:', err)
+    logger.error('Unexpected error during password update:', err)
     passwordError.value = 'Произошла ошибка. Попробуйте позже.'
   } finally {
     isUpdatingPassword.value = false
   }
 }
+
+onUnmounted(() => {
+  if (resendTimer) {
+    clearInterval(resendTimer)
+    resendTimer = null
+  }
+})
 </script>
 
 <style scoped>

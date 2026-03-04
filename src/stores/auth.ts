@@ -13,6 +13,7 @@ import {
 } from '@/utils/security'
 import { logger } from '@/utils/logger'
 import { safeStorage } from '@/utils/safeStorage'
+import { DISABLE_EMAIL } from '@/utils/env'
 
 // Security: Allowed file types for avatar
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -121,6 +122,17 @@ export interface RegisterData {
   petDescription?: string
 }
 
+export interface AuthActionResult {
+  success: boolean
+  error?: string
+  needsVerification?: boolean
+  email?: string
+  emailSent?: boolean
+  emailError?: string
+  verificationCode?: string
+  message?: string
+}
+
 // Map database row to User interface
 function mapDbUserToUser(dbUser: any): User {
   return {
@@ -139,7 +151,7 @@ function mapDbUserToUser(dbUser: any): User {
     canApproveApplications: dbUser.can_approve_applications || false,
     bringingPet: dbUser.bringing_pet || false,
     petDescription: dbUser.pet_description,
-    teamId: dbUser.team_id || safeStorage.getItem(`user_team_${dbUser.id}`) || null
+    teamId: dbUser.team_id ?? null
   }
 }
 
@@ -173,7 +185,46 @@ export const useAuthStore = defineStore('auth', () => {
     }
   })
 
-  async function login(email: string, password: string) {
+  async function issueEmailVerificationCode(email: string): Promise<{
+    emailSent: boolean
+    emailError: string
+    verificationCode: string
+  }> {
+    let generatedCode = ''
+
+    try {
+      const { createVerificationCode, sendVerificationEmail, invalidateOldCodes } = await import('../utils/emailVerification')
+
+      await invalidateOldCodes(email)
+
+      const codeResult = await createVerificationCode(email)
+      if (!codeResult.success || !codeResult.code) {
+        return {
+          emailSent: false,
+          emailError: codeResult.error || 'Не удалось создать код подтверждения',
+          verificationCode: ''
+        }
+      }
+
+      generatedCode = codeResult.code
+      const sendResult = await sendVerificationEmail(email, generatedCode)
+
+      return {
+        emailSent: sendResult.success,
+        emailError: sendResult.error || '',
+        verificationCode: DISABLE_EMAIL && !sendResult.success ? generatedCode : ''
+      }
+    } catch (err: any) {
+      logger.error('Error issuing email verification code:', err)
+      return {
+        emailSent: false,
+        emailError: err?.message || 'Ошибка отправки кода подтверждения',
+        verificationCode: DISABLE_EMAIL ? generatedCode : ''
+      }
+    }
+  }
+
+  async function login(email: string, password: string): Promise<AuthActionResult> {
     isLoading.value = true
     error.value = null
 
@@ -244,28 +295,12 @@ export const useAuthStore = defineStore('auth', () => {
         if (loginStatus?.user_found && !loginStatus.email_verified && !loginStatus.has_password) {
           logger.log('Found unverified new user, sending new verification code...')
 
-          // Generate and send new verification code
-          let loginVerificationCode = ''
-          let loginEmailSent = false
-          try {
-            const { createVerificationCode, sendVerificationEmail, invalidateOldCodes } = await import('../utils/emailVerification')
+          const verificationResult = await issueEmailVerificationCode(cleanEmail)
+          const verificationHint = verificationResult.emailSent
+            ? 'Новый код отправлен на вашу почту.'
+            : 'Проверьте почту позже или запросите код повторно.'
 
-            // Invalidate old codes first
-            await invalidateOldCodes(cleanEmail)
-
-            // Create new code
-            const codeResult = await createVerificationCode(cleanEmail)
-
-            if (codeResult.success && codeResult.code) {
-              loginVerificationCode = codeResult.code
-              const emailResult = await sendVerificationEmail(cleanEmail, codeResult.code)
-              loginEmailSent = emailResult.success
-            }
-          } catch (codeError: any) {
-            logger.error('Error generating verification code:', codeError)
-          }
-
-          error.value = 'Email не подтверждён. Новый код отправлен на вашу почту.'
+          error.value = `Email не подтверждён. ${verificationHint}`
           securityLogger.log({
             type: 'login_failure',
             identifier: cleanEmail,
@@ -276,8 +311,9 @@ export const useAuthStore = defineStore('auth', () => {
             error: error.value,
             needsVerification: true,
             email: cleanEmail,
-            emailSent: loginEmailSent,
-            verificationCode: !loginEmailSent ? loginVerificationCode : ''
+            emailSent: verificationResult.emailSent,
+            emailError: verificationResult.emailError,
+            verificationCode: verificationResult.verificationCode
           }
         }
 
@@ -353,35 +389,20 @@ export const useAuthStore = defineStore('auth', () => {
         })
         await supabase.auth.signOut() // Sign out immediately
 
-        // Try to send a new verification code
-        let loginVerificationCode2 = ''
-        let loginEmailSent2 = false
-        try {
-          const { createVerificationCode, sendVerificationEmail, invalidateOldCodes } = await import('../utils/emailVerification')
+        const verificationResult = await issueEmailVerificationCode(cleanEmail)
+        const verificationHint = verificationResult.emailSent
+          ? 'Новый код отправлен на вашу почту.'
+          : 'Проверьте почту позже или запросите код повторно.'
 
-          // Invalidate old codes first
-          await invalidateOldCodes(cleanEmail)
-
-          // Create new code
-          const codeResult = await createVerificationCode(cleanEmail)
-
-          if (codeResult.success && codeResult.code) {
-            loginVerificationCode2 = codeResult.code
-            const emailResult = await sendVerificationEmail(cleanEmail, codeResult.code)
-            loginEmailSent2 = emailResult.success
-          }
-        } catch (codeError: any) {
-          logger.error('Error generating verification code:', codeError)
-        }
-
-        error.value = 'Email не подтверждён. Новый код отправлен на вашу почту.'
+        error.value = `Email не подтверждён. ${verificationHint}`
         return {
           success: false,
           error: error.value,
           needsVerification: true,
           email: cleanEmail,
-          emailSent: loginEmailSent2,
-          verificationCode: !loginEmailSent2 ? loginVerificationCode2 : ''
+          emailSent: verificationResult.emailSent,
+          emailError: verificationResult.emailError,
+          verificationCode: verificationResult.verificationCode
         }
       }
 
@@ -420,7 +441,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register(data: RegisterData) {
+  async function register(data: RegisterData): Promise<AuthActionResult> {
     isLoading.value = true
     error.value = null
 
@@ -639,42 +660,10 @@ export const useAuthStore = defineStore('auth', () => {
       // Security: Reset rate limit on successful registration
       rateLimiter.reset(cleanEmail)
 
-      // Generate and send 6-digit verification code
-      let emailSent = false
-      let emailError = ''
-      let verificationCode = ''
-      try {
-        const { generateVerificationCode, sendVerificationEmail } = await import('../utils/emailVerification')
-
-        const code = generateVerificationCode()
-        const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
-        verificationCode = code
-
-        // Run DB insert and email send in parallel — email no longer needs DB pre-check
-        const [insertResult, emailResult] = await Promise.all([
-          supabase.from('email_verification_codes').insert({
-            email: cleanEmail,
-            code,
-            expires_at: expiresAt.toISOString()
-          }),
-          sendVerificationEmail(cleanEmail, code)
-        ])
-
-        if (insertResult.error) {
-          logger.error('Failed to insert verification code:', insertResult.error)
-        }
-
-        emailSent = emailResult.success
-        emailError = emailResult.error || ''
-
-        if (!emailSent) {
-          logger.error('Failed to send verification email:', emailError)
-        }
-      } catch (codeError: any) {
-        logger.error('Error generating verification code:', codeError)
-        emailError = codeError.message || 'Ошибка отправки кода'
-        // Don't fail registration if code generation fails
-      }
+      const verificationResult = await issueEmailVerificationCode(cleanEmail)
+      const emailSent = verificationResult.emailSent
+      const emailError = verificationResult.emailError
+      const verificationCode = verificationResult.verificationCode
 
       // Don't auto-login - user needs to verify email first
       return {
@@ -682,7 +671,7 @@ export const useAuthStore = defineStore('auth', () => {
         email: cleanEmail,
         emailSent,
         emailError,
-        verificationCode: !emailSent ? verificationCode : '',
+        verificationCode,
         message: emailSent
           ? 'Регистрация успешна! На вашу почту отправлен код подтверждения.'
           : `Регистрация успешна, но не удалось отправить email: ${emailError}`
@@ -986,7 +975,8 @@ export const useAuthStore = defineStore('auth', () => {
         try {
           const url = new URL(avatarUrl)
           const fileName = url.pathname.split('/').pop()
-          if (fileName && /^[a-f0-9-]+\.(jpg|png|webp)$/i.test(fileName)) {
+          // Allow nickname-prefixed names (e.g. "foxlaffytaffy_uuid.jpg") and plain uuid names
+          if (fileName && /^[a-zA-Z0-9_-]+\.(jpg|jpeg|png|webp)$/i.test(fileName)) {
             await supabase.storage.from('avatars').remove([fileName])
           }
         } catch {
@@ -1016,6 +1006,9 @@ export const useAuthStore = defineStore('auth', () => {
         // so auth account becomes an orphan that will be cleaned up by the cron job.
         logger.warn('delete-user-account function unavailable, auth orphan will be cleaned by cron:', fnErr)
       }
+
+      // Clean up team cache key that was previously stored in safeStorage
+      safeStorage.removeItem(`user_team_${userId}`)
 
       // Clear local auth state and sign out
       await logout()

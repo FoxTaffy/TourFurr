@@ -253,13 +253,12 @@ export const useTeamsStore = defineStore('teams', () => {
       // DB column may not exist
     }
 
-    // Fallback: check current user from safeStorage
+    // Fallback: check current user from safeStorage (teamId comes from DB via mapDbUserToUser)
     try {
       const stored = safeStorage.getItem('current_user')
       if (stored) {
         const currentUser = JSON.parse(stored)
-        const userTeam = currentUser.teamId || safeStorage.getItem(`user_team_${currentUser.id}`)
-        if (userTeam === teamId) {
+        if (currentUser.teamId === teamId) {
           members.value[teamId] = [{
             id: currentUser.id,
             nickname: currentUser.nickname,
@@ -287,13 +286,15 @@ export const useTeamsStore = defineStore('teams', () => {
         .eq('id', userId)
 
       if (dbError) {
-        logger.error('DB update failed for team selection, saving locally:', dbError)
+        logger.error('DB update failed for team selection:', dbError)
+        return { success: false, error: dbError.message || 'Ошибка сохранения команды' }
       }
     } catch (err: any) {
-      logger.error('Error selecting team, saving locally:', err)
+      logger.error('Error selecting team:', err)
+      return { success: false, error: err.message || 'Ошибка выбора команды' }
     }
 
-    // Always save locally regardless of DB result
+    // Save locally only after successful DB write (write-through cache)
     safeStorage.setItem(`user_team_${userId}`, teamId)
     return { success: true }
   }
