@@ -563,6 +563,8 @@ export const useAuthStore = defineStore('auth', () => {
         options: {
           emailRedirectTo: `${window.location.origin}/auth/confirm`,
           data: {
+            // full_name → отображается как "Display name" в Supabase Auth dashboard
+            full_name: cleanNickname,
             nickname: cleanNickname,
             phone: sanitizeInput(data.phone),
             telegram: sanitizeInput(data.telegram)

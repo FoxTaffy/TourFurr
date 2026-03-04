@@ -97,17 +97,21 @@ router.beforeEach(async (to, _from, next) => {
   // Check guest routes
   if (to.meta.requiresGuest && isAuthenticated) {
     // Before bouncing to Dashboard, verify that the user's email is confirmed.
-    // If not — redirect directly to VerifyEmail to avoid a double-redirect chain.
+    // If NOT verified — sign out silently and let the user stay on /auth
+    // so they can re-register or voluntarily go to verify-email.
+    // We do NOT force-redirect unverified users to VerifyEmail from guest routes:
+    // that creates a confusing loop where just opening /auth lands you on VerifyEmail.
     try {
       const storedUserRaw = safeStorage.getItem('current_user')
       if (storedUserRaw) {
         let storedUser: any = null
         try { storedUser = JSON.parse(storedUserRaw) } catch { /* malformed, ignore */ }
         if (storedUser && !storedUser.emailVerified) {
+          // Unverified session on a guest route → sign out and let them through
           safeStorage.removeItem('auth_token')
           safeStorage.removeItem('current_user')
           await supabase.auth.signOut()
-          next({ name: 'VerifyEmail', query: { email: storedUser.email } })
+          next()
           return
         }
       } else {
@@ -120,10 +124,11 @@ router.beforeEach(async (to, _from, next) => {
             .eq('id', supaUser.id)
             .single()
           if (dbUser && !dbUser.email_verified) {
+            // Unverified session → sign out and let them through to /auth
             safeStorage.removeItem('auth_token')
             safeStorage.removeItem('current_user')
             await supabase.auth.signOut()
-            next({ name: 'VerifyEmail', query: { email: dbUser.email } })
+            next()
             return
           }
         }

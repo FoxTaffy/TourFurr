@@ -102,36 +102,58 @@ BEGIN
         );
         v_avatar_url := NEW.raw_user_meta_data->>'avatar_url';
 
-        INSERT INTO public.users (
-            id, email, nickname, avatar_url,
-            phone, telegram, status,
-            email_subscribed, agree_rules, agree_privacy,
-            created_at, updated_at
-        )
-        VALUES (
-            NEW.id,
-            COALESCE(NEW.email, ''),
-            v_nickname,
-            v_avatar_url,
-            '', '', 'pending',
-            false, false, false,
-            NOW(), NOW()
-        )
-        ON CONFLICT (id) DO NOTHING; -- Если webhook уже сработал — ничего не делаем
+        -- ВАЖНО: Оборачиваем в EXCEPTION, чтобы ошибка вставки профиля
+        -- (например, нарушение NOT NULL/UNIQUE на nickname, phone, telegram)
+        -- НИКОГДА не блокировала транзакцию Supabase Auth.
+        -- Профиль будет создан позже через форму регистрации или webhook.
+        BEGIN
+            INSERT INTO public.users (
+                id, email, avatar_url,
+                nickname, phone, telegram, status,
+                email_subscribed, agree_rules, agree_privacy,
+                created_at, updated_at
+            )
+            VALUES (
+                NEW.id,
+                COALESCE(NEW.email, ''),
+                v_avatar_url,
+                -- nickname: временное значение из email (до заполнения формы)
+                COALESCE(
+                    v_nickname,
+                    REGEXP_REPLACE(SPLIT_PART(COALESCE(NEW.email, ''), '@', 1), '[^a-zA-Z0-9_]', '_', 'g')
+                ),
+                '', '', 'pending',
+                false, false, false,
+                NOW(), NOW()
+            )
+            ON CONFLICT (id) DO NOTHING;
+        EXCEPTION WHEN OTHERS THEN
+            -- Молча игнорируем: регистрация Auth продолжается,
+            -- профиль создаст форма регистрации или webhook.
+            RAISE WARNING 'handle_auth_user_sync INSERT skipped for %: %', NEW.id, SQLERRM;
+        END;
 
     ELSIF TG_OP = 'UPDATE' THEN
-        UPDATE public.users
-        SET
-            email      = COALESCE(NEW.email, users.email),
-            avatar_url = COALESCE(
-                NEW.raw_user_meta_data->>'avatar_url',
-                users.avatar_url
-            ),
-            updated_at = NOW()
-        WHERE id = NEW.id;
+        BEGIN
+            UPDATE public.users
+            SET
+                email      = COALESCE(NEW.email, users.email),
+                avatar_url = COALESCE(
+                    NEW.raw_user_meta_data->>'avatar_url',
+                    users.avatar_url
+                ),
+                updated_at = NOW()
+            WHERE id = NEW.id;
+        EXCEPTION WHEN OTHERS THEN
+            RAISE WARNING 'handle_auth_user_sync UPDATE skipped for %: %', NEW.id, SQLERRM;
+        END;
 
     ELSIF TG_OP = 'DELETE' THEN
-        DELETE FROM public.users WHERE id = OLD.id;
+        BEGIN
+            DELETE FROM public.users WHERE id = OLD.id;
+        EXCEPTION WHEN OTHERS THEN
+            RAISE WARNING 'handle_auth_user_sync DELETE skipped for %: %', OLD.id, SQLERRM;
+        END;
     END IF;
 
     RETURN NEW;
