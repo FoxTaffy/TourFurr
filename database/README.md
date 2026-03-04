@@ -1,5 +1,16 @@
 # Database Setup Guide
 
+## 🔄 Auth Webhook Sync (новое)
+
+Автоматическая синхронизация `auth.users → public.users` через Edge Function.
+См. пошаговую инструкцию: **[SETUP_AUTH_WEBHOOK.md](./SETUP_AUTH_WEBHOOK.md)**
+
+Файлы:
+- `database/setup_auth_webhook_sync.sql` — SQL-миграция (триггер, RLS, индексы)
+- `supabase/functions/sync-auth-user/index.ts` — Edge Function
+
+---
+
 ## ⚡ Quick Setup (Recommended)
 
 **Want to set up everything at once?**
