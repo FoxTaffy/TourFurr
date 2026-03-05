@@ -962,7 +962,7 @@ function handleLogout() {
 }
 
 .card-header h3 {
-  font-family: 'TourFurr', 'Merriweather', serif;
+  font-family: 'Merriweather', serif;
   font-size: 1.25rem;
   color: var(--fire-glow);
   letter-spacing: 0.03em;

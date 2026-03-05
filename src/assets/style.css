@@ -1,14 +1,6 @@
 @import "tailwindcss";
 @import "./common-components.css";
 
-@font-face {
-  font-family: 'TourFurr';
-  src: url('/fonts/9327.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -207,7 +199,7 @@ section {
 }
 
 .section-title {
-  font-family: 'TourFurr', 'Merriweather', serif;
+  font-family: 'Merriweather', serif;
   font-size: clamp(2rem, 4vw, 3rem);
   color: var(--fire-glow);
   letter-spacing: 0.04em;

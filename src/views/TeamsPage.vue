@@ -201,7 +201,7 @@ onMounted(async () => {
    PAGE TITLE
    ================================================ */
 .page-title {
-  font-family: 'TourFurr', serif;
+  font-family: serif;
   font-size: clamp(2.5rem, 5vw, 4rem);
   color: var(--cream);
   text-align: center;

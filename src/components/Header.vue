@@ -195,7 +195,7 @@
   }
 
   .logo-text {
-      font-family: 'TourFurr', 'Merriweather', serif;
+      font-family: 'Merriweather', serif;
       font-size: 1.8rem;
       font-weight: 700;
       color: var(--fire-glow);

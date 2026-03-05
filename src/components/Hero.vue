@@ -42,7 +42,7 @@
   }
   
   h1 {
-      font-family: 'TourFurr', 'Merriweather', serif;
+      font-family: 'Merriweather', serif;
       font-size: clamp(3rem, 8vw, 6rem);
       font-weight: 900;
       letter-spacing: 0.06em;
