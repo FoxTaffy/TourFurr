@@ -686,7 +686,13 @@ async function fetchApprovedInfo() {
     }
 
     if (data) {
-      approvedInfo.value = data
+      approvedInfo.value = {
+        location: data.location_name,
+        coordinates: data.location_coordinates,
+        price: data.event_price,
+        telegram_link: data.telegram_link ?? null,
+        payment_url: data.payment_url ?? null,
+      }
       infoError.value = null
     } else {
       infoError.value = 'Данные не найдены'

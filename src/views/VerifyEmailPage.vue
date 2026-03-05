@@ -109,6 +109,7 @@ const fallbackCode = ref<string>('')
 const gracePeriodStatus = ref<GracePeriodStatus | null>(null)
 const remainingSeconds = ref<number | null>(null)
 const checkInterval = ref<number | null>(null)
+const syncInterval = ref<number | null>(null)
 
 const formattedTime = computed(() => {
   if (!remainingSeconds.value) return '00:00'
@@ -122,23 +123,37 @@ async function checkGracePeriod() {
   gracePeriodStatus.value = status
   remainingSeconds.value = status.secondsRemaining
 
-  // Если время истекло, остановить проверку
   if (status.isExpired) {
     stopGracePeriodCheck()
   }
 }
 
 function startGracePeriodCheck() {
-  // Проверять каждую секунду
+  // Локальный декремент каждую секунду — без RPC-запроса
   checkInterval.value = window.setInterval(() => {
-    checkGracePeriod()
+    if (remainingSeconds.value !== null) {
+      remainingSeconds.value = Math.max(0, remainingSeconds.value - 1)
+      if (remainingSeconds.value <= 0) {
+        stopGracePeriodCheck()
+        // Обновить статус через RPC чтобы показать expired-сообщение
+        checkGracePeriod()
+      }
+    }
   }, 1000)
+  // Синхронизация с сервером каждые 30 секунд
+  syncInterval.value = window.setInterval(() => {
+    checkGracePeriod()
+  }, 30000)
 }
 
 function stopGracePeriodCheck() {
   if (checkInterval.value) {
     clearInterval(checkInterval.value)
     checkInterval.value = null
+  }
+  if (syncInterval.value) {
+    clearInterval(syncInterval.value)
+    syncInterval.value = null
   }
 }
 

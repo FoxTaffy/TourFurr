@@ -1,32 +1,50 @@
 import { supabase } from '../services/supabase'
 import { logger } from './logger'
+import { DISABLE_EMAIL } from './env'
 
-// Оставляем для обратной совместимости с пропсами которые импортируют этот тип
 export type PasswordResetCode = {
   id: string; email: string; used: boolean; expires_at: string
   attempts: number; code: string; created_at: string
 }
 
 /**
- * Запрашиваем сброс пароля через Supabase Auth.
- * Supabase сам отправляет письмо — ничего не хранится в БД.
+ * Запрашиваем сброс пароля через кастомный Edge Function,
+ * который генерирует настоящий Supabase OTP и отправляет брендированное письмо.
  */
 export async function createPasswordResetCode(email: string): Promise<{
   success: boolean
-  code?: string
   expiresAt?: Date
   error?: string
 }> {
   try {
-    const redirectTo = `${window.location.origin}/update-password`
-    const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase(), {
-      redirectTo
-    })
-    if (error) {
-      logger.error('Error requesting password reset:', error)
+    if (DISABLE_EMAIL) {
+      logger.log('DEV: Password reset email disabled. Use Supabase dashboard to get OTP.')
+      return { success: true, expiresAt: new Date(Date.now() + 15 * 60 * 1000) }
     }
-    // Не раскрываем существует ли email — всегда success
-    logger.log('Password reset email sent via Supabase Auth')
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/send-password-reset-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'apikey': supabaseAnonKey,
+      },
+      body: JSON.stringify({ email: email.toLowerCase() }),
+    })
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}))
+      if (response.status === 429) {
+        return { success: false, error: 'Слишком много запросов. Подождите и попробуйте снова.' }
+      }
+      logger.error('send-password-reset-email error:', data)
+      return { success: false, error: 'Не удалось отправить письмо. Попробуйте позже.' }
+    }
+
+    logger.log('Password reset email sent via Edge Function')
     return { success: true, expiresAt: new Date(Date.now() + 15 * 60 * 1000) }
   } catch (err: any) {
     logger.error('Exception requesting password reset:', err)
@@ -36,7 +54,6 @@ export async function createPasswordResetCode(email: string): Promise<{
 
 /**
  * Проверяем OTP-код сброса пароля через Supabase Auth.
- * Никаких обращений к БД.
  */
 export async function verifyResetCode(email: string, code: string): Promise<{
   success: boolean
@@ -63,20 +80,12 @@ export async function verifyResetCode(email: string, code: string): Promise<{
   }
 }
 
-/**
- * @deprecated Supabase Auth сам отправляет письмо в createPasswordResetCode.
- * No-op для совместимости с пропсами вью.
- */
+/** @deprecated No-op для совместимости */
 export async function sendPasswordResetEmail(_email: string, _code?: string): Promise<{
-  success: boolean
-  error?: string
+  success: boolean; error?: string
 }> {
   return { success: true }
 }
 
-/**
- * @deprecated База данных не используется. No-op для совместимости.
- */
-export async function invalidateOldResetCodes(_email: string): Promise<void> {
-  // No-op: таблица password_reset_codes удалена
-}
+/** @deprecated No-op для совместимости */
+export async function invalidateOldResetCodes(_email: string): Promise<void> {}

@@ -6,7 +6,7 @@
           <p class="registration-text">
             Регистрация открыта! <br>
             Событие пройдёт <strong>6–9 августа 2026</strong>. <br>
-            Мест для участия: <strong>111</strong>. <br><br>
+            Мест для участия: <strong>155</strong>. <br><br>
             Заполни анкету и присоединяйся к нам!
           </p>
           <a href="/auth" class="cta-button">
