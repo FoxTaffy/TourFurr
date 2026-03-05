@@ -253,7 +253,7 @@ const isLoading = ref(true)
 const error = ref('')
 const activeFilter = ref('all')
 const isUpdating = ref<string | null>(null)
-const maxParticipants = ref(111)
+const maxParticipants = ref(155)
 const operationMessage = ref('')
 const operationMessageType = ref<'success' | 'error'>('success')
 
