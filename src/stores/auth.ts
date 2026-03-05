@@ -98,11 +98,8 @@ export interface User {
   avatar?: string
   description?: string
   status: 'pending' | 'approved' | 'paid' | 'deferred' | 'rejected'
-  emailVerified: boolean
-  emailVerifiedAt?: string
   createdAt: string
   isAdmin: boolean
-  canApproveApplications: boolean
   bringingPet: boolean
   petDescription?: string
   teamId?: string | null
@@ -144,11 +141,8 @@ function mapDbUserToUser(dbUser: any): User {
     avatar: dbUser.avatar_url,
     description: dbUser.description,
     status: dbUser.status,
-    emailVerified: dbUser.email_verified || false,
-    emailVerifiedAt: dbUser.email_verified_at,
     createdAt: dbUser.created_at,
     isAdmin: dbUser.is_admin || false,
-    canApproveApplications: dbUser.can_approve_applications || false,
     bringingPet: dbUser.bringing_pet || false,
     petDescription: dbUser.pet_description,
     teamId: dbUser.team_id ?? null
@@ -193,20 +187,13 @@ export const useAuthStore = defineStore('auth', () => {
     let generatedCode = ''
 
     try {
-      const { createVerificationCode, sendVerificationEmail, invalidateOldCodes } = await import('../utils/emailVerification')
+      const { generateVerificationCode, sendVerificationEmail, invalidateOldCodes } = await import('../utils/emailVerification')
 
-      await invalidateOldCodes(email)
+      await invalidateOldCodes(email) // no-op
 
-      const codeResult = await createVerificationCode(email)
-      if (!codeResult.success || !codeResult.code) {
-        return {
-          emailSent: false,
-          emailError: codeResult.error || 'Не удалось создать код подтверждения',
-          verificationCode: ''
-        }
-      }
-
-      generatedCode = codeResult.code
+      // Генерируем код только для отображения в dev-режиме
+      // В продакшн Supabase Auth отправляет OTP автоматически
+      generatedCode = generateVerificationCode()
       const sendResult = await sendVerificationEmail(email, generatedCode)
 
       return {
@@ -277,11 +264,10 @@ export const useAuthStore = defineStore('auth', () => {
         password: password
       })
 
-      // 2. If Supabase Auth fails, check if it's an old user with bcrypt password or unverified new user
+      // 2. If Supabase Auth fails, check if it's a legacy bcrypt user
       if (authData.error && authData.error.message.includes('Invalid login credentials')) {
-        logger.log('Supabase Auth failed, checking for old user or unverified user...')
+        logger.log('Supabase Auth failed, checking for legacy user...')
 
-        // Use SECURITY DEFINER RPC — works without authentication (RLS bypassed)
         const { data: loginStatusData, error: loginStatusError } = await supabase
           .rpc('check_login_status', { p_email: cleanEmail })
 
@@ -291,39 +277,10 @@ export const useAuthStore = defineStore('auth', () => {
 
         const loginStatus = Array.isArray(loginStatusData) ? loginStatusData[0] : loginStatusData
 
-        // Check if it's a new unverified user
-        if (loginStatus?.user_found && !loginStatus.email_verified && !loginStatus.has_password) {
-          logger.log('Found unverified new user, sending new verification code...')
-
-          const verificationResult = await issueEmailVerificationCode(cleanEmail)
-          const verificationHint = verificationResult.emailSent
-            ? 'Новый код отправлен на вашу почту.'
-            : 'Проверьте почту позже или запросите код повторно.'
-
-          error.value = `Email не подтверждён. ${verificationHint}`
-          securityLogger.log({
-            type: 'login_failure',
-            identifier: cleanEmail,
-            details: { reason: 'email_not_verified', fingerprint }
-          })
-          return {
-            success: false,
-            error: error.value,
-            needsVerification: true,
-            email: cleanEmail,
-            emailSent: verificationResult.emailSent,
-            emailError: verificationResult.emailError,
-            verificationCode: verificationResult.verificationCode
-          }
-        }
-
         // Check if it's an old user with bcrypt password
         if (loginStatus?.user_found && loginStatus.has_password) {
-          logger.log('Found legacy bcrypt user — migration no longer supported without authentication context.')
-
-          // BCrypt migration requires reading the full user record, which cannot be done
-          // from an unauthenticated context after RLS hardening. Guide user to reset password instead.
-          error.value = 'Ваш аккаунт использует устаревший формат пароля. Воспользуйтесь функцией «Забыл пароль» для восстановления доступа.'
+          logger.log('Found legacy bcrypt user.')
+          error.value = 'Ваш аккаунт использует устаревший формат пароля. Воспользуйтесь функцией «Забыл пароль».'
           securityLogger.log({
             type: 'login_failure',
             identifier: cleanEmail,
@@ -358,8 +315,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       logger.log('Fetching user data...')
 
-      // 4. Get user profile from users table first to check email_verified
-      // We use our own email verification system with 6-digit codes
+      // 4. Get user profile
       const { data: userData, error: dbError } = await supabase
         .from('users')
         .select('*')
@@ -375,35 +331,6 @@ export const useAuthStore = defineStore('auth', () => {
         })
         error.value = 'Ошибка получения данных пользователя'
         return { success: false, error: error.value }
-      }
-
-      // 5. Check if email is verified in OUR system (not Supabase Auth)
-      // We use our own email verification with 6-digit codes
-      const isMigratedUser = authData.data.user.user_metadata?.migrated
-      if (!isMigratedUser && !userData.email_verified) {
-        logger.log('Email not verified in our system')
-        securityLogger.log({
-          type: 'login_failure',
-          identifier: cleanEmail,
-          details: { reason: 'email_not_verified', fingerprint }
-        })
-        await supabase.auth.signOut() // Sign out immediately
-
-        const verificationResult = await issueEmailVerificationCode(cleanEmail)
-        const verificationHint = verificationResult.emailSent
-          ? 'Новый код отправлен на вашу почту.'
-          : 'Проверьте почту позже или запросите код повторно.'
-
-        error.value = `Email не подтверждён. ${verificationHint}`
-        return {
-          success: false,
-          error: error.value,
-          needsVerification: true,
-          email: cleanEmail,
-          emailSent: verificationResult.emailSent,
-          emailError: verificationResult.emailError,
-          verificationCode: verificationResult.verificationCode
-        }
       }
 
       logger.log('Login successful')

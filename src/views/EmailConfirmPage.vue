@@ -131,17 +131,6 @@ onMounted(async () => {
     if (authError) throw authError
     if (!data.user) throw new Error('Пользователь не найден')
 
-    // Обновляем запись в таблице users
-    const { error: dbError } = await supabase
-      .from('users')
-      .update({
-        email_verified: true,
-        email_verified_at: new Date().toISOString()
-      })
-      .eq('id', data.user.id)
-
-    if (dbError) throw dbError
-
     isSuccess.value = true
 
     // Auto-redirect countdown

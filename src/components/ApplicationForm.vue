@@ -268,14 +268,12 @@ async function loadEventConfig() {
   try {
     isLoadingConfig.value = true
 
-    // Get active event config
+    // Get event info (единая таблица конфига)
     const { data: config, error: configError } = await supabase
-      .from('event_config')
+      .from('event_info')
       .select('*')
-      .eq('is_active', true)
-      .order('event_year', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     if (configError) {
       logger.error('Error loading event config:', configError)
@@ -391,12 +389,6 @@ async function handleSubmit() {
   // Check if user is approved
   if (authStore.user.status !== 'approved') {
     serverError.value = 'Ваш аккаунт должен быть одобрен администратором перед подачей заявки'
-    return
-  }
-
-  // Check if email is verified
-  if (!authStore.user.emailVerified) {
-    serverError.value = 'Пожалуйста, подтвердите ваш email перед подачей заявки'
     return
   }
 

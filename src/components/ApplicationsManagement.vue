@@ -129,84 +129,63 @@
             <strong>Примечания администратора:</strong> {{ app.admin_notes }}
           </div>
 
-          <!-- Show warning if user doesn't have approval permissions -->
-          <div v-if="!canApproveApplications && (app.status === 'pending' || app.status === 'deferred')" class="no-permission-warning">
-            <svg class="warning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
-            У вас нет прав для одобрения заявок. Только Алар, Кеса и Диеро могут управлять заявками.
+          <!-- Голосование: только для pending заявок -->
+          <div v-if="app.status === 'pending'" class="voting-section">
+            <!-- Итог голосов -->
+            <div class="vote-tally">
+              <span class="tally-label">Голоса:</span>
+              <span class="tally-for">{{ getVotesFor(app.id) }} ✓ за</span>
+              <span class="tally-sep">/</span>
+              <span class="tally-against">{{ getVotesAgainst(app.id) }} ✗ против</span>
+              <span class="tally-total">из {{ totalAdmins }}</span>
+            </div>
+
+            <!-- Кнопки голосования -->
+            <div class="action-buttons">
+              <button
+                @click="castVote(app.id, true)"
+                class="action-btn approve"
+                :class="{ 'vote-active': getMyVote(app.id) === true }"
+                :disabled="isUpdating === app.id"
+              >
+                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                {{ getMyVote(app.id) === true ? 'Голос ЗА ✓' : 'Голосовать ЗА' }}
+              </button>
+              <button
+                @click="castVote(app.id, false)"
+                class="action-btn reject"
+                :class="{ 'vote-active': getMyVote(app.id) === false }"
+                :disabled="isUpdating === app.id"
+              >
+                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                {{ getMyVote(app.id) === false ? 'Голос ПРОТИВ ✓' : 'Голосовать ПРОТИВ' }}
+              </button>
+              <button
+                v-if="getMyVote(app.id) !== null"
+                @click="removeVote(app.id)"
+                class="action-btn deferred"
+                :disabled="isUpdating === app.id"
+              >
+                Отозвать голос
+              </button>
+            </div>
           </div>
 
-          <div v-if="app.status === 'pending' && canApproveApplications" class="action-buttons">
-            <button
-              @click="updateApplicationStatus(app.id, 'approved')"
-              class="action-btn approve"
-              :disabled="isUpdating === app.id"
-            >
-              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-              </svg>
-              Одобрить
-            </button>
-            <button
-              @click="updateApplicationStatus(app.id, 'deferred')"
-              class="action-btn deferred"
-              :disabled="isUpdating === app.id"
-            >
-              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              Отложить
-            </button>
-            <button
-              @click="updateApplicationStatus(app.id, 'rejected')"
-              class="action-btn reject"
-              :disabled="isUpdating === app.id"
-            >
-              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-              Отклонить
-            </button>
-          </div>
-
-          <!-- Actions for deferred applications -->
-          <div v-if="app.status === 'deferred' && canApproveApplications" class="action-buttons">
-            <button
-              @click="updateApplicationStatus(app.id, 'approved')"
-              class="action-btn approve"
-              :disabled="isUpdating === app.id"
-            >
-              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-              </svg>
-              Одобрить
-            </button>
-            <button
-              @click="updateApplicationStatus(app.id, 'waitlist')"
-              class="action-btn waitlist"
-              :disabled="isUpdating === app.id"
-            >
-              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              В лист ожидания
-            </button>
-            <button
-              @click="updateApplicationStatus(app.id, 'rejected')"
-              class="action-btn reject"
-              :disabled="isUpdating === app.id"
-            >
-              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-              Отклонить
-            </button>
+          <!-- Статус решён — показываем итог -->
+          <div v-else-if="app.status !== 'pending'" class="vote-result">
+            <span class="vote-result-label">Итог голосования:</span>
+            <span class="tally-for">{{ getVotesFor(app.id) }} за</span>
+            <span class="tally-sep">/</span>
+            <span class="tally-against">{{ getVotesAgainst(app.id) }} против</span>
           </div>
 
           <!-- Payment Status Update -->
           <div class="payment-actions">
-            <label for="payment-status-${app.id}" class="payment-label">Статус оплаты:</label>
+            <label :for="'payment-status-' + app.id" class="payment-label">Статус оплаты:</label>
             <select
               :id="'payment-status-' + app.id"
               v-model="app.payment_status"
@@ -259,12 +238,22 @@ interface Application {
   }
 }
 
+interface AdminVote {
+  id: string
+  application_id: string
+  admin_id: string
+  vote: boolean
+  voted_at: string
+}
+
 const applications = ref<Application[]>([])
+const adminVotes = ref<AdminVote[]>([])
+const totalAdmins = ref(0)
 const isLoading = ref(true)
 const error = ref('')
 const activeFilter = ref('all')
 const isUpdating = ref<string | null>(null)
-const maxParticipants = ref(155)
+const maxParticipants = ref(111)
 const operationMessage = ref('')
 const operationMessageType = ref<'success' | 'error'>('success')
 
@@ -304,10 +293,19 @@ const paymentLabels: Record<string, string> = {
   refunded: 'Возврат средств'
 }
 
-// Check if current user can approve applications
-const canApproveApplications = computed(() =>
-  authStore.user?.canApproveApplications || false
-)
+// Helpers для голосов
+function getVotesFor(appId: string): number {
+  return adminVotes.value.filter(v => v.application_id === appId && v.vote === true).length
+}
+function getVotesAgainst(appId: string): number {
+  return adminVotes.value.filter(v => v.application_id === appId && v.vote === false).length
+}
+function getMyVote(appId: string): boolean | null {
+  const vote = adminVotes.value.find(
+    v => v.application_id === appId && v.admin_id === authStore.user?.id
+  )
+  return vote ? vote.vote : null
+}
 
 const filteredApplications = computed(() => {
   if (activeFilter.value === 'all') {
@@ -337,18 +335,25 @@ async function loadApplications() {
     isLoading.value = true
     error.value = ''
 
-    // Load event config to get max participants
+    // Загружаем конфиг события (единая таблица)
     const { data: config } = await supabase
-      .from('event_config')
+      .from('event_info')
       .select('max_participants')
-      .eq('is_active', true)
-      .single()
+      .limit(1)
+      .maybeSingle()
 
     if (config) {
       maxParticipants.value = config.max_participants
     }
 
-    // Load applications with user data
+    // Количество активных администраторов
+    const { count } = await supabase
+      .from('users')
+      .select('id', { count: 'exact', head: true })
+      .eq('is_admin', true)
+    totalAdmins.value = count ?? 0
+
+    // Загружаем заявки с данными пользователя
     const { data, error: fetchError } = await supabase
       .from('applications')
       .select(`
@@ -369,7 +374,17 @@ async function loadApplications() {
     }
 
     applications.value = data || []
-    logger.log('Loaded applications:', applications.value.length)
+
+    // Загружаем все голоса (видны только другим админам согласно RLS)
+    const { data: votes, error: votesError } = await supabase
+      .from('admin_votes')
+      .select('id, application_id, admin_id, vote, voted_at')
+
+    if (!votesError) {
+      adminVotes.value = votes || []
+    }
+
+    logger.log('Loaded applications:', applications.value.length, 'votes:', adminVotes.value.length)
 
   } catch (err) {
     logger.error('Error in loadApplications:', err)
@@ -379,33 +394,61 @@ async function loadApplications() {
   }
 }
 
-async function updateApplicationStatus(applicationId: string, newStatus: string) {
+async function castVote(applicationId: string, vote: boolean) {
   try {
     isUpdating.value = applicationId
+    const adminId = authStore.user?.id
+    if (!adminId) return
 
-    const { error: updateError } = await supabase
-      .from('applications')
-      .update({
-        status: newStatus,
-        reviewed_by: authStore.user?.id,
-        reviewed_at: new Date().toISOString()
-      })
-      .eq('id', applicationId)
+    // Upsert: один голос на (заявка × админ), можно изменить
+    const { error: voteError } = await supabase
+      .from('admin_votes')
+      .upsert(
+        { application_id: applicationId, admin_id: adminId, vote, voted_at: new Date().toISOString() },
+        { onConflict: 'application_id,admin_id' }
+      )
 
-    if (updateError) {
-      logger.error('Error updating application status:', updateError)
-      setOperationMessage('Ошибка при обновлении статуса заявки', 'error')
+    if (voteError) {
+      logger.error('Error casting vote:', voteError)
+      setOperationMessage('Ошибка при голосовании', 'error')
       return
     }
 
-    // Reload applications
     await loadApplications()
-    setOperationMessage('Статус заявки обновлён', 'success')
-    logger.log('Application status updated:', applicationId, newStatus)
+    setOperationMessage(vote ? 'Голос ЗА засчитан' : 'Голос ПРОТИВ засчитан', 'success')
 
   } catch (err) {
-    logger.error('Error in updateApplicationStatus:', err)
-    setOperationMessage('Произошла ошибка при обновлении статуса заявки', 'error')
+    logger.error('Error in castVote:', err)
+    setOperationMessage('Произошла ошибка при голосовании', 'error')
+  } finally {
+    isUpdating.value = null
+  }
+}
+
+async function removeVote(applicationId: string) {
+  try {
+    isUpdating.value = applicationId
+    const adminId = authStore.user?.id
+    if (!adminId) return
+
+    const { error: deleteError } = await supabase
+      .from('admin_votes')
+      .delete()
+      .eq('application_id', applicationId)
+      .eq('admin_id', adminId)
+
+    if (deleteError) {
+      logger.error('Error removing vote:', deleteError)
+      setOperationMessage('Ошибка при отзыве голоса', 'error')
+      return
+    }
+
+    await loadApplications()
+    setOperationMessage('Голос отозван', 'success')
+
+  } catch (err) {
+    logger.error('Error in removeVote:', err)
+    setOperationMessage('Произошла ошибка при отзыве голоса', 'error')
   } finally {
     isUpdating.value = null
   }
@@ -897,23 +940,65 @@ onMounted(() => {
   transform: translateY(-2px);
 }
 
-.no-permission-warning {
-  padding: 1rem;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.3);
-  border-radius: 8px;
-  color: #fbbf24;
-  font-size: 0.9rem;
+.voting-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.vote-tally {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  padding: 0.6rem 1rem;
+  background: rgba(97, 137, 108, 0.08);
+  border: 1px solid rgba(97, 137, 108, 0.2);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  flex-wrap: wrap;
 }
 
-.warning-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  flex-shrink: 0;
+.vote-result {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: rgba(97, 137, 108, 0.05);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.vote-result-label,
+.tally-label {
+  color: var(--sage);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tally-for {
+  color: #86efac;
+  font-weight: 600;
+}
+
+.tally-against {
+  color: #f87171;
+  font-weight: 600;
+}
+
+.tally-sep {
+  color: var(--sage);
+}
+
+.tally-total {
+  color: var(--sage);
+  font-size: 0.8rem;
+  margin-left: auto;
+}
+
+.action-btn.vote-active {
+  box-shadow: 0 0 0 2px currentColor;
+  opacity: 1;
 }
 
 .payment-actions {

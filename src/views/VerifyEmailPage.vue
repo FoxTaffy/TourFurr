@@ -206,19 +206,12 @@ async function handleVerified() {
 
 async function handleResend() {
   try {
-    // Invalidate old codes first
-    await invalidateOldCodes(email.value)
+    await invalidateOldCodes(email.value) // no-op, для совместимости
 
     const code = generateVerificationCode()
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
 
-    // DB insert and email send in parallel
-    const [, emailResult] = await Promise.all([
-      supabase
-        .from('email_verification_codes')
-        .insert({ email: email.value.toLowerCase(), code, expires_at: expiresAt.toISOString() }),
-      sendVerificationEmail(email.value, code)
-    ])
+    // Отправляем через Edge Function (таблица кодов больше не используется)
+    const emailResult = await sendVerificationEmail(email.value, code)
 
     if (!emailResult.success) {
       emailNotSent.value = true

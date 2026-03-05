@@ -96,101 +96,13 @@ router.beforeEach(async (to, _from, next) => {
 
   // Check guest routes
   if (to.meta.requiresGuest && isAuthenticated) {
-    // Before bouncing to Dashboard, verify that the user's email is confirmed.
-    // If NOT verified — sign out silently and let the user stay on /auth
-    // so they can re-register or voluntarily go to verify-email.
-    // We do NOT force-redirect unverified users to VerifyEmail from guest routes:
-    // that creates a confusing loop where just opening /auth lands you on VerifyEmail.
-    try {
-      const storedUserRaw = safeStorage.getItem('current_user')
-      if (storedUserRaw) {
-        let storedUser: any = null
-        try { storedUser = JSON.parse(storedUserRaw) } catch { /* malformed, ignore */ }
-        if (storedUser && !storedUser.emailVerified) {
-          // Unverified session on a guest route → sign out and let them through
-          safeStorage.removeItem('auth_token')
-          safeStorage.removeItem('current_user')
-          await supabase.auth.signOut()
-          next()
-          return
-        }
-      } else {
-        // No cached user — fetch from Supabase to check email_verified
-        const { data: { user: supaUser } } = await supabase.auth.getUser()
-        if (supaUser) {
-          const { data: dbUser } = await supabase
-            .from('users')
-            .select('email, email_verified')
-            .eq('id', supaUser.id)
-            .single()
-          if (dbUser && !dbUser.email_verified) {
-            // Unverified session → sign out and let them through to /auth
-            safeStorage.removeItem('auth_token')
-            safeStorage.removeItem('current_user')
-            await supabase.auth.signOut()
-            next()
-            return
-          }
-        }
-      }
-    } catch {
-      // On error fall through to normal Dashboard redirect
-    }
     next({ name: 'Dashboard' })
     return
   }
 
-  // Check auth routes - verify token AND email_verified status
+  // Check auth routes
   if (to.meta.requiresAuth) {
     if (!isAuthenticated) {
-      next({ name: 'Auth' })
-      return
-    }
-
-    // CRITICAL: Verify email is confirmed before allowing access to protected routes
-    try {
-      const storedUser = safeStorage.getItem('current_user')
-      if (storedUser) {
-        const userData = JSON.parse(storedUser)
-        // Check if email is verified
-        if (!userData.emailVerified) {
-          // Clear auth data and redirect to verification
-          safeStorage.removeItem('auth_token')
-          safeStorage.removeItem('current_user')
-          await supabase.auth.signOut()
-          next({
-            name: 'VerifyEmail',
-            query: { email: userData.email }
-          })
-          return
-        }
-      } else {
-        // No user data stored - check from Supabase
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          const { data: dbUser } = await supabase
-            .from('users')
-            .select('email, email_verified')
-            .eq('id', user.id)
-            .single()
-
-          if (dbUser && !dbUser.email_verified) {
-            safeStorage.removeItem('auth_token')
-            safeStorage.removeItem('current_user')
-            await supabase.auth.signOut()
-            next({
-              name: 'VerifyEmail',
-              query: { email: dbUser.email }
-            })
-            return
-          }
-        }
-      }
-    } catch (err) {
-      logger.error('Email verification check error:', err)
-      // On error, clear auth and redirect to login
-      safeStorage.removeItem('auth_token')
-      safeStorage.removeItem('current_user')
       next({ name: 'Auth' })
       return
     }
