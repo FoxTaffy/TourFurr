@@ -18,7 +18,6 @@ npm run build
 # Reload nginx + restart PM2
 echo "[4/4] Reloading nginx & PM2..."
 nginx -t && systemctl reload nginx
-pm2 restart all
 
 echo ""
 echo "=== Deploy complete! ==="

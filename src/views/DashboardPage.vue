@@ -359,7 +359,7 @@
             <div class="location-info">
               <div class="info-row">
                 <span class="info-label">Регион</span>
-                <span class="info-value">{{ approvedInfo.location }}</span>
+                <span class="info-value">{{ approvedInfo.location || 'Будет объявлено позже' }}</span>
               </div>
             </div>
 
