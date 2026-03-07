@@ -9,7 +9,10 @@
             Мест для участия: <strong>155</strong>. <br><br>
             Заполни анкету и присоединяйся к нам!
           </p>
-          <a href="/auth" class="cta-button">
+          <a v-if="authStore.isAuthenticated" href="/dashboard" class="cta-button">
+            Личный кабинет
+          </a>
+          <a v-else href="/auth" class="cta-button">
             Зарегистрироваться
           </a>
         </div>
@@ -18,8 +21,14 @@
   </template>
   
   <script>
+  import { useAuthStore } from '@/stores/auth'
+
   export default {
     name: 'Registration',
+    setup() {
+      const authStore = useAuthStore()
+      return { authStore }
+    },
     methods: {
       scrollTo(id) {
         const element = document.getElementById(id)

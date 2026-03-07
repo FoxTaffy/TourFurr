@@ -483,105 +483,47 @@ export const useAuthStore = defineStore('auth', () => {
         logger.warn('Could not pre-clean expired account:', cleanupError)
       }
 
-      // 1. Register user with Supabase Auth (disable automatic email)
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: cleanEmail,
-        password: data.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/confirm`,
-          data: {
-            // full_name → отображается как "Display name" в Supabase Auth dashboard
-            full_name: cleanNickname,
-            nickname: cleanNickname,
-            phone: sanitizeInput(data.phone),
-            telegram: sanitizeInput(data.telegram)
-          },
-          // IMPORTANT: Disable automatic email confirmation from Supabase
-          // We handle email verification with our own 6-digit codes
-          // This prevents rate limit issues from sending 2 emails
+      // 1. Create user via Edge Function (uses admin.createUser with email_confirm: false)
+      // This avoids Supabase trying to send its own confirmation email (rate limited to 2/hr).
+      // The Edge Function also calls register_user RPC to create the profile.
+      const { data: createData, error: createFnError } = await supabase.functions.invoke('create-user', {
+        body: {
+          email: cleanEmail,
+          password: data.password,
+          nickname: cleanNickname,
+          phone: sanitizeInput(data.phone, 20),
+          telegram: sanitizeInput(data.telegram, 100),
+          avatar_url: avatarUrl,
+          description: data.description ? sanitizeInput(data.description, 500) : null,
+          agree_rules: data.agreeRules,
+          agree_privacy: data.agreePrivacy,
+          bringing_pet: data.bringingPet,
+          pet_description: data.petDescription ? sanitizeInput(data.petDescription, 300) : null,
         }
       })
 
-      if (authError) {
-        logger.error('Auth signup error:', authError)
-        if (authError.message.includes('already registered')) {
-          error.value = 'Этот email уже зарегистрирован'
-        } else {
-          error.value = authError.message
-        }
-        return { success: false, error: error.value }
-      }
+      if (createFnError || !createData?.success) {
+        const errMsg = createData?.error || createFnError?.message || 'Ошибка регистрации'
+        logger.error('create-user error:', errMsg, createFnError)
 
-      if (!authData.user) {
-        error.value = 'Ошибка создания пользователя'
-        return { success: false, error: error.value }
-      }
-
-      // Detect fake signUp success: when email already exists in auth.users,
-      // Supabase returns a user with empty identities instead of an error
-      // (anti-enumeration behavior when email confirmation is enabled)
-      if (!authData.user.identities || authData.user.identities.length === 0) {
-        // Edge case: cleanup ran but auth.users entry still persisted.
-        // Inform the user they can try again in a moment or use login/reset.
-        error.value = 'Этот email уже зарегистрирован. Если вы недавно пытались зарегистрироваться и не подтвердили email — подождите несколько минут и попробуйте ещё раз. Иначе войдите или восстановите пароль.'
-        return { success: false, error: error.value }
-      }
-
-      // 2. Create user profile in users table via RPC (SECURITY DEFINER)
-      // Using RPC bypasses RLS completely — the user is not authenticated yet
-      // (signUp with email confirmation does not create a session), so direct
-      // INSERT/SELECT on the users table would be blocked by RLS (403).
-      const { data: rpcResult, error: rpcError } = await supabase
-        .rpc('register_user', {
-          p_id: authData.user.id,
-          p_email: cleanEmail,
-          p_nickname: cleanNickname,
-          p_phone: sanitizeInput(data.phone, 20),
-          p_telegram: sanitizeInput(data.telegram, 100),
-          p_avatar_url: avatarUrl,
-          p_description: data.description ? sanitizeInput(data.description, 500) : null,
-          p_agree_rules: data.agreeRules,
-          p_agree_privacy: data.agreePrivacy,
-          p_bringing_pet: data.bringingPet,
-          p_pet_description: data.petDescription ? sanitizeInput(data.petDescription, 300) : null
-        })
-
-      // Check for RPC-level error (network, function not found, etc.)
-      const dbError = rpcError || (rpcResult && !rpcResult.success ? {
-        code: rpcResult.error === 'nickname_taken' || rpcResult.error === 'email_taken' || rpcResult.error === 'duplicate' ? '23505' : 'UNKNOWN',
-        message: rpcResult.error
-      } : null)
-
-      if (dbError) {
-        logger.error('Database error:', dbError)
-
-        // CRITICAL CLEANUP: If users record creation fails, Supabase Auth account is orphaned
-        // admin.deleteUser() requires Service Role Key (only available in Edge Functions)
-        // Orphaned accounts will be cleaned up by cleanup-unverified-accounts cron job
-        // This runs every 15 minutes and deletes unverified accounts without users record
-        logger.warn('Orphaned auth account created (will be cleaned by cron):', authData.user.id)
-
-        // Security: Cleanup uploaded avatar if DB insert failed
+        // Cleanup uploaded avatar if user creation failed
         if (avatarUrl) {
           try {
             const fileName = avatarUrl.split('/').pop()
             if (fileName) {
               await supabase.storage.from('avatars').remove([fileName])
-              logger.log('Cleaned up orphaned avatar file:', fileName)
             }
-          } catch (cleanupError) {
-            logger.error('Failed to cleanup avatar:', cleanupError)
+          } catch (cleanupErr) {
+            logger.error('Failed to cleanup avatar:', cleanupErr)
           }
         }
 
-        if (dbError.code === '23505' || dbError.message === 'nickname_taken' || dbError.message === 'email_taken' || dbError.message === 'duplicate') {
-          if (dbError.message.includes('nickname') || dbError.message === 'nickname_taken') {
-            error.value = 'Этот никнейм уже занят'
-          } else {
-            error.value = 'Пользователь уже существует'
-          }
+        if (errMsg === 'already_registered') {
+          error.value = 'Этот email уже зарегистрирован. Если вы недавно пытались зарегистрироваться и не подтвердили email — подождите несколько минут или восстановите пароль.'
+        } else if (errMsg === 'nickname_taken') {
+          error.value = 'Этот никнейм уже занят'
         } else {
-          error.value = dbError.message
+          error.value = errMsg
         }
         return { success: false, error: error.value }
       }

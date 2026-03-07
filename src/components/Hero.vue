@@ -4,7 +4,10 @@
         <h1>TourFurr</h1>
         <p class="subtitle">Лесной кемп в сердце природы</p>
         <p class="dates">6–9 августа 2026</p>
-        <a href="#registration" @click.prevent="scrollTo('registration')" class="cta-button">
+        <a v-if="authStore.isAuthenticated" href="/dashboard" class="cta-button">
+          Личный кабинет
+        </a>
+        <a v-else href="#registration" @click.prevent="scrollTo('registration')" class="cta-button">
           Зарегистрироваться
         </a>
       </div>
@@ -12,8 +15,14 @@
   </template>
   
   <script>
+  import { useAuthStore } from '@/stores/auth'
+
   export default {
     name: 'Hero',
+    setup() {
+      const authStore = useAuthStore()
+      return { authStore }
+    },
     methods: {
       scrollTo(id) {
         const element = document.getElementById(id)

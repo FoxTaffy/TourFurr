@@ -188,7 +188,7 @@
   }
 
   .logo-img {
-      height: 40px;
+      height: 56px;
       width: auto;
       object-fit: contain;
       transition: transform 0.3s ease;
@@ -196,7 +196,7 @@
 
   .logo-text {
       font-family: 'Merriweather', serif;
-      font-size: 1.8rem;
+      font-size: 2.2rem;
       font-weight: 700;
       color: var(--fire-glow);
       letter-spacing: 0.05em;
@@ -314,11 +314,11 @@
       }
 
       .logo-text {
-          font-size: 1.5rem;
+          font-size: 1.8rem;
       }
 
       .logo-img {
-          height: 34px;
+          height: 46px;
       }
 
       /* Show mobile menu toggle */
@@ -441,11 +441,11 @@
 
   @media (max-width: 480px) {
       .logo-text {
-          font-size: 1.3rem;
+          font-size: 1.6rem;
       }
 
       .logo-img {
-          height: 30px;
+          height: 40px;
       }
 
       .nav-links {
