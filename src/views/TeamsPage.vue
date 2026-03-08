@@ -39,7 +39,7 @@
               <div class="banner-text">
                 <span class="banner-tag">{{ HOUSE_LORE[team.slug]?.isOrder ? 'Орден' : 'Великий Дом' }}</span>
                 <h2 class="banner-name">{{ team.name }}</h2>
-                <p class="banner-motto">{{ team.description }}</p>
+
               </div>
               <div class="banner-count">
                 <span class="count-num">{{ getMemberCount(team.id) }}</span>
@@ -101,7 +101,7 @@
               </div>
               <div v-for="member in members[team.id]" :key="member.id" class="member-row">
                 <div class="member-avatar">
-                  <img v-if="member.avatar_url" :src="member.avatar_url" :alt="member.nickname" />
+                  <img v-if="member.avatar_url" :src="member.avatar_url" :alt="member.nickname" @error="($event.target as HTMLImageElement).style.display='none'" />
                   <span v-else class="member-initial">{{ member.nickname?.[0]?.toUpperCase() }}</span>
                 </div>
                 <span class="member-name">{{ member.nickname }}</span>
@@ -138,7 +138,7 @@ const CREST_MAP: Record<string, string> = {
   tyrell: '/images/crests/tyrell.png',
   baratheon: '/images/crests/baratheon.png',
   martell: '/images/crests/martell.png',
-  'nights-watch': '/images/crests/nights-watch.png'
+  'nights-watch': '/images/crests/the-wall-bg.png'
 }
 
 const teamsStore = useTeamsStore()
@@ -172,6 +172,9 @@ onMounted(async () => {
     await teamsStore.fetchTeamMembers(team.id)
   }
   members.value = { ...teamsStore.members }
+  for (const team of teams.value) {
+    expandedLore.value[team.id] = true
+  }
   isLoading.value = false
 })
 </script>

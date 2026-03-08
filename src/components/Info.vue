@@ -24,6 +24,9 @@
             <div class="info-label">{{ card.label }}</div>
             <div class="info-value">{{ card.value }}</div>
             <div class="info-detail">{{ card.detail }}</div>
+            <div v-if="card.id === 3 && approvedCount !== null" class="info-approved">
+              {{ approvedCount }} заявок одобрено
+            </div>
           </div>
         </div>
   
@@ -47,44 +50,50 @@
     </section>
   </template>
   
-  <script>
-  export default {
-    name: 'Info',
-    data() {
-      return {
-        infoCards: [
-          {
-            id: 1,
-            icon: 'fas fa-calendar-days',
-            label: 'Даты события',
-            value: 'c 6 по 9 августа',
-            detail: '2026 года'
-          },
-          {
-            id: 2,
-            icon: 'fas fa-ruble-sign',
-            label: 'Стоимость участия',
-            value: '9900',
-            detail: 'Полная оплата до 30 мая'
-          },
-          {
-            id: 3,
-            icon: 'fas fa-users',
-            label: 'Количество мест',
-            value: '155',
-            detail: 'Участников'
-          }
-        ],
-        includedItems: [
-          { id: 1, text: 'Место на территории лагеря (приезжай со своей палаткой)' },
-          { id: 2, text: 'Доступ ко всем зонам и активностям' },
-          { id: 3, text: 'Участие в ролевых играх и мероприятиях' },
-          { id: 4, text: 'Костровые посиделки и вечерние программы' },
-          { id: 5, text: 'Печатная карта территории' }
-        ]
-      }
+  <script setup lang="ts">
+  import { ref, onMounted } from 'vue'
+  import { supabase } from '../services/supabase'
+
+  const approvedCount = ref<number | null>(null)
+
+  onMounted(async () => {
+    const { data } = await supabase.rpc('get_approved_count')
+    if (data !== null && data !== undefined) {
+      approvedCount.value = data
     }
-  }
+  })
+
+  const infoCards = [
+    {
+      id: 1,
+      icon: 'fas fa-calendar-days',
+      label: 'Даты события',
+      value: 'c 6 по 9 августа',
+      detail: '2026 года'
+    },
+    {
+      id: 2,
+      icon: 'fas fa-ruble-sign',
+      label: 'Стоимость участия',
+      value: '9900',
+      detail: 'Полная оплата до 30 мая'
+    },
+    {
+      id: 3,
+      icon: 'fas fa-users',
+      label: 'Количество мест',
+      value: '155',
+      detail: 'Участников'
+    }
+  ]
+
+  const includedItems = [
+    { id: 1, text: 'Место на территории лагеря (приезжай со своей палаткой)' },
+    { id: 2, text: 'Доступ ко всем зонам и активностям' },
+    { id: 3, text: 'Участие в ролевых играх и мероприятиях' },
+    { id: 4, text: 'Костровые посиделки и вечерние программы' },
+    { id: 5, text: 'Печатная карта территории' }
+  ]
   </script>
   
   <style scoped>
@@ -155,6 +164,13 @@
   .info-detail {
       color: var(--sage);
       font-size: 0.95rem;
+  }
+  
+  .info-approved {
+      margin-top: 0.5rem;
+      color: var(--fire-glow);
+      font-size: 0.9rem;
+      opacity: 0.85;
   }
   
   .included-card {

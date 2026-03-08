@@ -8,6 +8,7 @@
       <Hero />
       <Event />
       <Info />
+      <ParticipantsList />
       <Rules />
       <FAQ />
       <Registration />
@@ -22,6 +23,7 @@ import Header from '../components/Header.vue'
 import Hero from '../components/Hero.vue'
 import Event from '../components/Event.vue'
 import Info from '../components/Info.vue'
+import ParticipantsList from '../components/ParticipantsList.vue'
 import Rules from '../components/Rules.vue'
 import FAQ from '../components/FAQ.vue'
 import Registration from '../components/Registration.vue'

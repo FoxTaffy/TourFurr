@@ -65,7 +65,7 @@ const FALLBACK_TEAMS: Team[] = [
     name: 'Ночной Дозор',
     slug: 'nights-watch',
     description: 'Девиза нет. Есть клятва — но это на другой раз. И вообще мы отдыхаем.',
-    crest_url: '/images/crests/nights-watch.png',
+    crest_url: '/images/crests/the-wall-bg.png',
     color: '#555565',
     created_at: ''
   }
@@ -218,10 +218,7 @@ export const useTeamsStore = defineStore('teams', () => {
       }
 
       if (data && data.length > 0) {
-        // Ensure any FALLBACK teams not in DB (e.g. nights-watch) are appended
-        const dbSlugs = new Set(data.map((t: Team) => t.slug))
-        const missing = FALLBACK_TEAMS.filter(t => !dbSlugs.has(t.slug))
-        teams.value = [...data, ...missing]
+        teams.value = data
         usingFallback.value = false
       } else {
         teams.value = FALLBACK_TEAMS

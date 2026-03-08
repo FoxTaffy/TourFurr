@@ -46,7 +46,8 @@ INSERT INTO teams (name, slug, description, crest_url, color) VALUES
     ('Lannister', 'lannister', 'Hear Me Roar! The golden lions of Casterly Rock, wielding power and wealth.', '/images/crests/lannister.png', '#C8A951'),
     ('Tyrell', 'tyrell', 'Growing Strong. The golden roses of Highgarden, masters of diplomacy and abundance.', '/images/crests/tyrell.png', '#2D6A4F'),
     ('Baratheon', 'baratheon', 'Ours is the Fury. The mighty stags of Storm''s End, forged in battle.', '/images/crests/baratheon.png', '#FFD700'),
-    ('Martell', 'martell', 'Unbowed, Unbent, Unbroken. The sun spears of Dorne, fierce and unyielding.', '/images/crests/martell.png', '#E07A1E')
+    ('Martell', 'martell', 'Unbowed, Unbent, Unbroken. The sun spears of Dorne, fierce and unyielding.', '/images/crests/martell.png', '#E07A1E'),
+    ('Ночной Дозор', 'nights-watch', 'Девиза нет. Есть клятва — но это на другой раз. И вообще мы отдыхаем.', '/images/crests/the-wall-bg.png', '#555565')
 ON CONFLICT (slug) DO NOTHING;
 
 -- Comments

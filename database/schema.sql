@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     telegram VARCHAR(100) NOT NULL,
     avatar_url TEXT,
     description TEXT,
-    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'paid', 'deferred')),
     email_subscribed BOOLEAN DEFAULT false,
     agree_rules BOOLEAN DEFAULT false,
     agree_privacy BOOLEAN DEFAULT false,

@@ -366,7 +366,7 @@
               <div v-for="member in getHouseMembers(team.id)" :key="member.id" class="house-member">
                 <div class="member-info">
                   <div class="member-avatar-sm">
-                    <img v-if="member.avatar_url" :src="member.avatar_url" alt="" />
+                    <img v-if="member.avatar_url" :src="member.avatar_url" alt="" @error="($event.target as HTMLImageElement).style.display='none'" />
                     <span v-else>{{ member.nickname?.[0]?.toUpperCase() }}</span>
                   </div>
                   <span class="member-name">{{ member.nickname }}</span>
