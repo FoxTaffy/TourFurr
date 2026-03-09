@@ -14,6 +14,7 @@ import {
 import { logger } from '@/utils/logger'
 import { safeStorage } from '@/utils/safeStorage'
 import { DISABLE_EMAIL } from '@/utils/env'
+import { getIsAdminFromToken } from '@/utils/jwt'
 
 // Security: Allowed file types for avatar
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -147,6 +148,16 @@ function mapDbUserToUser(dbUser: any): User {
     petDescription: dbUser.pet_description,
     teamId: dbUser.team_id ?? null
   }
+}
+
+/**
+ * Override the `isAdmin` field on a mapped User with the value from the signed
+ * JWT claim.  Centralises the pattern used in login, fetchUser, and
+ * initUserFromSession so all three stay consistent.
+ */
+function applyAdminClaimToUser(mappedUser: User, accessToken: string): User {
+  mappedUser.isAdmin = getIsAdminFromToken(accessToken)
+  return mappedUser
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -343,6 +354,10 @@ export const useAuthStore = defineStore('auth', () => {
         error.value = 'Ошибка авторизации: сессия не создана. Попробуйте снова.'
         return { success: false, error: error.value }
       }
+
+      // Override isAdmin with the signed JWT claim rather than trusting the
+      // plain DB response (which can be intercepted and modified by a proxy).
+      applyAdminClaimToUser(mappedUser, accessToken)
 
       token.value = accessToken
       user.value = mappedUser
@@ -642,6 +657,11 @@ export const useAuthStore = defineStore('auth', () => {
 
         if (!dbError && data) {
           const freshUser = mapDbUserToUser(data)
+          // Read admin status from the signed JWT claim rather than the plain
+          // DB response that a proxy could intercept and modify.
+          if (token.value) {
+            applyAdminClaimToUser(freshUser, token.value)
+          }
           user.value = freshUser
           safeStorage.setItem('current_user', JSON.stringify(freshUser))
         }
@@ -688,6 +708,8 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       const mappedUser = mapDbUserToUser(data)
+      // Read admin status from the signed JWT claim (see fetchUser for reasoning)
+      applyAdminClaimToUser(mappedUser, session.access_token)
       user.value = mappedUser
       safeStorage.setItem('current_user', JSON.stringify(mappedUser))
       logger.log('User session restored from Supabase session:', mappedUser.email)

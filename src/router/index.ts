@@ -3,6 +3,7 @@ import type { RouteRecordRaw } from 'vue-router'
 import { supabase } from '../services/supabase'
 import { safeStorage } from '../utils/safeStorage'
 import { logger } from '../utils/logger'
+import { getIsAdminFromToken } from '../utils/jwt'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -143,28 +144,26 @@ router.beforeEach(async (to, _from, next) => {
   // Check admin routes - CRITICAL SECURITY CHECK
   if (to.meta.requiresAdmin) {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
 
-      if (!user) {
+      if (!session?.access_token) {
         next({ name: 'Auth' })
         return
       }
 
-      // Check if user is admin in database
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('is_admin')
-        .eq('id', user.id)
-        .single()
-
-      if (error || !userData || !userData.is_admin) {
-        // User is not admin - redirect to dashboard with warning
+      // Read is_admin from the signed JWT claim instead of making a separate
+      // DB request.  A plain REST response can be intercepted and modified by
+      // a proxy, but the JWT payload is HMAC-signed by the server — altering
+      // it invalidates the signature and all subsequent API calls would be
+      // rejected by Supabase.  Requires the custom_access_token_hook to be
+      // deployed (see database/custom_access_token_hook.sql).
+      if (!getIsAdminFromToken(session.access_token)) {
         logger.warn('Access denied: User is not an admin')
         next({ name: 'Dashboard' })
         return
       }
 
-      // User is admin - allow access
+      // User is admin — allow access
       next()
     } catch (err) {
       logger.error('Admin check error:', err)

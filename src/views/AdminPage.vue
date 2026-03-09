@@ -566,6 +566,7 @@ import TeamBadge from '../components/TeamBadge.vue'
 import logoImg from '../assets/logo.png'
 import { safeStorage } from '../utils/safeStorage'
 import logger from '../utils/logger'
+import { getIsAdminFromToken } from '../utils/jwt'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -1042,7 +1043,15 @@ async function checkEmailService() {
 }
 
 async function checkAdminAndLoad() {
-  if (!authStore.user?.isAdmin) {
+  // Verify admin status from the signed JWT claim rather than trusting the
+  // cached user object in safeStorage, which reflects a DB response that
+  // could have been intercepted and modified by a proxy.
+  const { data: { session } } = await supabase.auth.getSession()
+  const isAdmin = session?.access_token
+    ? getIsAdminFromToken(session.access_token)
+    : false
+
+  if (!isAdmin) {
     showToast('У вас нет прав доступа к админ-панели', 'error')
     router.push('/dashboard')
     return
