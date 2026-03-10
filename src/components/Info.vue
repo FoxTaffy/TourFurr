@@ -25,7 +25,7 @@
             <div class="info-value">{{ card.value }}</div>
             <div class="info-detail">{{ card.detail }}</div>
             <div v-if="card.id === 3 && approvedCount !== null" class="info-approved">
-              {{ approvedCount }} заявок одобрено
+              {{ 155 - approvedCount }} мест осталось
             </div>
           </div>
         </div>
@@ -57,9 +57,12 @@
   const approvedCount = ref<number | null>(null)
 
   onMounted(async () => {
-    const { data } = await supabase.rpc('get_approved_count')
-    if (data !== null && data !== undefined) {
-      approvedCount.value = data
+    const { count } = await supabase
+      .from('users')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['approved', 'paid'])
+    if (count !== null && count !== undefined) {
+      approvedCount.value = count
     }
   })
 
