@@ -1969,6 +1969,26 @@ function handleLogout() {
 }
 
 /* Responsive */
+@media (max-width: 1280px) {
+  .dashboard-page {
+    height: auto;
+    overflow: auto;
+  }
+  .dashboard-main {
+    height: auto;
+    overflow: auto;
+    padding: 1.5rem;
+    padding-top: 5.5rem;
+  }
+  .dashboard-grid {
+    grid-template-columns: 250px 1fr 1fr;
+    height: auto;
+  }
+  .profile-card {
+    overflow-y: visible;
+  }
+}
+
 @media (max-width: 1200px) {
   .dashboard-grid {
     grid-template-columns: 250px 1fr 1fr;
@@ -1996,6 +2016,9 @@ function handleLogout() {
       "telegram telegram";
     height: auto;
     gap: 1rem;
+  }
+  .profile-card {
+    overflow-y: visible;
   }
 }
 

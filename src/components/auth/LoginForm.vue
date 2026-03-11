@@ -322,7 +322,7 @@ import { supabase } from '../../services/supabase'
 import { verifyTurnstileToken } from '../../utils/turnstile'
 import YandexSmartCaptcha from '../common/YandexSmartCaptcha.vue'
 import * as yup from 'yup'
-import { createPasswordResetCode, sendPasswordResetEmail, invalidateOldResetCodes } from '../../utils/passwordReset'
+import { createPasswordResetCode, invalidateOldResetCodes } from '../../utils/passwordReset'
 import { logger } from '../../utils/logger'
 
 const router = useRouter()
@@ -521,19 +521,7 @@ async function handleResetSubmit() {
       // Create password reset code
       const result = await createPasswordResetCode(cleanEmail)
 
-      if (result.success && result.code) {
-        // Send password reset email
-        const sendResult = await sendPasswordResetEmail(cleanEmail, result.code)
-
-        if (!sendResult.success) {
-          // Show error after a delay so timing stays consistent
-          setTimeout(() => {
-            resetSubmitted.value = false
-            resetError.value = sendResult.error || 'Ошибка отправки письма'
-          }, 1500)
-          return
-        }
-
+      if (result.success) {
         // Success — switch to code input
         setTimeout(() => {
           resetSubmitted.value = false
@@ -718,15 +706,7 @@ async function handleResendCode() {
     // Create new password reset code
     const result = await createPasswordResetCode(resetEmail.value)
 
-    if (result.success && result.code) {
-      // Send new code via email
-      const sendResult = await sendPasswordResetEmail(resetEmail.value, result.code)
-
-      if (!sendResult.success) {
-        codeError.value = sendResult.error || 'Ошибка отправки письма'
-        return
-      }
-
+    if (result.success) {
       // Clear code inputs and restart timer
       resetCode.value = ['', '', '', '', '', '']
       codeInputRefs.value[0]?.focus()
