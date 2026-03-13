@@ -43,7 +43,7 @@
           </div>
 
           <template v-if="!isEditing">
-            <h2 class="profile-name"><TeamBadge :teamId="user?.teamId" />{{ user?.nickname }}</h2>
+            <h2 class="profile-name" :class="{ 'sponsor-name': user?.isSponsor }"><TeamBadge :teamId="user?.teamId" />{{ user?.nickname }}</h2>
 
             <div class="status-badge" :class="user?.status">
               {{ statusLabels[user?.status || 'pending'] }}
@@ -96,6 +96,19 @@
               </svg>
               Админ-панель
             </button>
+
+            <!-- Support Us Button -->
+            <a
+              :href="SUPPORT_URL"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="support-btn"
+            >
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+              </svg>
+              Поддержать нас
+            </a>
 
             <!-- Mobile-only navigation buttons -->
             <div class="mobile-nav-actions">
@@ -440,6 +453,9 @@ const DEFAULT_EVENT_PRICE = 9900
 
 // Fallback payment URL — used when payment_url is not set in the DB
 const PAYMENT_URL = 'https://www.tinkoff.ru/rm/r_siiTwKksNK.AxwPmVgKGC/GwrnL13713'
+
+// Donation / support link (T-Bank / Sberbank C2C QR)
+const SUPPORT_URL = 'https://t.tb.ru/c2c-qr-choose-bank?requisiteNumber=+79005742596&bankCode=100000000004'
 
 const user = computed(() => authStore.user)
 
@@ -883,6 +899,12 @@ function handleLogout() {
   font-size: 1.5rem;
   color: var(--cream);
   margin-bottom: 1rem;
+}
+
+.sponsor-name {
+  color: #fbbf24;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
 }
 
 .status-badge {
@@ -2170,6 +2192,7 @@ function handleLogout() {
   .edit-btn,
   .teams-profile-btn,
   .admin-btn,
+  .support-btn,
   .home-mobile-btn,
   .logout-mobile-btn,
   .save-btn,
@@ -2317,6 +2340,7 @@ function handleLogout() {
   .edit-btn,
   .teams-profile-btn,
   .admin-btn,
+  .support-btn,
   .save-btn,
   .cancel-btn,
   .schedule-card-btn,
@@ -2620,6 +2644,38 @@ function handleLogout() {
 }
 
 .admin-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.support-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  margin-top: 0.75rem;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(245, 158, 11, 0.12));
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 12px;
+  color: #fbbf24;
+  font-family: 'Lora', serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.support-btn:hover {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.22), rgba(245, 158, 11, 0.22));
+  border-color: rgba(251, 191, 36, 0.65);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(251, 191, 36, 0.3);
+}
+
+.support-btn svg {
   width: 18px;
   height: 18px;
 }

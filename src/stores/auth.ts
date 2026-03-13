@@ -101,6 +101,7 @@ export interface User {
   status: 'pending' | 'approved' | 'paid' | 'deferred' | 'rejected'
   createdAt: string
   isAdmin: boolean
+  isSponsor: boolean
   bringingPet: boolean
   petDescription?: string
   teamId?: string | null
@@ -144,6 +145,7 @@ function mapDbUserToUser(dbUser: any): User {
     status: dbUser.status,
     createdAt: dbUser.created_at,
     isAdmin: dbUser.is_admin || false,
+    isSponsor: dbUser.is_sponsor || false,
     bringingPet: dbUser.bringing_pet || false,
     petDescription: dbUser.pet_description,
     teamId: dbUser.team_id ?? null
