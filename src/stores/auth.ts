@@ -374,6 +374,15 @@ export const useAuthStore = defineStore('auth', () => {
         return { success: false, error: error.value }
       }
 
+      // If the user logged in successfully with a password but email_verified is still false
+      // (OTP email was never confirmed), mark it verified now — the password proves ownership.
+      if (!userData.email_verified) {
+        supabase.rpc('mark_email_verified', { p_user_id: authData.data.user.id }).then(({ error: e }) => {
+          if (e) logger.error('mark_email_verified (login) error (non-fatal):', e)
+        })
+        mappedUser.email_verified = true
+      }
+
       // Override isAdmin with the signed JWT claim rather than trusting the
       // plain DB response (which can be intercepted and modified by a proxy).
       applyAdminClaimToUser(mappedUser, accessToken)
@@ -565,21 +574,15 @@ export const useAuthStore = defineStore('auth', () => {
       // Security: Reset rate limit on successful registration
       rateLimiter.reset(cleanEmail)
 
-      const verificationResult = await issueEmailVerificationCode(cleanEmail)
-      const emailSent = verificationResult.emailSent
-      const emailError = verificationResult.emailError
-      const verificationCode = verificationResult.verificationCode
-
-      // Don't auto-login - user needs to verify email first
+      // User is immediately able to log in (email_confirm: true in create-user).
+      // email_verified in public.users is set to true by the edge function or on first login.
       return {
         success: true,
         email: cleanEmail,
-        emailSent,
-        emailError,
-        verificationCode,
-        message: emailSent
-          ? 'Регистрация успешна! На вашу почту отправлен код подтверждения.'
-          : `Регистрация успешна, но не удалось отправить email: ${emailError}`
+        emailSent: false,
+        emailError: '',
+        verificationCode: '',
+        message: 'Регистрация успешна! Теперь вы можете войти в свой аккаунт.'
       }
     } catch (err: any) {
       logger.error('Registration error:', err)

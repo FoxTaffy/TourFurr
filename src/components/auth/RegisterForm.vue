@@ -832,7 +832,6 @@ import { useRouter } from 'vue-router'
 import { vMaska } from 'maska/vue'
 import { useAuthStore } from '../../stores/auth'
 import { verifyTurnstileToken } from '../../utils/turnstile'
-import { checkGracePeriodStatus } from '../../utils/gracePeriod'
 import TelegramInput from './TelegramInput.vue'
 import YandexSmartCaptcha from '../common/YandexSmartCaptcha.vue'
 import * as yup from 'yup'
@@ -1014,21 +1013,6 @@ async function checkEmail() {
   errors.email = ''
   const isUnique = await authStore.checkEmailUnique(normalizedEmail)
   if (!isUnique) {
-    // Check if existing account is unverified (still within grace period)
-    const status = await checkGracePeriodStatus(normalizedEmail)
-    if (status.exists && !status.isExpired && !status.isVerified) {
-      // Resend verification code automatically
-      const { sendVerificationEmail } = await import('../../utils/emailVerification')
-      sendVerificationEmail(normalizedEmail).catch(() => {})
-
-      toast.info('Этот аккаунт ожидает подтверждения. Мы отправили код повторно.', 6000)
-
-      router.push({
-        path: '/auth/verify-email',
-        query: { email: normalizedEmail, emailSent: 'true' }
-      })
-      return
-    }
     errors.email = 'Этот email уже зарегистрирован'
   }
 }
@@ -1166,25 +1150,8 @@ async function handleSubmit() {
     captchaToken.value = null
     captchaRef.value?.reset()
 
-    const email = result.email || form.email
-    const emailSent = result.emailSent
-    const emailError = result.emailError
-    const verificationCode = result.verificationCode || ''
-
-    if (verificationCode) {
-      sessionStorage.setItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.toLowerCase()}`, verificationCode)
-    }
-
-    toast.success('Регистрация прошла успешно! Проверьте почту для подтверждения.')
-
-    router.push({
-      path: '/auth/verify-email',
-      query: {
-        email,
-        emailSent: emailSent ? 'true' : 'false',
-        emailError: emailError || ''
-      }
-    })
+    toast.success('Регистрация успешна! Теперь войдите в свой аккаунт.')
+    router.push('/auth')
   } else {
     const msg = result.error || 'Ошибка регистрации'
     serverError.value = msg

@@ -130,6 +130,15 @@ Deno.serve(async (req) => {
     }
 
     console.log('User created successfully:', { userId, email })
+
+    // Mark email_verified = true immediately — SMTP is not configured, and the user
+    // proved ownership by completing the registration form with a verified password.
+    // Grace-period cleanup checks email_verified, so this prevents accidental deletion.
+    await admin
+      .from('users')
+      .update({ email_verified: true })
+      .eq('id', userId)
+
     return new Response(JSON.stringify({ success: true, userId, email }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })

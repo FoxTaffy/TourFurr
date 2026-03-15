@@ -111,12 +111,13 @@ export async function sendVerificationEmail(email: string, _code?: string): Prom
     if (error) {
       const isRateLimit = error.status === 429 ||
         error.message.toLowerCase().includes('rate limit')
-
       if (isRateLimit) {
         return { success: false, error: 'Слишком много писем. Подождите и попробуйте снова.' }
       }
-      logger.error('signInWithOtp error:', error)
-      return { success: false, error: 'Не удалось отправить письмо. Попробуйте позже.' }
+      // SMTP not configured or Supabase email service unavailable — non-fatal:
+      // user can still log in with password, and login() will auto-mark email_verified.
+      logger.error('signInWithOtp error (non-fatal, SMTP may not be configured):', error)
+      return { success: false, error: 'Не удалось отправить письмо. Вы можете войти по email и паролю.' }
     }
 
     return { success: true }
