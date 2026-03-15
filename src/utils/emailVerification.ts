@@ -99,23 +99,21 @@ export async function sendVerificationEmail(email: string, _code?: string): Prom
       return { success: true }
     }
 
-    // resend({ type: 'signup' }) resends the signup confirmation OTP for accounts
-    // created with email_confirm: false. The OTP code is verified via verifyOtp({ type: 'signup' }).
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email: email.toLowerCase(),
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/verify-email`
-      }
+    // Use the send-verification-email Edge Function which:
+    // 1. Calls admin.generateLink({ type: 'signup' }) to get a real Supabase OTP
+    //    (so verifyOtp({ type: 'signup' }) works correctly)
+    // 2. Sends the email via Resend API — no dependency on Supabase SMTP at all
+    const { data, error } = await supabase.functions.invoke('send-verification-email', {
+      body: { email: email.toLowerCase() }
     })
 
-    if (error) {
-      const isRateLimit = error.status === 429 ||
-        error.message.toLowerCase().includes('rate limit')
+    if (error || data?.error) {
+      const msg: string = data?.error || error?.message || ''
+      const isRateLimit = error?.status === 429 || msg.toLowerCase().includes('rate limit')
       if (isRateLimit) {
         return { success: false, error: 'Слишком много писем. Подождите и попробуйте снова.' }
       }
-      logger.error('resend signup OTP error:', error)
+      logger.error('send-verification-email error:', msg || error)
       return { success: false, error: 'Не удалось отправить письмо с кодом. Попробуйте снова.' }
     }
 
