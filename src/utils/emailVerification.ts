@@ -74,10 +74,10 @@ export async function verifyCode(email: string, code: string): Promise<{
 }
 
 /**
- * Отправляем письмо подтверждения через Edge Function.
- * Для dev-режима выводит код в консоль.
+ * Отправляем письмо подтверждения через Supabase Auth (resend).
+ * Supabase использует настроенный SMTP (Gmail) для отправки OTP.
  */
-export async function sendVerificationEmail(email: string, code: string): Promise<{
+export async function sendVerificationEmail(email: string, _code?: string): Promise<{
   success: boolean
   error?: string
 }> {
@@ -86,34 +86,27 @@ export async function sendVerificationEmail(email: string, code: string): Promis
       logger.log('='.repeat(60))
       logger.log('DEV: Отправка email отключена')
       logger.log('Email:', email)
-      logger.log('КОД:', code || '(Supabase отправляет OTP автоматически)')
+      logger.log('(Supabase отправляет OTP автоматически через Gmail SMTP)')
       logger.log('='.repeat(60))
       return { success: true }
     }
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-    const { data: { session } } = await supabase.auth.getSession()
-    const token = session?.access_token || supabaseAnonKey
-
-    const fetchResponse = await fetch(`${supabaseUrl}/functions/v1/send-verification-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'apikey': supabaseAnonKey
-      },
-      body: JSON.stringify({ email, code })
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email.toLowerCase(),
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/verify-email`
+      }
     })
 
-    if (!fetchResponse.ok) {
-      const data = await fetchResponse.json().catch(() => ({}))
-      const isRateLimit = fetchResponse.status === 429 ||
-        (data?.message || '').toLowerCase().includes('rate limit')
+    if (error) {
+      const isRateLimit = error.status === 429 ||
+        error.message.toLowerCase().includes('rate limit')
 
       if (isRateLimit) {
         return { success: false, error: 'Слишком много писем. Подождите и попробуйте снова.' }
       }
+      logger.error('supabase.auth.resend error:', error)
       return { success: false, error: 'Не удалось отправить письмо. Попробуйте позже.' }
     }
 

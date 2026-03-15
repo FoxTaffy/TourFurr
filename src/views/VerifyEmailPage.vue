@@ -57,7 +57,7 @@
         <h3>Время истекло</h3>
         <p>Ваш аккаунт был удален из-за отсутствия подтверждения email в течение 15 минут.</p>
         <p>Пожалуйста, зарегистрируйтесь заново.</p>
-        <button @click="router.push('/auth')" class="back-to-auth-btn">
+        <button @click="handleGiveUp()" class="back-to-auth-btn">
           Перейти к регистрации
         </button>
       </div>
@@ -72,7 +72,7 @@
         <h3>Аккаунт не найден</h3>
         <p>Аккаунт с таким email не существует или был удален.</p>
         <p>Пожалуйста, зарегистрируйтесь заново.</p>
-        <button @click="router.push('/auth')" class="back-to-auth-btn">
+        <button @click="handleGiveUp()" class="back-to-auth-btn">
           Перейти к регистрации
         </button>
       </div>
@@ -90,7 +90,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import VerificationCodeInput from '../components/auth/VerificationCodeInput.vue'
 import { sendVerificationEmail, invalidateOldCodes } from '../utils/emailVerification'
 import { checkGracePeriodStatus, formatRemainingTime, type GracePeriodStatus } from '../utils/gracePeriod'
@@ -123,8 +123,9 @@ async function checkGracePeriod() {
   gracePeriodStatus.value = status
   remainingSeconds.value = status.secondsRemaining
 
-  if (status.isExpired) {
+  if (status.isExpired || !status.exists) {
     stopGracePeriodCheck()
+    sessionStorage.removeItem('_pending_verify_email')
   }
 }
 
@@ -168,6 +169,7 @@ onMounted(async () => {
   }
 
   email.value = emailParam
+  sessionStorage.setItem('_pending_verify_email', emailParam.toLowerCase())
 
   // Check if email was sent successfully
   const emailSentParam = route.query.emailSent as string
@@ -199,7 +201,24 @@ onUnmounted(() => {
   stopGracePeriodCheck()
 })
 
+// Не позволяем покинуть страницу пока grace period активен
+onBeforeRouteLeave((to) => {
+  // Разрешаем: /dashboard после верификации, /auth после истечения
+  if (to.name === 'Dashboard' || to.name === 'Auth') return true
+  // Блокируем всё остальное пока аккаунт существует и время не истекло
+  if (gracePeriodStatus.value?.exists && !gracePeriodStatus.value?.isExpired) {
+    return false
+  }
+  return true
+})
+
+function handleGiveUp() {
+  sessionStorage.removeItem('_pending_verify_email')
+  router.push('/auth')
+}
+
 async function handleVerified() {
+  sessionStorage.removeItem('_pending_verify_email')
   try {
     // Try to restore user session (works when Supabase auto-creates a session
     // during signUp with email confirmation disabled, or after a fresh login).

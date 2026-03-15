@@ -95,6 +95,13 @@ router.beforeEach(async (to, _from, next) => {
     safeStorage.removeItem('current_user')
   }
 
+  // Redirect back to email verification if user has a pending verification
+  const pendingVerifyEmail = sessionStorage.getItem('_pending_verify_email')
+  if (pendingVerifyEmail && to.name !== 'VerifyEmail' && to.name !== 'Auth' && to.name !== 'Dashboard') {
+    next({ name: 'VerifyEmail', query: { email: pendingVerifyEmail } })
+    return
+  }
+
   // Check guest routes
   if (to.meta.requiresGuest && isAuthenticated) {
     next({ name: 'Dashboard' })

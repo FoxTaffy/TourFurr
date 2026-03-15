@@ -8,8 +8,8 @@ export type PasswordResetCode = {
 }
 
 /**
- * Запрашиваем сброс пароля через кастомный Edge Function,
- * который генерирует настоящий Supabase OTP и отправляет брендированное письмо.
+ * Запрашиваем сброс пароля через Supabase Auth.
+ * Supabase отправляет email с OTP через настроенный SMTP (Gmail).
  */
 export async function createPasswordResetCode(email: string): Promise<{
   success: boolean
@@ -22,29 +22,20 @@ export async function createPasswordResetCode(email: string): Promise<{
       return { success: true, expiresAt: new Date(Date.now() + 15 * 60 * 1000) }
     }
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      email.toLowerCase(),
+      { redirectTo: `${window.location.origin}/auth/verify-reset-code` }
+    )
 
-    const response = await fetch(`${supabaseUrl}/functions/v1/send-password-reset-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-        'apikey': supabaseAnonKey,
-      },
-      body: JSON.stringify({ email: email.toLowerCase() }),
-    })
-
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}))
-      if (response.status === 429) {
+    if (error) {
+      if (error.status === 429 || error.message.toLowerCase().includes('rate limit')) {
         return { success: false, error: 'Слишком много запросов. Подождите и попробуйте снова.' }
       }
-      logger.error('send-password-reset-email error:', data)
+      logger.error('resetPasswordForEmail error:', error)
       return { success: false, error: 'Не удалось отправить письмо. Попробуйте позже.' }
     }
 
-    logger.log('Password reset email sent via Edge Function')
+    logger.log('Password reset email sent via Supabase Auth (Gmail SMTP)')
     return { success: true, expiresAt: new Date(Date.now() + 15 * 60 * 1000) }
   } catch (err: any) {
     logger.error('Exception requesting password reset:', err)
