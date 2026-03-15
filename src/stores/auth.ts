@@ -374,10 +374,11 @@ export const useAuthStore = defineStore('auth', () => {
         return { success: false, error: error.value }
       }
 
-      // If the user logged in successfully with a password but email_verified is still false
-      // (OTP email was never confirmed), mark it verified now — the password proves ownership.
+      // If the user logged in successfully with a password but email_verified is still false,
+      // mark it verified now — the password proves ownership.
+      // supabase.auth.signInWithPassword already set the session, so auth.uid() works in the RPC.
       if (!userData.email_verified) {
-        supabase.rpc('mark_email_verified', { p_user_id: authData.data.user.id }).then(({ error: e }) => {
+        supabase.rpc('mark_email_verified').then(({ error: e }) => {
           if (e) logger.error('mark_email_verified (login) error (non-fatal):', e)
         })
         mappedUser.email_verified = true
@@ -574,15 +575,17 @@ export const useAuthStore = defineStore('auth', () => {
       // Security: Reset rate limit on successful registration
       rateLimiter.reset(cleanEmail)
 
-      // User is immediately able to log in (email_confirm: true in create-user).
-      // email_verified in public.users is set to true by the edge function or on first login.
+      // Send OTP verification email. User must enter the code before logging in
+      // (Supabase blocks signInWithPassword while email_confirm = false).
+      const verificationResult = await issueEmailVerificationCode(cleanEmail)
+
       return {
         success: true,
         email: cleanEmail,
-        emailSent: false,
-        emailError: '',
-        verificationCode: '',
-        message: 'Регистрация успешна! Теперь вы можете войти в свой аккаунт.'
+        emailSent: verificationResult.emailSent,
+        emailError: verificationResult.emailError,
+        verificationCode: verificationResult.verificationCode,
+        message: 'Регистрация успешна! Введите код из письма для подтверждения аккаунта.'
       }
     } catch (err: any) {
       logger.error('Registration error:', err)

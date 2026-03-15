@@ -1150,8 +1150,21 @@ async function handleSubmit() {
     captchaToken.value = null
     captchaRef.value?.reset()
 
-    toast.success('Регистрация успешна! Теперь войдите в свой аккаунт.')
-    router.push('/auth')
+    if (result.emailSent) {
+      toast.success('Код подтверждения отправлен на ваш email!')
+    } else {
+      toast.info('Регистрация успешна! Подтвердите email для входа.')
+    }
+
+    // Redirect to email verification page
+    router.push({
+      path: '/auth/verify-email',
+      query: {
+        email: result.email,
+        emailSent: result.emailSent ? 'true' : 'false',
+        ...(result.emailError ? { emailError: result.emailError } : {})
+      }
+    })
   } else {
     const msg = result.error || 'Ошибка регистрации'
     serverError.value = msg

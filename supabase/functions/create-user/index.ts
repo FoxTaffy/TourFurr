@@ -54,16 +54,16 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false }
     })
 
-    // 1. Create auth user and confirm email immediately so the user can
-    //    sign in with email+password right after registration.
-    //    Our own OTP email is sent separately to validate the address;
-    //    public.users.email_verified remains false until the user enters the code.
+    // 1. Create auth user with email_confirm: false so Supabase blocks
+    //    signInWithPassword until the user enters the OTP code from their email.
+    //    resend({ type: 'signup' }) sends the OTP; verifyOtp({ type: 'signup' })
+    //    confirms the address and creates a session.
     //    cleanup_unverified_users() deletes accounts where email_verified = false
-    //    after 15 minutes — the grace period still works.
+    //    after 15 minutes — grace period is enforced.
     const { data: userData, error: createError } = await admin.auth.admin.createUser({
       email: email.toLowerCase().trim(),
       password,
-      email_confirm: true,
+      email_confirm: false,
       user_metadata: {
         full_name: nickname,
         nickname,
@@ -131,13 +131,10 @@ Deno.serve(async (req) => {
 
     console.log('User created successfully:', { userId, email })
 
-    // Mark email_verified = true immediately — SMTP is not configured, and the user
-    // proved ownership by completing the registration form with a verified password.
-    // Grace-period cleanup checks email_verified, so this prevents accidental deletion.
-    await admin
-      .from('users')
-      .update({ email_verified: true })
-      .eq('id', userId)
+    // email_verified is set to true when the user verifies OTP (verifyCode in
+    // emailVerification.ts → mark_email_verified RPC).
+    // pg_cron (cleanup_unverified_users, every 15 min) deletes accounts with
+    // email_verified = false AND created_at < NOW() - 15 minutes.
 
     return new Response(JSON.stringify({ success: true, userId, email }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }

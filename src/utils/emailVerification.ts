@@ -51,17 +51,18 @@ export async function verifyCode(email: string, code: string): Promise<{
   error?: string
 }> {
   try {
-    // type: 'email' — used for signInWithOtp codes (user exists, email already confirmed in auth,
-    // but we still want them to validate the address via OTP to set email_verified in public.users)
+    // type: 'signup' — for accounts created with email_confirm: false.
+    // Supabase sends this OTP via the signup confirmation email.
     const { data, error } = await supabase.auth.verifyOtp({
       email: email.toLowerCase(),
       token: code,
-      type: 'email'
+      type: 'signup'
     })
 
     if (!error && data?.user) {
-      // Mark email_verified = true in public.users so grace-period cleanup won't delete this account
-      const { error: rpcError } = await supabase.rpc('mark_email_verified', { p_user_id: data.user.id })
+      // Mark email_verified = true in public.users so grace-period cleanup won't delete this account.
+      // mark_email_verified() uses auth.uid() internally — session is created by verifyOtp.
+      const { error: rpcError } = await supabase.rpc('mark_email_verified')
       if (rpcError) {
         logger.error('mark_email_verified RPC error (non-fatal):', rpcError)
       }
@@ -98,12 +99,12 @@ export async function sendVerificationEmail(email: string, _code?: string): Prom
       return { success: true }
     }
 
-    // signInWithOtp sends a 6-digit OTP code to the email.
-    // Works for confirmed users (unlike resend({ type:'signup' }) which fails when email_confirmed_at is already set).
-    const { error } = await supabase.auth.signInWithOtp({
+    // resend({ type: 'signup' }) resends the signup confirmation OTP for accounts
+    // created with email_confirm: false. The OTP code is verified via verifyOtp({ type: 'signup' }).
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
       email: email.toLowerCase(),
       options: {
-        shouldCreateUser: false,
         emailRedirectTo: `${window.location.origin}/auth/verify-email`
       }
     })
@@ -114,10 +115,8 @@ export async function sendVerificationEmail(email: string, _code?: string): Prom
       if (isRateLimit) {
         return { success: false, error: 'Слишком много писем. Подождите и попробуйте снова.' }
       }
-      // SMTP not configured or Supabase email service unavailable — non-fatal:
-      // user can still log in with password, and login() will auto-mark email_verified.
-      logger.error('signInWithOtp error (non-fatal, SMTP may not be configured):', error)
-      return { success: false, error: 'Не удалось отправить письмо. Вы можете войти по email и паролю.' }
+      logger.error('resend signup OTP error:', error)
+      return { success: false, error: 'Не удалось отправить письмо с кодом. Попробуйте снова.' }
     }
 
     return { success: true }

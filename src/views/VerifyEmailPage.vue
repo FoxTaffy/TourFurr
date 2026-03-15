@@ -84,6 +84,28 @@
         @verified="handleVerified"
         @resend="handleResend"
       />
+
+      <!-- Change email link -->
+      <div
+        v-if="gracePeriodStatus && !gracePeriodStatus.isExpired && gracePeriodStatus.exists"
+        class="change-email-section"
+      >
+        <p class="change-email-hint">Ввели неверный email?</p>
+        <button
+          @click="handleChangeEmail"
+          class="change-email-btn"
+          :disabled="isChangingEmail"
+        >
+          <svg v-if="!isChangingEmail" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          <svg v-else class="animate-spin" fill="none" viewBox="0 0 24 24" width="16" height="16">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="30 70"/>
+          </svg>
+          {{ isChangingEmail ? 'Удаляем аккаунт…' : 'Изменить почту' }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -110,6 +132,7 @@ const gracePeriodStatus = ref<GracePeriodStatus | null>(null)
 const remainingSeconds = ref<number | null>(null)
 const checkInterval = ref<number | null>(null)
 const syncInterval = ref<number | null>(null)
+const isChangingEmail = ref(false)
 
 const formattedTime = computed(() => {
   if (!remainingSeconds.value) return '00:00'
@@ -224,6 +247,30 @@ async function handleVerified() {
   } catch (err: any) {
     logger.error('Error in handleVerified:', err)
     router.push('/auth?verified=true')
+  }
+}
+
+async function handleChangeEmail() {
+  if (!email.value || isChangingEmail.value) return
+  isChangingEmail.value = true
+  try {
+    stopGracePeriodCheck()
+    sessionStorage.removeItem('_pending_verify_email')
+
+    // Sign out any partial session for this user
+    await supabase.auth.signOut()
+
+    // Delete the unverified account so that user can immediately re-register
+    // with the corrected email (or the same one if they made a typo).
+    await supabase.functions.invoke('delete-unverified-account', {
+      body: { email: email.value }
+    })
+  } catch (err: any) {
+    logger.error('handleChangeEmail error (non-fatal):', err)
+    // Non-fatal: pg_cron will clean it up within 15 minutes anyway
+  } finally {
+    isChangingEmail.value = false
+    router.push('/auth?tab=register')
   }
 }
 
@@ -509,6 +556,56 @@ async function handleResend() {
 .back-to-auth-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+}
+
+/* Change email section */
+.change-email-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.change-email-hint {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0;
+}
+
+.change-email-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.1rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.change-email-btn:hover:not(:disabled) {
+  border-color: rgba(255, 107, 53, 0.5);
+  color: var(--fire);
+}
+
+.change-email-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Rate Limit Warning */
