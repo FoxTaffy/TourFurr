@@ -17,7 +17,7 @@
     </div>
 
     <!-- Step 1: Basic Info -->
-    <div v-show="currentStep === 1" class="form-step">
+    <div v-show="currentStep === 1" class="form-step" :class="{ 'step-entering': stepAnimating && currentStep === 1 }">
       <!-- Email -->
       <div class="form-group">
         <label class="form-label">
@@ -88,7 +88,7 @@
     </div>
 
     <!-- Step 2: Profile -->
-    <div v-show="currentStep === 2" class="form-step">
+    <div v-show="currentStep === 2" class="form-step" :class="{ 'step-entering': stepAnimating && currentStep === 2 }">
       <!-- Nickname -->
       <div class="form-group">
         <label class="form-label">
@@ -134,7 +134,7 @@
     </div>
 
     <!-- Step 3: Additional -->
-    <div v-show="currentStep === 3" class="form-step">
+    <div v-show="currentStep === 3" class="form-step" :class="{ 'step-entering': stepAnimating && currentStep === 3 }">
       <!-- Avatar Upload -->
       <div class="form-group">
         <label class="form-label">Аватар</label>
@@ -827,7 +827,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { vMaska } from 'maska/vue'
 import { useAuthStore } from '../../stores/auth'
@@ -836,12 +836,14 @@ import { checkGracePeriodStatus } from '../../utils/gracePeriod'
 import TelegramInput from './TelegramInput.vue'
 import YandexSmartCaptcha from '../common/YandexSmartCaptcha.vue'
 import * as yup from 'yup'
+import { useToast } from '../../composables/useToast'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 const currentStep = ref(1)
 const isStepTransitioning = ref(false)
+const stepAnimating = ref(false)
 const showPassword = ref(false)
 const isLoading = ref(false)
 const serverError = ref('')
@@ -851,6 +853,14 @@ const showRulesModal = ref(false)
 const isDragging = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 const avatarPreview = ref<string | null>(null)
+
+const toast = useToast()
+
+// Trigger CSS enter-animation whenever the active step changes
+watch(currentStep, () => {
+  stepAnimating.value = true
+  setTimeout(() => { stepAnimating.value = false }, 320)
+})
 
 // Yandex SmartCaptcha state
 const captchaSiteKey = import.meta.env.VITE_SMARTCAPTCHA_SITE_KEY || ''
@@ -996,21 +1006,27 @@ async function checkEmail() {
   const normalizedEmail = form.email.trim().toLowerCase()
 
   if (!normalizedEmail) {
-    errors.email = '' // Clear error if field is empty
+    errors.email = ''
     return
   }
 
   form.email = normalizedEmail
-  errors.email = '' // Clear previous error before checking
+  errors.email = ''
   const isUnique = await authStore.checkEmailUnique(normalizedEmail)
   if (!isUnique) {
     // Check if existing account is unverified (still within grace period)
     const status = await checkGracePeriodStatus(normalizedEmail)
     if (status.exists && !status.isExpired && !status.isVerified) {
-      // Account exists but not yet verified — показываем подсказку вместо автоматического редиректа.
-      // Автоматический редирект ломал UX: браузерный autofill мог сработать сам по себе
-      // и перекидывал пользователя на verify-email без его участия.
-      errors.email = 'Этот email уже зарегистрирован, но не подтверждён. Подтвердите email или зарегистрируйтесь заново после истечения 15 минут.'
+      // Resend verification code automatically
+      const { sendVerificationEmail } = await import('../../utils/emailVerification')
+      sendVerificationEmail(normalizedEmail).catch(() => {})
+
+      toast.info('Этот аккаунт ожидает подтверждения. Мы отправили код повторно.', 6000)
+
+      router.push({
+        path: '/auth/verify-email',
+        query: { email: normalizedEmail, emailSent: 'true' }
+      })
       return
     }
     errors.email = 'Этот email уже зарегистрирован'
@@ -1147,11 +1163,9 @@ async function handleSubmit() {
   isLoading.value = false
 
   if (result.success) {
-    // Reset captcha token after successful registration
     captchaToken.value = null
     captchaRef.value?.reset()
 
-    // Redirect to email verification page with email in query params
     const email = result.email || form.email
     const emailSent = result.emailSent
     const emailError = result.emailError
@@ -1160,6 +1174,8 @@ async function handleSubmit() {
     if (verificationCode) {
       sessionStorage.setItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.toLowerCase()}`, verificationCode)
     }
+
+    toast.success('Регистрация прошла успешно! Проверьте почту для подтверждения.')
 
     router.push({
       path: '/auth/verify-email',
@@ -1170,7 +1186,9 @@ async function handleSubmit() {
       }
     })
   } else {
-    serverError.value = result.error || 'Ошибка регистрации'
+    const msg = result.error || 'Ошибка регистрации'
+    serverError.value = msg
+    toast.error(msg)
   }
 }
 
@@ -1227,6 +1245,22 @@ function redirectToLogin() {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+/* Step enter animation (fired by stepAnimating watcher) */
+@keyframes stepFadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step-entering {
+  animation: stepFadeSlide 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
 /* Form Groups */

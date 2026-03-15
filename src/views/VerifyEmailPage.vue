@@ -90,7 +90,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import VerificationCodeInput from '../components/auth/VerificationCodeInput.vue'
 import { sendVerificationEmail, invalidateOldCodes } from '../utils/emailVerification'
 import { checkGracePeriodStatus, formatRemainingTime, type GracePeriodStatus } from '../utils/gracePeriod'
@@ -199,17 +199,6 @@ onMounted(async () => {
 
 onUnmounted(() => {
   stopGracePeriodCheck()
-})
-
-// Не позволяем покинуть страницу пока grace period активен
-onBeforeRouteLeave((to) => {
-  // Разрешаем: /dashboard после верификации, /auth после истечения
-  if (to.name === 'Dashboard' || to.name === 'Auth') return true
-  // Блокируем всё остальное пока аккаунт существует и время не истекло
-  if (gracePeriodStatus.value?.exists && !gracePeriodStatus.value?.isExpired) {
-    return false
-  }
-  return true
 })
 
 function handleGiveUp() {

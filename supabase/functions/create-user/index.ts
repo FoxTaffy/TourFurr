@@ -54,12 +54,16 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false }
     })
 
-    // 1. Create auth user WITHOUT sending Supabase's own email
-    //    email_confirm: false → user is unconfirmed, no email sent
+    // 1. Create auth user and confirm email immediately so the user can
+    //    sign in with email+password right after registration.
+    //    Our own OTP email is sent separately to validate the address;
+    //    public.users.email_verified remains false until the user enters the code.
+    //    cleanup_unverified_users() deletes accounts where email_verified = false
+    //    after 15 minutes — the grace period still works.
     const { data: userData, error: createError } = await admin.auth.admin.createUser({
       email: email.toLowerCase().trim(),
       password,
-      email_confirm: false,
+      email_confirm: true,
       user_metadata: {
         full_name: nickname,
         nickname,

@@ -107,6 +107,11 @@ function handleInput() {
 }
 
 function handleBlur() {
+  const raw = inputValue.value.trim()
+  if (raw && !raw.startsWith('@') && !raw.startsWith('t.me/') && !raw.startsWith('https://t.me/') && !raw.startsWith('http://t.me/')) {
+    inputValue.value = '@' + raw
+    emit('update:modelValue', inputValue.value)
+  }
   if (convertedValue.value) {
     emit('converted', convertedValue.value)
   }

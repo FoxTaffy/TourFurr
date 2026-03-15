@@ -65,8 +65,8 @@
         <p>{{ serverError }}</p>
       </div>
 
-      <!-- Yandex SmartCaptcha (появляется после 2 неудачных попыток) -->
-      <div v-if="showCaptcha" class="captcha-wrapper">
+      <!-- Yandex SmartCaptcha -->
+      <div class="captcha-wrapper">
         <YandexSmartCaptcha
           :siteKey="captchaSiteKey"
           @verify="handleCaptchaVerify"
@@ -324,6 +324,7 @@ import YandexSmartCaptcha from '../common/YandexSmartCaptcha.vue'
 import * as yup from 'yup'
 import { createPasswordResetCode, invalidateOldResetCodes } from '../../utils/passwordReset'
 import { logger } from '../../utils/logger'
+import { useToast } from '../../composables/useToast'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -347,8 +348,11 @@ const captchaSiteKey = import.meta.env.VITE_SMARTCAPTCHA_SITE_KEY || ''
 const captchaToken = ref<string | null>(null)
 const captchaError = ref('')
 const loginAttempts = ref(0)
-const showCaptcha = computed(() => loginAttempts.value >= 2)
+// Captcha is always shown on the login form to block bots
+const showCaptcha = true
 const EMAIL_VERIFY_CODE_STORAGE_PREFIX = 'verify_code_'
+
+const toast = useToast()
 
 // Password reset state
 const showForgotPassword = ref(false)
@@ -410,14 +414,14 @@ async function handleSubmit() {
   serverError.value = ''
   captchaError.value = ''
 
-  // Проверка CAPTCHA если она показана
-  if (showCaptcha.value && !captchaToken.value) {
+  // Проверка CAPTCHA
+  if (!captchaToken.value) {
     captchaError.value = 'Пожалуйста, пройдите проверку CAPTCHA'
     return
   }
 
   // Server-side CAPTCHA verification
-  if (showCaptcha.value && captchaToken.value) {
+  if (captchaToken.value) {
     const isCaptchaValid = await verifyTurnstileToken(captchaToken.value)
 
     if (!isCaptchaValid) {
@@ -443,9 +447,9 @@ async function handleSubmit() {
   isLoading.value = false
 
   if (result.success) {
-    // Сбросить счетчик попыток при успешном входе
     loginAttempts.value = 0
     captchaToken.value = null
+    toast.success('Вход выполнен успешно!')
     router.push('/dashboard')
   } else {
     // Check if user needs email verification
@@ -458,6 +462,7 @@ async function handleSubmit() {
         sessionStorage.setItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.toLowerCase()}`, verificationCode)
       }
 
+      toast.info('Подтвердите email — мы повторно отправили код.')
       router.push({
         path: '/auth/verify-email',
         query: {
@@ -468,10 +473,12 @@ async function handleSubmit() {
       return
     }
 
-    // Увеличить счетчик неудачных попыток
+    // Increment failure counter, reset captcha token
     loginAttempts.value++
-    captchaToken.value = null // Сбросить токен для новой попытки
-    serverError.value = result.error || 'Ошибка входа'
+    captchaToken.value = null
+    const msg = result.error || 'Ошибка входа'
+    serverError.value = msg
+    toast.error(msg)
   }
 }
 

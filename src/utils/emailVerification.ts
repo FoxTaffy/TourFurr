@@ -51,6 +51,8 @@ export async function verifyCode(email: string, code: string): Promise<{
   error?: string
 }> {
   try {
+    // type: 'email' — used for signInWithOtp codes (user exists, email already confirmed in auth,
+    // but we still want them to validate the address via OTP to set email_verified in public.users)
     const { data, error } = await supabase.auth.verifyOtp({
       email: email.toLowerCase(),
       token: code,
@@ -58,7 +60,12 @@ export async function verifyCode(email: string, code: string): Promise<{
     })
 
     if (!error && data?.user) {
-      logger.log('✅ Email verified via Supabase Auth OTP')
+      // Mark email_verified = true in public.users so grace-period cleanup won't delete this account
+      const { error: rpcError } = await supabase.rpc('mark_email_verified', { p_user_id: data.user.id })
+      if (rpcError) {
+        logger.error('mark_email_verified RPC error (non-fatal):', rpcError)
+      }
+      logger.log('✅ Email verified via OTP')
       return { success: true }
     }
 
@@ -91,10 +98,12 @@ export async function sendVerificationEmail(email: string, _code?: string): Prom
       return { success: true }
     }
 
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
+    // signInWithOtp sends a 6-digit OTP code to the email.
+    // Works for confirmed users (unlike resend({ type:'signup' }) which fails when email_confirmed_at is already set).
+    const { error } = await supabase.auth.signInWithOtp({
       email: email.toLowerCase(),
       options: {
+        shouldCreateUser: false,
         emailRedirectTo: `${window.location.origin}/auth/verify-email`
       }
     })
@@ -106,7 +115,7 @@ export async function sendVerificationEmail(email: string, _code?: string): Prom
       if (isRateLimit) {
         return { success: false, error: 'Слишком много писем. Подождите и попробуйте снова.' }
       }
-      logger.error('supabase.auth.resend error:', error)
+      logger.error('signInWithOtp error:', error)
       return { success: false, error: 'Не удалось отправить письмо. Попробуйте позже.' }
     }
 

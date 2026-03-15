@@ -305,8 +305,8 @@ export const useAuthStore = defineStore('auth', () => {
 
       // 2b. Unverified email — redirect to email verification with a fresh code
       if (authData.error && (
-        authData.error.message.includes('Email not confirmed') ||
-        authData.error.message.includes('not confirmed')
+        authData.error.message.toLowerCase().includes('not confirmed') ||
+        (authData.error as any).code === 'email_not_confirmed'
       )) {
         logger.log('Email not confirmed, issuing fresh verification code:', cleanEmail)
         const verificationResult = await issueEmailVerificationCode(cleanEmail)
