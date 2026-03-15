@@ -45,9 +45,44 @@ serve(async (req) => {
       .maybeSingle()
 
     if (userError || !user) {
-      // Аккаунта нет — очистка не нужна
+      // Нет в public.users — ищем "осиротевшую" запись в auth.users
+      // (может возникнуть если register_user RPC упал после создания auth user + rollback тоже упал)
+      const { data: authListData, error: authListError } = await supabaseAdmin.auth.admin.listUsers()
+
+      if (authListError) {
+        return new Response(
+          JSON.stringify({ success: true, cleaned: false }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 },
+        )
+      }
+
+      const orphan = authListData?.users?.find(
+        (u) => u.email?.toLowerCase() === cleanEmail && !u.email_confirmed_at
+      )
+
+      if (!orphan) {
+        // Нет нигде — очистка не нужна
+        return new Response(
+          JSON.stringify({ success: true, cleaned: false }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 },
+        )
+      }
+
+      const orphanCreatedAt = new Date(orphan.created_at)
+      const orphanDeletion = new Date(orphanCreatedAt.getTime() + GRACE_PERIOD_MINUTES * 60 * 1000)
+
+      if (new Date() < orphanDeletion) {
+        return new Response(
+          JSON.stringify({ success: true, cleaned: false }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 },
+        )
+      }
+
+      console.log(`Cleaning up orphaned auth user: ${cleanEmail}`)
+      await supabaseAdmin.auth.admin.deleteUser(orphan.id)
+
       return new Response(
-        JSON.stringify({ success: true, cleaned: false }),
+        JSON.stringify({ success: true, cleaned: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 },
       )
     }

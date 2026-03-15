@@ -92,7 +92,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import VerificationCodeInput from '../components/auth/VerificationCodeInput.vue'
-import { sendVerificationEmail, invalidateOldCodes, generateVerificationCode } from '../utils/emailVerification'
+import { sendVerificationEmail, invalidateOldCodes } from '../utils/emailVerification'
 import { checkGracePeriodStatus, formatRemainingTime, type GracePeriodStatus } from '../utils/gracePeriod'
 import { logger } from '../utils/logger'
 import { DISABLE_EMAIL } from '../utils/env'
@@ -223,15 +223,13 @@ async function handleResend() {
   try {
     await invalidateOldCodes(email.value) // no-op, для совместимости
 
-    const code = generateVerificationCode()
-
-    // Отправляем через Edge Function (таблица кодов больше не используется)
-    const emailResult = await sendVerificationEmail(email.value, code)
+    // Edge Function сама генерирует реальный Supabase OTP — локальный код не нужен
+    const emailResult = await sendVerificationEmail(email.value, '')
 
     if (!emailResult.success) {
       emailNotSent.value = true
       emailError.value = emailResult.error || 'Не удалось отправить письмо с кодом подтверждения'
-      fallbackCode.value = DISABLE_EMAIL ? code : ''
+      fallbackCode.value = ''
     } else {
       emailNotSent.value = false
       emailError.value = ''

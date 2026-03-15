@@ -41,6 +41,37 @@
                 </a>
               </div>
             </div>
+
+            <!-- Support / Donate -->
+            <div class="donate-section">
+              <h3 class="donate-title">Поддержать нас</h3>
+              <p class="donate-text">
+                Если хочешь поддержать организацию события, можно отправить донат по ссылке или через QR-код.
+              </p>
+              <div class="donate-content">
+                <a
+                  :href="donationLink"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="donate-button"
+                >
+                  <i class="fas fa-heart"></i>
+                  <span>Поддержать нас</span>
+                </a>
+                <a
+                  :href="donationLink"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="donate-qr-wrapper"
+                >
+                  <img
+                    :src="donationQrUrl"
+                    alt="QR-код для поддержки TourFurr"
+                    class="donate-qr"
+                  />
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -48,6 +79,10 @@
   </template>
   
   <script>
+  const donationLink = 'https://t.tb.ru/c2c-qr-choose-bank?requisiteNumber=+79005742596&bankCode=100000000004'
+  const donationQrUrl =
+    'https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=' + encodeURIComponent(donationLink)
+
   export default {
     name: 'Contacts',
     data() {
@@ -87,6 +122,9 @@
             avatar: '/avatars/Diero.jpg',
             link: 'https://t.me/Tai_Lung4'
           }
+        ],
+        donationLink,
+        donationQrUrl
         ]
       }
     }
@@ -232,6 +270,91 @@
       box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
   }
 
+    /* Donate / Support */
+    .donate-section {
+      margin-top: 3rem;
+      padding-top: 2.5rem;
+      border-top: 1px solid rgba(139, 111, 71, 0.3);
+    }
+
+    .donate-title {
+      font-family: 'Merriweather', serif;
+      font-size: 1.8rem;
+      color: var(--fire-glow);
+      margin-bottom: 1rem;
+    }
+
+    .donate-text {
+      color: var(--sage);
+      font-size: 1rem;
+      max-width: 540px;
+      margin: 0 auto 1.75rem auto;
+    }
+
+    .donate-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .donate-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.9rem 1.8rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 179, 71, 0.7);
+      background: radial-gradient(circle at top left, rgba(255, 179, 71, 0.3), rgba(61, 45, 36, 0.8));
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+      transition: all 0.25s ease;
+    }
+
+    .donate-button i {
+      color: var(--fire-glow);
+      filter: drop-shadow(0 0 8px rgba(255, 179, 71, 0.6));
+    }
+
+    .donate-button:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 26px rgba(255, 107, 53, 0.5);
+      border-color: var(--fire);
+    }
+
+    .donate-qr-wrapper {
+      padding: 0.75rem;
+      border-radius: 24px;
+      background: linear-gradient(
+        135deg,
+        rgba(61, 45, 36, 0.7) 0%,
+        rgba(42, 31, 26, 0.6) 100%
+      );
+      border: 1px solid rgba(139, 111, 71, 0.6);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+      display: inline-block;
+      transition: all 0.25s ease;
+    }
+
+    .donate-qr-wrapper:hover {
+      transform: translateY(-2px);
+      border-color: var(--fire);
+      box-shadow: 0 8px 26px rgba(255, 107, 53, 0.4);
+    }
+
+    .donate-qr {
+      display: block;
+      width: 200px;
+      height: 200px;
+      object-fit: contain;
+    }
+
   @media (max-width: 768px) {
       .channel-link {
           flex-direction: column;
@@ -255,5 +378,9 @@
       .organizer-info {
           text-align: center;
       }
+
+    .donate-text {
+      margin-bottom: 1.5rem;
+    }
   }
   </style>

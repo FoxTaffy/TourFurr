@@ -156,7 +156,8 @@ router.beforeEach(async (to, _from, next) => {
       // a proxy, but the JWT payload is HMAC-signed by the server — altering
       // it invalidates the signature and all subsequent API calls would be
       // rejected by Supabase.  Requires the custom_access_token_hook to be
-      // deployed (see database/custom_access_token_hook.sql).
+      // deployed and enabled in Supabase Dashboard → Authentication → Hooks
+      // (see database/custom_access_token_hook.sql).
       if (!getIsAdminFromToken(session.access_token)) {
         logger.warn('Access denied: User is not an admin')
         next({ name: 'Dashboard' })

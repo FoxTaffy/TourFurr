@@ -81,12 +81,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../services/supabase'
-import { createPasswordResetCode, sendPasswordResetEmail, invalidateOldResetCodes } from '../utils/passwordReset'
-import { DISABLE_EMAIL } from '../utils/env'
+import { createPasswordResetCode } from '../utils/passwordReset'
 import { logger } from '../utils/logger'
 
 const router = useRouter()
-const RESET_CODE_STORAGE_PREFIX = 'reset_code_'
 const email = ref('')
 const error = ref('')
 const isLoading = ref(false)
@@ -147,36 +145,11 @@ async function handleSubmit() {
       return
     }
 
-    // Invalidate old codes first
-    await invalidateOldResetCodes(cleanEmail)
-
-    // Create password reset code
+    // Send password reset email (Edge Function handles generation + sending)
     const result = await createPasswordResetCode(cleanEmail)
 
-    if (!result.success || !result.code) {
-      error.value = result.error || 'Ошибка создания кода сброса пароля'
-      return
-    }
-
-    // Send password reset email via resend.com
-    const sendResult = await sendPasswordResetEmail(cleanEmail, result.code)
-
-    if (!sendResult.success) {
-      // Show success message anyway for security, but pass code to verify page
-      submitted.value = true
-      if (DISABLE_EMAIL) {
-        sessionStorage.setItem(`${RESET_CODE_STORAGE_PREFIX}${cleanEmail}`, result.code)
-      }
-      setTimeout(() => {
-        router.push({
-          path: '/auth/verify-reset-code',
-          query: {
-            email: cleanEmail,
-            emailSent: 'false',
-            emailError: sendResult.error || 'Ошибка отправки письма'
-          }
-        })
-      }, 1500)
+    if (!result.success) {
+      error.value = result.error || 'Ошибка отправки письма. Попробуйте позже.'
       return
     }
 
