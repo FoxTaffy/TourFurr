@@ -68,7 +68,85 @@ const FALLBACK_TEAMS: Team[] = [
     crest_url: '/images/crests/the-wall-bg.png',
     color: '#555565',
     created_at: ''
+  },
+  // Minor houses (organizers only)
+  {
+    id: 'arryn',
+    name: 'Аррен',
+    slug: 'arryn',
+    description: '«Высоко, как честь». Владыки Долины Аррен.',
+    crest_url: null,
+    color: '#6BAED6',
+    created_at: ''
+  },
+  {
+    id: 'florent',
+    name: 'Флорент',
+    slug: 'florent',
+    description: '«Наша честь чиста». Лорды Бьюфорта.',
+    crest_url: null,
+    color: '#C94040',
+    created_at: ''
+  },
+  {
+    id: 'greyjoy',
+    name: 'Грейджой',
+    slug: 'greyjoy',
+    description: '«Мы не сеем». Владыки Железных островов.',
+    crest_url: null,
+    color: '#8B7355',
+    created_at: ''
+  },
+  {
+    id: 'tarth',
+    name: 'Тарт',
+    slug: 'tarth',
+    description: 'Лорды сапфирового острова Тарт.',
+    crest_url: null,
+    color: '#4A9BBF',
+    created_at: ''
+  },
+  {
+    id: 'strong',
+    name: 'Стронг',
+    slug: 'strong',
+    description: 'Древний дом Речных земель.',
+    crest_url: null,
+    color: '#7B6EA8',
+    created_at: ''
+  },
+  {
+    id: 'hightower',
+    name: 'Хайтауэр',
+    slug: 'hightower',
+    description: '«Мы освещаем путь». Владыки Древней Дубравы.',
+    crest_url: null,
+    color: '#7BB7C4',
+    created_at: ''
+  },
+  {
+    id: 'tully',
+    name: 'Талли',
+    slug: 'tully',
+    description: '«Семья, долг, честь». Лорды-сюзерены Речных земель.',
+    crest_url: null,
+    color: '#3B82B0',
+    created_at: ''
+  },
+  {
+    id: 'baelish',
+    name: 'Бейлиш',
+    slug: 'baelish',
+    description: 'Дом пересмешника. Хитрость и знание — оружие.',
+    crest_url: null,
+    color: '#6B5B95',
+    created_at: ''
   }
+]
+
+// Slugs of minor (organizer-only) houses
+export const MINOR_HOUSE_SLUGS = [
+  'arryn', 'florent', 'greyjoy', 'tarth', 'strong', 'hightower', 'tully', 'baelish'
 ]
 
 export interface HouseLore {

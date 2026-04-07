@@ -18,10 +18,10 @@
       </div>
 
       <template v-else>
-        <!-- All houses + Night's Watch -->
+        <!-- Great Houses + Night's Watch -->
         <div class="houses-grid">
           <div
-            v-for="team in teams"
+            v-for="team in greatHouses"
             :key="team.id"
             class="house-card"
             :class="{ 'nw': team.slug === 'nights-watch' }"
@@ -112,6 +112,57 @@
             </div>
           </div>
         </div>
+
+        <!-- Other Houses (organizers only) -->
+        <template v-if="otherHouses.length > 0">
+          <h2 class="section-subtitle">Прочие Дома</h2>
+          <div class="houses-grid minor-grid">
+            <div
+              v-for="team in otherHouses"
+              :key="team.id"
+              class="house-card minor-card"
+              :style="{ '--tc': team.color, '--tc20': team.color + '20', '--tc40': team.color + '40' }"
+            >
+              <!-- Card Banner -->
+              <div class="card-banner">
+                <div class="banner-glow"></div>
+                <div class="house-letter-crest" :style="{ color: team.color }">{{ team.name[0] }}</div>
+                <div class="banner-text">
+                  <span class="banner-tag">Дом</span>
+                  <h2 class="banner-name">{{ team.name }}</h2>
+                </div>
+                <div class="banner-count">
+                  <span class="count-num">{{ getMemberCount(team.id) }}</span>
+                  <span class="count-label">участников</span>
+                </div>
+              </div>
+
+              <!-- Description -->
+              <p v-if="team.description" class="card-hook minor-desc">{{ team.description }}</p>
+
+              <!-- Members: approved + applicants -->
+              <div class="members-panel">
+                <div v-if="!members[team.id] || members[team.id].length === 0" class="empty-members">
+                  Пока нет организаторов
+                </div>
+                <div
+                  v-for="member in members[team.id]"
+                  :key="member.id"
+                  class="member-row"
+                >
+                  <div class="member-avatar">
+                    <img v-if="member.avatar_url" :src="member.avatar_url" :alt="member.nickname" @error="($event.target as HTMLImageElement).style.display='none'" />
+                    <span v-else class="member-initial">{{ member.nickname?.[0]?.toUpperCase() }}</span>
+                  </div>
+                  <span class="member-name">{{ member.nickname }}</span>
+                  <span class="member-status" :class="member.status">
+                    {{ statusLabels[member.status] || member.status }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
       </template>
 
       <!-- Back -->
@@ -128,8 +179,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useTeamsStore, HOUSE_LORE } from '../stores/teams'
+import { ref, computed, onMounted } from 'vue'
+import { useTeamsStore, HOUSE_LORE, MINOR_HOUSE_SLUGS } from '../stores/teams'
 import Header from '../components/Header.vue'
 
 const CREST_MAP: Record<string, string> = {
@@ -147,6 +198,9 @@ const teams = ref(teamsStore.teams)
 const members = ref(teamsStore.members)
 const isLoading = ref(true)
 const expandedLore = ref<Record<string, boolean>>({})
+
+const greatHouses = computed(() => teams.value.filter(t => !MINOR_HOUSE_SLUGS.includes(t.slug)))
+const otherHouses = computed(() => teams.value.filter(t => MINOR_HOUSE_SLUGS.includes(t.slug)))
 
 const statusLabels: Record<string, string> = {
   pending: 'На рассмотрении',
@@ -231,6 +285,69 @@ onMounted(async () => {
   text-align: center;
   padding: 4rem;
   color: var(--sage);
+}
+
+/* ================================================
+   SECTION SUBTITLE (for "Прочие Дома")
+   ================================================ */
+.section-subtitle {
+  font-family: serif;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  color: var(--cream);
+  text-align: center;
+  margin: 2.5rem 0 1.5rem;
+  opacity: 0.75;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* Letter crest for houses without an image */
+.house-letter-crest {
+  font-family: 'Merriweather', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+  position: relative;
+  z-index: 1;
+}
+
+/* Minor houses grid: more compact */
+.minor-grid {
+  grid-template-columns: repeat(8, 1fr);
+}
+
+.minor-card .card-hook.minor-desc {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--sage);
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid rgba(139, 111, 71, 0.15);
+  margin: 0;
+  line-height: 1.4;
+  flex: 1;
+}
+
+@media (max-width: 1300px) {
+  .minor-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 1000px) {
+  .minor-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 700px) {
+  .minor-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 420px) {
+  .minor-grid { grid-template-columns: 1fr; }
 }
 
 /* ================================================
