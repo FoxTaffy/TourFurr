@@ -319,7 +319,7 @@ onMounted(async () => {
 
 /* Minor houses grid: more compact */
 .minor-grid {
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
 .minor-card .card-hook.minor-desc {
@@ -332,22 +332,6 @@ onMounted(async () => {
   margin: 0;
   line-height: 1.4;
   flex: 1;
-}
-
-@media (max-width: 1300px) {
-  .minor-grid { grid-template-columns: repeat(4, 1fr); }
-}
-
-@media (max-width: 1000px) {
-  .minor-grid { grid-template-columns: repeat(3, 1fr); }
-}
-
-@media (max-width: 700px) {
-  .minor-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 420px) {
-  .minor-grid { grid-template-columns: 1fr; }
 }
 
 /* ================================================
