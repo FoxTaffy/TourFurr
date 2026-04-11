@@ -310,7 +310,12 @@ export const useTeamsStore = defineStore('teams', () => {
       }
 
       if (data && data.length > 0) {
-        teams.value = data
+        // Always show minor (organizer) houses — supplement if DB doesn't have them
+        const dbSlugs = new Set(data.map((t: any) => t.slug))
+        const missingMinor = FALLBACK_TEAMS.filter(
+          t => MINOR_HOUSE_SLUGS.includes(t.slug) && !dbSlugs.has(t.slug)
+        )
+        teams.value = [...data, ...missingMinor]
         usingFallback.value = false
       } else {
         teams.value = FALLBACK_TEAMS

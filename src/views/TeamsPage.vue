@@ -104,7 +104,10 @@
         <template v-if="otherHouses.length > 0">
           <div class="minor-header">
             <span class="minor-line"></span>
-            <h2 class="minor-title">Прочие Дома</h2>
+            <div class="minor-title-block">
+              <h2 class="minor-title">Прочие Дома</h2>
+              <span class="minor-subtitle">Дома организаторов — не для выбора участниками</span>
+            </div>
             <span class="minor-line"></span>
           </div>
 
@@ -126,7 +129,10 @@
                   <span class="minor-letter" :style="{ color: team.color }">{{ team.name[0] }}</span>
                 </div>
                 <div class="minor-info">
-                  <span class="minor-name">{{ team.name }}</span>
+                  <div class="minor-name-row">
+                    <span class="minor-name">{{ team.name }}</span>
+                    <span class="minor-org-badge">орг.</span>
+                  </div>
                   <span class="minor-desc">{{ team.description }}</span>
                 </div>
                 <div class="minor-count">{{ getMemberCount(team.id) }} уч.</div>
@@ -361,14 +367,17 @@ onMounted(async () => {
 .house-card.nw .crest-ring {
   width: 110px;
   height: 110px;
-  background: rgba(10,8,7,.9);
-  border-color: rgba(90,90,110,.5);
+  background: rgba(230,230,238,.9);
+  border-color: rgba(160,160,185,.6);
+  box-shadow: 0 0 0 4px rgba(90,90,110,.15),
+              0 8px 30px rgba(0,0,0,.5),
+              inset 0 1px 0 rgba(255,255,255,.2);
 }
 .house-card.nw .crest-img {
-  width: 86px;
-  height: 86px;
-  opacity: .85;
-  filter: drop-shadow(0 2px 12px rgba(0,0,0,.8)) grayscale(.15);
+  width: 88px;
+  height: 88px;
+  opacity: 1;
+  filter: drop-shadow(0 1px 4px rgba(0,0,0,.4));
 }
 
 /* ── identity ── */
@@ -586,13 +595,28 @@ onMounted(async () => {
   background: linear-gradient(90deg, transparent, rgba(139,111,71,.35), transparent);
 }
 
+.minor-title-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .2rem;
+  white-space: nowrap;
+}
+
 .minor-title {
   font-family: 'Merriweather', serif;
   font-size: 1.35rem;
   color: var(--cream);
   opacity: .6;
-  white-space: nowrap;
   letter-spacing: .06em;
+}
+
+.minor-subtitle {
+  font-size: .65rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--sage);
+  opacity: .5;
 }
 
 .minor-grid {
@@ -661,11 +685,30 @@ onMounted(async () => {
   gap: .12rem;
 }
 
+.minor-name-row {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
 .minor-name {
   font-family: 'Merriweather', serif;
   font-size: .88rem;
   color: var(--cream);
   font-weight: 700;
+}
+
+.minor-org-badge {
+  font-size: .58rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  background: rgba(139,111,71,.15);
+  border: 1px solid rgba(139,111,71,.3);
+  color: rgba(197,167,110,.8);
+  padding: 1px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
 }
 
 .minor-desc {
