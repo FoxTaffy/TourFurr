@@ -65,7 +65,7 @@ const FALLBACK_TEAMS: Team[] = [
     name: 'Ночной Дозор',
     slug: 'nights-watch',
     description: 'Девиза нет. Есть клятва — но это на другой раз. И вообще мы отдыхаем.',
-    crest_url: '/images/crests/the-wall-bg.png',
+    crest_url: '/images/the-wall-bg.png',
     color: '#555565',
     created_at: ''
   },
