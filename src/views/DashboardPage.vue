@@ -234,14 +234,6 @@
 
           <p class="status-message">{{ statusDescriptions[user?.status || 'pending'] }}</p>
 
-          <!-- Schedule Button for approved/paid users -->
-          <button v-if="user?.status === 'approved' || user?.status === 'paid'" class="schedule-card-btn" @click="router.push('/schedule')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-            Расписание мероприятия
-          </button>
-
           <!-- Великие Дома — only on mobile, replaces header button -->
           <button
             v-if="(user?.status === 'approved' || user?.status === 'paid')"
@@ -738,7 +730,7 @@ const statusDescriptions: Record<string, string> = {
   pending: 'Если Вы ранее не были на ТурФурр — админ может написать вам для знакомства. Статус: В обработке.',
   deferred: 'Если Вы ранее не были на ТурФурр — админ может написать вам для знакомства. Статус: В обработке.',
   approved: 'Поздравляем! Ваша заявка одобрена. Для оплаты участия воспользуйтесь ссылкой в разделе оплаты.',
-  paid: 'Оплата подтверждена! Добро пожаловать на TourFurr 3: Game of Thrones. Загляните в Расписание.',
+  paid: 'Оплата подтверждена! Добро пожаловать на TourFurr 3: Game of Thrones.',
   rejected: 'К сожалению Вам отказано в участии. Если вы не согласны, пожалуйста, напишите одному из оргов в контактах.'
 }
 
