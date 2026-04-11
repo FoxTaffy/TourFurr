@@ -1,16 +1,17 @@
 <template>
   <div class="teams-page">
-    <!-- Animated background -->
     <div class="bg-forest"></div>
     <div class="fog"></div>
-
-    <!-- Header -->
     <Header :isDashboard="true" />
 
-    <!-- Main Content -->
     <main class="teams-main">
 
-      <h1 class="page-title">Великие Дома</h1>
+      <!-- Page Header -->
+      <div class="page-header">
+        <p class="page-eyebrow">TourFurr 3 · Game of Thrones</p>
+        <h1 class="page-title">Великие Дома</h1>
+        <p class="page-subtitle">Выберите сторону — и будьте верны ей до конца</p>
+      </div>
 
       <div v-if="isLoading" class="loading">
         <div class="page-spinner"></div>
@@ -18,101 +19,76 @@
       </div>
 
       <template v-else>
-        <!-- Great Houses + Night's Watch -->
+
+        <!-- Great Houses Grid -->
         <div class="houses-grid">
           <div
             v-for="team in greatHouses"
             :key="team.id"
             class="house-card"
-            :class="{ 'nw': team.slug === 'nights-watch' }"
+            :class="{ nw: team.slug === 'nights-watch' }"
             :style="{ '--tc': team.color, '--tc20': team.color + '20', '--tc40': team.color + '40' }"
           >
-            <!-- Card Banner -->
-            <div class="card-banner">
-              <div class="banner-glow"></div>
-              <img
-                :src="getCrestSrc(team)"
-                :alt="team.name"
-                class="banner-crest"
-                @error="($event.target as HTMLImageElement).style.display = 'none'"
-              />
-              <div class="banner-text">
-                <span class="banner-tag">{{ HOUSE_LORE[team.slug]?.isOrder ? 'Орден' : 'Великий Дом' }}</span>
-                <h2 class="banner-name">{{ team.name }}</h2>
-                <!-- AFK badge -->
-                <span v-if="HOUSE_LORE[team.slug]?.isAfk" class="afk-badge">⛺ Полностью АФК</span>
-                <!-- Curator -->
-                <div v-if="HOUSE_LORE[team.slug]?.curator" class="curator-row">
-                  <span class="curator-label">Куратор:</span>
-                  <a
-                    :href="`https://t.me/${HOUSE_LORE[team.slug]!.curatorHandle!.replace('@', '')}`"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="curator-link"
-                  >{{ HOUSE_LORE[team.slug]!.curator }} {{ HOUSE_LORE[team.slug]!.curatorHandle }}</a>
-                </div>
+            <div class="card-accent"></div>
+
+            <div class="card-top">
+              <div class="crest-ring">
+                <img
+                  :src="getCrestSrc(team)"
+                  :alt="team.name"
+                  class="crest-img"
+                  @error="($event.target as HTMLImageElement).style.display = 'none'"
+                />
               </div>
-              <div class="banner-count">
-                <span class="count-num">{{ getMemberCount(team.id) }}</span>
-                <span class="count-label">участников</span>
+              <div class="count-pill">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                {{ getMemberCount(team.id) }}
               </div>
             </div>
 
-            <!-- Hook question -->
+            <div class="card-identity">
+              <span class="card-tag">{{ HOUSE_LORE[team.slug]?.isOrder ? 'Орден' : 'Великий Дом' }}</span>
+              <h2 class="card-name">{{ team.name }}</h2>
+              <span v-if="HOUSE_LORE[team.slug]?.isAfk" class="afk-badge">⛺ Полностью АФК</span>
+            </div>
+
             <p v-if="HOUSE_LORE[team.slug]" class="card-hook">
               {{ HOUSE_LORE[team.slug].emoji }} {{ HOUSE_LORE[team.slug].hookQuestion }}
             </p>
 
-            <!-- Action row: lore only -->
-            <div class="card-actions">
-              <button class="action-btn lore-btn" @click="toggleLore(team.id)">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                </svg>
-                {{ expandedLore[team.id] ? 'Свернуть' : (HOUSE_LORE[team.slug]?.isOrder ? 'Об ордене' : 'О доме') }}
-              </button>
+            <ul v-if="HOUSE_LORE[team.slug]" class="traits-list">
+              <li v-for="(trait, i) in HOUSE_LORE[team.slug].traits" :key="i">
+                <span class="trait-dot" :style="{ background: team.color }"></span>
+                {{ trait }}
+              </li>
+            </ul>
+
+            <div v-if="HOUSE_LORE[team.slug]?.curator" class="curator-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              <span class="curator-label">Куратор:</span>
+              <a
+                :href="`https://t.me/${HOUSE_LORE[team.slug]!.curatorHandle!.replace('@', '')}`"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="curator-link"
+              >{{ HOUSE_LORE[team.slug]!.curator }} {{ HOUSE_LORE[team.slug]!.curatorHandle }}</a>
             </div>
 
-            <!-- Lore panel -->
-            <Transition name="expand">
-              <div v-if="expandedLore[team.id] && HOUSE_LORE[team.slug]" class="lore-panel">
-                <div class="lore-emblem-row">
-                  <span class="lore-badge">Герб</span>
-                  <span class="lore-emblem-text">{{ HOUSE_LORE[team.slug].emblem }}</span>
-                </div>
-
-                <div class="lore-desc">
-                  <p v-for="(para, i) in HOUSE_LORE[team.slug].fullDescription.split('\n\n')" :key="i">{{ para }}</p>
-                </div>
-
-                <div class="lore-traits-box">
-                  <p class="traits-heading">
-                    {{ HOUSE_LORE[team.slug].isOrder ? 'Вступай в Ночной Дозор, если ты:' : `Выбери ${team.name}, если ты:` }}
-                  </p>
-                  <ul class="traits-list">
-                    <li v-for="(trait, i) in HOUSE_LORE[team.slug].traits" :key="i">
-                      <span class="trait-check">✦</span>{{ trait }}
-                    </li>
-                  </ul>
-                </div>
-
-                <div class="lore-flavor-block">
-                  <p v-for="(line, i) in HOUSE_LORE[team.slug].flavorText.split('\n\n')" :key="i">{{ line }}</p>
-                </div>
-
-                <p class="lore-closing">{{ HOUSE_LORE[team.slug].closingRemark }}</p>
-              </div>
-            </Transition>
-
-            <!-- Members: always visible -->
             <div class="members-panel">
+              <div class="members-header">Участники</div>
               <div v-if="!members[team.id] || members[team.id].length === 0" class="empty-members">
-                Пока нет участников
+                Пока никого нет
               </div>
               <div v-for="member in members[team.id]" :key="member.id" class="member-row">
                 <div class="member-avatar">
-                  <img v-if="member.avatar_url" :src="member.avatar_url" :alt="member.nickname" @error="($event.target as HTMLImageElement).style.display='none'" />
+                  <img v-if="member.avatar_url" :src="member.avatar_url" :alt="member.nickname"
+                    @error="($event.target as HTMLImageElement).style.display = 'none'" />
                   <span v-else class="member-initial">{{ member.nickname?.[0]?.toUpperCase() }}</span>
                 </div>
                 <span class="member-name">{{ member.nickname }}</span>
@@ -124,59 +100,55 @@
           </div>
         </div>
 
-        <!-- Other Houses (organizers only) -->
+        <!-- Minor Houses -->
         <template v-if="otherHouses.length > 0">
-          <h2 class="section-subtitle">Прочие Дома</h2>
-          <div class="houses-grid minor-grid">
+          <div class="minor-header">
+            <span class="minor-line"></span>
+            <h2 class="minor-title">Прочие Дома</h2>
+            <span class="minor-line"></span>
+          </div>
+
+          <div class="minor-grid">
             <div
               v-for="team in otherHouses"
               :key="team.id"
-              class="house-card minor-card"
-              :style="{ '--tc': team.color, '--tc20': team.color + '20', '--tc40': team.color + '40' }"
+              class="minor-card"
+              :style="{ '--tc': team.color }"
             >
-              <!-- Card Banner -->
-              <div class="card-banner">
-                <div class="banner-glow"></div>
-                <div class="house-letter-crest" :style="{ color: team.color }">{{ team.name[0] }}</div>
-                <div class="banner-text">
-                  <span class="banner-tag">Дом</span>
-                  <h2 class="banner-name">{{ team.name }}</h2>
+              <div class="minor-top">
+                <div class="minor-crest-wrap">
+                  <img
+                    :src="team.crest_url || ''"
+                    :alt="team.name"
+                    class="minor-crest-img"
+                    @error="($event.target as HTMLImageElement).style.display = 'none'"
+                  />
+                  <span class="minor-letter" :style="{ color: team.color }">{{ team.name[0] }}</span>
                 </div>
-                <div class="banner-count">
-                  <span class="count-num">{{ getMemberCount(team.id) }}</span>
-                  <span class="count-label">участников</span>
+                <div class="minor-info">
+                  <span class="minor-name">{{ team.name }}</span>
+                  <span class="minor-desc">{{ team.description }}</span>
                 </div>
+                <div class="minor-count">{{ getMemberCount(team.id) }} уч.</div>
               </div>
 
-              <!-- Description -->
-              <p v-if="team.description" class="card-hook minor-desc">{{ team.description }}</p>
-
-              <!-- Members: approved + applicants -->
-              <div class="members-panel">
-                <div v-if="!members[team.id] || members[team.id].length === 0" class="empty-members">
-                  Пока нет организаторов
-                </div>
-                <div
-                  v-for="member in members[team.id]"
-                  :key="member.id"
-                  class="member-row"
-                >
-                  <div class="member-avatar">
-                    <img v-if="member.avatar_url" :src="member.avatar_url" :alt="member.nickname" @error="($event.target as HTMLImageElement).style.display='none'" />
+              <div class="minor-members">
+                <p v-if="!members[team.id] || members[team.id].length === 0" class="minor-empty">Пока пусто</p>
+                <div v-for="member in members[team.id]" :key="member.id" class="minor-member">
+                  <div class="member-avatar small">
+                    <img v-if="member.avatar_url" :src="member.avatar_url" :alt="member.nickname"
+                      @error="($event.target as HTMLImageElement).style.display = 'none'" />
                     <span v-else class="member-initial">{{ member.nickname?.[0]?.toUpperCase() }}</span>
                   </div>
-                  <span class="member-name">{{ member.nickname }}</span>
-                  <span class="member-status" :class="member.status">
-                    {{ statusLabels[member.status] || member.status }}
-                  </span>
+                  <span>{{ member.nickname }}</span>
                 </div>
               </div>
             </div>
           </div>
         </template>
+
       </template>
 
-      <!-- Back -->
       <div class="back-section">
         <router-link to="/dashboard" class="back-btn">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,51 +167,35 @@ import { useTeamsStore, HOUSE_LORE, MINOR_HOUSE_SLUGS } from '../stores/teams'
 import Header from '../components/Header.vue'
 
 const CREST_MAP: Record<string, string> = {
-  stark: '/images/crests/stark.png',
-  lannister: '/images/crests/lannister.png',
-  tyrell: '/images/crests/tyrell.png',
-  baratheon: '/images/crests/baratheon.png',
-  martell: '/images/crests/martell.png',
+  stark:          '/images/crests/stark.png',
+  lannister:      '/images/crests/lannister.png',
+  tyrell:         '/images/crests/tyrell.png',
+  baratheon:      '/images/crests/baratheon.png',
+  martell:        '/images/crests/martell.png',
   'nights-watch': '/images/crests/the-wall-bg.png'
 }
 
 const teamsStore = useTeamsStore()
-
-const teams = ref(teamsStore.teams)
-const members = ref(teamsStore.members)
-const isLoading = ref(true)
-const expandedLore = ref<Record<string, boolean>>({})
+const teams      = ref(teamsStore.teams)
+const members    = ref(teamsStore.members)
+const isLoading  = ref(true)
 
 const greatHouses = computed(() => teams.value.filter(t => !MINOR_HOUSE_SLUGS.includes(t.slug)))
-const otherHouses = computed(() => teams.value.filter(t => MINOR_HOUSE_SLUGS.includes(t.slug)))
+const otherHouses = computed(() => teams.value.filter(t =>  MINOR_HOUSE_SLUGS.includes(t.slug)))
 
 const statusLabels: Record<string, string> = {
-  pending: 'На рассмотрении',
+  pending:  'На рассмотрении',
   approved: 'Одобрено',
+  paid:     'Оплачено',
   rejected: 'Отклонено'
 }
 
-// All teams rendered in one unified grid
-
 function getCrestSrc(team: { crest_url: string | null; slug: string }): string {
-  if (team.crest_url) return team.crest_url
-  return CREST_MAP[team.slug] || ''
+  return team.crest_url || CREST_MAP[team.slug] || ''
 }
 
 function getMemberCount(teamId: string): number {
   return members.value[teamId]?.length || 0
-}
-
-function toggleLore(teamId: string) {
-  const isOpen = expandedLore.value[teamId]
-  // close all
-  for (const key in expandedLore.value) {
-    expandedLore.value[key] = false
-  }
-  // open clicked only if it was closed
-  if (!isOpen) {
-    expandedLore.value[teamId] = true
-  }
 }
 
 onMounted(async () => {
@@ -254,234 +210,283 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* ================================================
-   PAGE SHELL
-   ================================================ */
+/* ── PAGE SHELL ───────────────────────────── */
 .teams-page {
   min-height: 100vh;
   position: relative;
 }
 
-/* ================================================
-   MAIN
-   ================================================ */
 .teams-main {
   position: relative;
   z-index: 10;
-  width: 100%;
-  max-width: 2400px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 5.5rem 1.5rem 4rem;
+  padding: 5.5rem 1.5rem 5rem;
 }
 
-/* ================================================
-   PAGE TITLE
-   ================================================ */
-.page-title {
-  font-family: serif;
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  color: var(--cream);
+/* ── PAGE HEADER ──────────────────────────── */
+.page-header {
   text-align: center;
-  margin-bottom: 1.5rem;
-  text-shadow:
-    0 0 40px rgba(255, 179, 71, 0.5),
-    0 2px 8px rgba(0, 0, 0, 0.8);
-  letter-spacing: 0.04em;
+  margin-bottom: 3rem;
 }
 
-/* ================================================
-   LOADING
-   ================================================ */
+.page-eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--fire-glow);
+  opacity: 0.7;
+  margin-bottom: 0.5rem;
+}
+
+.page-title {
+  font-family: 'Merriweather', serif;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  color: var(--cream);
+  text-shadow: 0 0 40px rgba(255,179,71,.4), 0 2px 10px rgba(0,0,0,.8);
+  letter-spacing: .04em;
+  margin-bottom: .5rem;
+}
+
+.page-subtitle {
+  font-size: 1rem;
+  color: var(--sage);
+  font-style: italic;
+  opacity: .8;
+}
+
+/* ── LOADING ──────────────────────────────── */
 .loading {
   text-align: center;
   padding: 4rem;
   color: var(--sage);
 }
 
-/* ================================================
-   SECTION SUBTITLE (for "Прочие Дома")
-   ================================================ */
-.section-subtitle {
-  font-family: serif;
-  font-size: clamp(1.5rem, 3vw, 2.2rem);
-  color: var(--cream);
-  text-align: center;
-  margin: 2.5rem 0 1.5rem;
-  opacity: 0.75;
-  letter-spacing: 0.04em;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-}
-
-/* Letter crest for houses without an image */
-.house-letter-crest {
-  font-family: 'Merriweather', serif;
-  font-size: 2rem;
-  font-weight: 700;
-  width: 52px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
-  position: relative;
-  z-index: 1;
-}
-
-/* Minor houses grid: more compact */
-.minor-grid {
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-}
-
-.minor-card .card-hook.minor-desc {
-  font-size: 0.75rem;
-  font-style: italic;
-  color: var(--sage);
-  text-align: center;
-  padding: 0.5rem 0.75rem;
-  border-top: 1px solid rgba(139, 111, 71, 0.15);
-  margin: 0;
-  line-height: 1.4;
-  flex: 1;
-}
-
-/* ================================================
-   HOUSES GRID (5 houses)
-   ================================================ */
+/* ── GREAT HOUSES GRID ────────────────────── */
 .houses-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 3rem;
 }
 
-/* ================================================
-   HOUSE CARD
-   ================================================ */
+/* ── HOUSE CARD ───────────────────────────── */
 .house-card {
-  background: rgba(26, 17, 14, 0.88);
-  border: 1px solid var(--tc40, rgba(139,111,71,0.35));
-  border-top: 3px solid var(--tc, var(--fire));
-  border-radius: 18px;
+  background: rgba(20,13,10,.9);
+  border: 1px solid color-mix(in srgb, var(--tc,var(--fire)) 20%, rgba(139,111,71,.2));
+  border-radius: 20px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  backdrop-filter: blur(18px);
-  animation: cardIn 0.5s ease-out both;
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  backdrop-filter: blur(20px);
+  transition: transform .3s ease, box-shadow .3s ease;
+  animation: cardIn .45s ease-out both;
 }
 
 .house-card:hover {
-  box-shadow: 0 8px 32px color-mix(in srgb, var(--tc, var(--fire)) 25%, transparent);
-  transform: translateY(-3px);
+  transform: translateY(-5px);
+  box-shadow: 0 20px 50px rgba(0,0,0,.5),
+              0 0 30px color-mix(in srgb, var(--tc,var(--fire)) 20%, transparent);
 }
 
 @keyframes cardIn {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Banner (top part of card) */
-.card-banner {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 1.1rem 1rem 0.9rem;
-  background: linear-gradient(180deg,
-    color-mix(in srgb, var(--tc, var(--fire)) 12%, transparent) 0%,
+/* top accent line */
+.card-accent {
+  height: 4px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--tc,var(--fire)) 40%,
+    var(--tc,var(--fire)) 60%,
     transparent 100%
   );
-  text-align: center;
+}
+
+/* ── crest + count ── */
+.card-top {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 1.75rem 1.5rem 1rem;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--tc,var(--fire)) 8%, transparent) 0%,
+    transparent 100%
+  );
+}
+
+.crest-ring {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--tc,var(--fire)) 10%, rgba(20,13,10,.8));
+  border: 2px solid color-mix(in srgb, var(--tc,var(--fire)) 40%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--tc,var(--fire)) 10%, transparent),
+              0 8px 30px rgba(0,0,0,.5),
+              inset 0 1px 0 rgba(255,255,255,.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
 }
 
-.banner-glow {
-  position: absolute;
-  top: -40px;
-  left: -40px;
-  width: 130px;
-  height: 130px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--tc, var(--fire)) 18%, transparent);
-  filter: blur(35px);
-  pointer-events: none;
-}
-
-.banner-crest {
-  width: 52px;
-  height: 52px;
+.crest-img {
+  width: 74px;
+  height: 74px;
   object-fit: contain;
-  flex-shrink: 0;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
-  position: relative;
-  z-index: 1;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.5));
 }
 
-.banner-text {
-  width: 100%;
-  min-width: 0;
-  position: relative;
-  z-index: 1;
+.count-pill {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  background: color-mix(in srgb, var(--tc,var(--fire)) 15%, rgba(20,13,10,.7));
+  border: 1px solid color-mix(in srgb, var(--tc,var(--fire)) 30%, transparent);
+  color: var(--tc,var(--fire-glow));
+  font-size: .78rem;
+  font-weight: 700;
+  padding: .25rem .6rem;
+  border-radius: 50px;
 }
 
-.banner-tag {
-  display: inline-block;
-  font-size: 0.65rem;
-  letter-spacing: 0.15em;
+.count-pill svg { width: 13px; height: 13px; }
+
+/* Night's Watch */
+.house-card.nw .crest-ring {
+  width: 110px;
+  height: 110px;
+  background: rgba(10,8,7,.9);
+  border-color: rgba(90,90,110,.5);
+}
+.house-card.nw .crest-img {
+  width: 86px;
+  height: 86px;
+  opacity: .85;
+  filter: drop-shadow(0 2px 12px rgba(0,0,0,.8)) grayscale(.15);
+}
+
+/* ── identity ── */
+.card-identity {
+  text-align: center;
+  padding: .7rem 1.25rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+}
+
+.card-tag {
+  font-size: .6rem;
+  letter-spacing: .2em;
   text-transform: uppercase;
-  color: var(--tc, var(--fire-glow));
-  background: color-mix(in srgb, var(--tc, var(--fire)) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--tc, var(--fire)) 35%, transparent);
+  color: var(--tc,var(--fire-glow));
+  background: color-mix(in srgb, var(--tc,var(--fire)) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tc,var(--fire)) 28%, transparent);
   border-radius: 4px;
-  padding: 2px 7px;
-  margin-bottom: 0.35rem;
+  padding: 2px 8px;
 }
 
-.banner-name {
+.card-name {
   font-family: 'Merriweather', serif;
-  font-size: 1rem;
+  font-size: 1.3rem;
   color: var(--cream);
   line-height: 1.2;
-  margin-bottom: 0.2rem;
+  text-shadow: 0 2px 8px rgba(0,0,0,.6);
+  margin: 0;
 }
 
-/* AFK badge */
 .afk-badge {
-  display: inline-block;
-  background: rgba(100, 100, 100, 0.3);
-  border: 1px solid rgba(150, 150, 150, 0.5);
-  color: #bbb;
-  font-size: 0.7rem;
+  font-size: .68rem;
   font-weight: 600;
-  padding: 0.15rem 0.55rem;
+  background: rgba(80,80,100,.3);
+  border: 1px solid rgba(130,130,160,.45);
+  color: #b0b0c8;
+  padding: .15rem .6rem;
   border-radius: 50px;
-  margin-top: 0.3rem;
-  letter-spacing: 0.04em;
+  letter-spacing: .04em;
 }
 
-/* Curator row */
+/* ── hook ── */
+.card-hook {
+  margin: .85rem 1.25rem 0;
+  padding: .65rem .9rem;
+  font-size: .84rem;
+  font-style: italic;
+  color: var(--cream);
+  opacity: .85;
+  line-height: 1.55;
+  text-align: center;
+  background: color-mix(in srgb, var(--tc,var(--fire)) 6%, rgba(255,255,255,.02));
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--tc,var(--fire)) 15%, transparent);
+}
+
+/* ── traits ── */
+.traits-list {
+  list-style: none;
+  margin: .85rem 1.25rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.traits-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: .55rem;
+  font-size: .81rem;
+  color: var(--sage);
+  line-height: 1.45;
+}
+
+.trait-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: .44em;
+  opacity: .85;
+}
+
+/* ── curator ── */
 .curator-row {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.4rem;
+  gap: .4rem;
+  margin: .85rem 1.25rem 0;
+  padding: .5rem .8rem;
+  background: rgba(41,120,191,.07);
+  border: 1px solid rgba(41,120,191,.2);
+  border-radius: 8px;
   flex-wrap: wrap;
 }
 
+.curator-row svg {
+  width: 13px;
+  height: 13px;
+  color: #7dc4f5;
+  flex-shrink: 0;
+}
+
 .curator-label {
-  font-size: 0.72rem;
+  font-size: .72rem;
   color: var(--sage);
-  opacity: 0.8;
+  opacity: .8;
 }
 
 .curator-link {
-  font-size: 0.72rem;
+  font-size: .75rem;
+  font-weight: 600;
   color: #7dc4f5;
   text-decoration: none;
-  font-weight: 600;
-  transition: color 0.2s;
+  transition: color .2s;
 }
 
 .curator-link:hover {
@@ -489,399 +494,248 @@ onMounted(async () => {
   text-decoration: underline;
 }
 
-.banner-motto {
-  font-size: 0.78rem;
-  color: var(--sage);
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.banner-count {
-  position: absolute;
-  top: 0.7rem;
-  right: 0.7rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 2;
-}
-
-.count-num {
-  font-family: 'Merriweather', serif;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--tc, var(--fire-glow));
-  line-height: 1;
-}
-
-.count-label {
-  font-size: 0.62rem;
-  color: var(--sage);
-  text-align: center;
-  letter-spacing: 0.05em;
-  margin-top: 2px;
-}
-
-/* Hook question */
-.card-hook {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 0.25rem;
-  padding: 0.6rem 0.75rem;
-  font-size: 0.78rem;
-  font-style: italic;
-  color: var(--cream);
-  line-height: 1.45;
-  border-top: 1px solid rgba(139, 111, 71, 0.15);
-  flex: 1;
-}
-
-/* NW gets slightly bigger crest */
-.house-card.nw .banner-crest {
-  width: 64px;
-  height: 64px;
-}
-
-/* ================================================
-   ACTION ROW
-   ================================================ */
-.card-actions {
-  display: flex;
-  padding: 0.6rem 0.75rem;
-  border-top: 1px solid rgba(139, 111, 71, 0.12);
-}
-
-.action-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  padding: 0.5rem 0.5rem;
-  border-radius: 8px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  border: none;
-}
-
-.action-btn svg {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-}
-
-.lore-btn {
-  background: color-mix(in srgb, var(--tc, var(--fire)) 12%, rgba(26,17,14,0.6));
-  color: var(--tc, var(--fire-glow));
-  border: 1px solid color-mix(in srgb, var(--tc, var(--fire)) 30%, transparent);
-  flex: 1;
-}
-
-.lore-btn:hover {
-  background: color-mix(in srgb, var(--tc, var(--fire)) 22%, rgba(26,17,14,0.8));
-  border-color: color-mix(in srgb, var(--tc, var(--fire)) 60%, transparent);
-}
-
-/* ================================================
-   LORE PANEL
-   ================================================ */
-.lore-panel {
-  margin: 0 0.75rem 0.75rem;
-  padding: 0.9rem 0.85rem;
-  background: rgba(18, 11, 9, 0.55);
-  border: 1px solid rgba(139, 111, 71, 0.18);
-  border-left: 3px solid var(--tc, var(--fire));
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-
-.lore-emblem-row {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.lore-badge {
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--tc, var(--fire-glow));
-  background: color-mix(in srgb, var(--tc, var(--fire)) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--tc, var(--fire)) 30%, transparent);
-  border-radius: 4px;
-  padding: 2px 6px;
-  white-space: nowrap;
-}
-
-.lore-emblem-text {
-  font-size: 0.82rem;
-  color: var(--sage);
-}
-
-.lore-desc {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.lore-desc p {
-  font-size: 0.87rem;
-  color: var(--cream);
-  line-height: 1.65;
-  margin: 0;
-}
-
-.lore-traits-box {
-  background: rgba(26, 17, 14, 0.5);
-  border-radius: 10px;
-  padding: 0.8rem 0.9rem;
-}
-
-.traits-heading {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--cream);
-  margin: 0 0 0.5rem 0;
-}
-
-.traits-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.traits-list li {
-  font-size: 0.84rem;
-  color: var(--sage);
-  line-height: 1.45;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-}
-
-.trait-check {
-  color: var(--tc, var(--fire-glow));
-  font-size: 0.65rem;
-  margin-top: 0.25rem;
-  flex-shrink: 0;
-}
-
-.lore-flavor-block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  padding: 0.6rem 0.8rem;
-  border-left: 2px solid rgba(139, 111, 71, 0.25);
-}
-
-.lore-flavor-block p {
-  font-size: 0.84rem;
-  color: var(--cream);
-  font-style: italic;
-  margin: 0;
-  line-height: 1.55;
-}
-
-.lore-closing {
-  font-size: 0.8rem;
-  color: var(--sage);
-  text-align: center;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(139, 111, 71, 0.15);
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* ================================================
-   MEMBERS PANEL
-   ================================================ */
+/* ── members ── */
 .members-panel {
-  padding: 0 0.75rem 0.75rem;
+  margin: .85rem .75rem .75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: .25rem;
+  flex: 1;
+}
+
+.members-header {
+  font-size: .62rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--sage);
+  opacity: .55;
+  padding: 0 .25rem .3rem;
+  border-bottom: 1px solid rgba(139,111,71,.15);
+  margin-bottom: .15rem;
 }
 
 .empty-members {
   text-align: center;
-  padding: 1rem;
+  padding: .9rem;
   color: var(--sage);
-  font-size: 0.88rem;
+  font-size: .82rem;
   font-style: italic;
+  opacity: .6;
 }
 
 .member-row {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  padding: 0.55rem 0.8rem;
-  background: rgba(26, 17, 14, 0.4);
-  border-radius: 10px;
-  transition: background 0.2s;
+  gap: .55rem;
+  padding: .4rem .6rem;
+  background: rgba(255,255,255,.03);
+  border-radius: 8px;
+  transition: background .2s;
 }
 
-.member-row:hover {
-  background: rgba(26, 17, 14, 0.65);
-}
+.member-row:hover { background: rgba(255,255,255,.06); }
 
 .member-avatar {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   overflow: hidden;
-  background: var(--forest-mid);
+  background: var(--forest-mid,#2a1f1a);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border: 1px solid rgba(139,111,71,.25);
 }
 
-.member-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.member-avatar.small { width: 22px; height: 22px; }
+
+.member-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
 .member-initial {
-  font-size: 0.75rem;
+  font-size: .7rem;
   font-weight: 700;
   color: var(--fire-glow);
 }
 
-.member-name {
-  flex: 1;
-  color: var(--cream);
-  font-size: 0.88rem;
-  font-weight: 500;
-}
+.member-name { flex: 1; color: var(--cream); font-size: .85rem; font-weight: 500; }
 
 .member-status {
-  font-size: 0.72rem;
+  font-size: .67rem;
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 6px;
+  padding: 2px 7px;
+  border-radius: 5px;
 }
 
-.member-status.pending  { background: rgba(255,179,71,0.18); color: var(--fire-glow); }
-.member-status.approved { background: rgba(34,197,94,0.18);  color: #22c55e; }
-.member-status.rejected { background: rgba(239,68,68,0.18);  color: #ef4444; }
+.member-status.pending  { background: rgba(255,179,71,.15); color: var(--fire-glow); }
+.member-status.approved { background: rgba(34,197,94,.15);  color: #22c55e; }
+.member-status.paid     { background: rgba(34,197,94,.2);   color: #4ade80; }
+.member-status.rejected { background: rgba(239,68,68,.15);  color: #ef4444; }
 
-/* ================================================
-   NIGHT'S WATCH — full-width dark card in grid
-   ================================================ */
-.house-card.nw {
-  /* no special span — sits in grid like others */
-  background: rgba(10, 8, 7, 0.94);
-  border-color: rgba(80, 80, 100, 0.5);
+/* ── MINOR HOUSES ─────────────────────────── */
+.minor-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin: .5rem 0 1.75rem;
 }
 
-.house-card.nw .card-banner {
-  background: linear-gradient(135deg, rgba(80,80,100,0.1) 0%, transparent 60%);
+.minor-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(139,111,71,.35), transparent);
 }
 
-.house-card.nw .banner-crest {
-  width: 80px;
-  height: 80px;
-  opacity: 0.85;
-  filter: drop-shadow(0 2px 10px rgba(0,0,0,0.7)) grayscale(0.2);
+.minor-title {
+  font-family: 'Merriweather', serif;
+  font-size: 1.35rem;
+  color: var(--cream);
+  opacity: .6;
+  white-space: nowrap;
+  letter-spacing: .06em;
 }
 
-.house-card.nw .banner-motto {
-  -webkit-line-clamp: 3;
+.minor-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 3rem;
 }
 
-/* ================================================
-   EXPAND TRANSITION
-   ================================================ */
-.expand-enter-active,
-.expand-leave-active {
-  transition: all 0.3s ease;
+.minor-card {
+  background: rgba(20,13,10,.75);
+  border: 1px solid color-mix(in srgb, var(--tc,var(--fire)) 18%, rgba(139,111,71,.2));
+  border-top: 2px solid color-mix(in srgb, var(--tc,var(--fire)) 50%, transparent);
+  border-radius: 14px;
+  padding: .85rem .9rem;
+  transition: transform .25s, box-shadow .25s;
+}
+
+.minor-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0,0,0,.35);
+}
+
+.minor-top {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  margin-bottom: .7rem;
+}
+
+.minor-crest-wrap {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(139,111,71,.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   overflow: hidden;
 }
 
-.expand-enter-from,
-.expand-leave-to {
-  opacity: 0;
-  max-height: 0;
-  transform: translateY(-6px);
+.minor-crest-img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
 }
 
-.expand-enter-to,
-.expand-leave-from {
-  opacity: 1;
-  max-height: 2000px;
-  transform: translateY(0);
+.minor-letter {
+  position: absolute;
+  font-family: 'Merriweather', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  z-index: 0;
 }
 
-/* ================================================
-   BACK
-   ================================================ */
+.minor-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .12rem;
+}
+
+.minor-name {
+  font-family: 'Merriweather', serif;
+  font-size: .88rem;
+  color: var(--cream);
+  font-weight: 700;
+}
+
+.minor-desc {
+  font-size: .7rem;
+  color: var(--sage);
+  opacity: .7;
+  line-height: 1.35;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.minor-count {
+  font-size: .72rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--tc,var(--fire)) 80%, var(--cream));
+  flex-shrink: 0;
+}
+
+.minor-members {
+  display: flex;
+  flex-direction: column;
+  gap: .28rem;
+  border-top: 1px solid rgba(139,111,71,.12);
+  padding-top: .55rem;
+}
+
+.minor-member {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .78rem;
+  color: var(--sage);
+}
+
+.minor-empty {
+  font-size: .75rem;
+  color: var(--sage);
+  opacity: .5;
+  font-style: italic;
+  text-align: center;
+  margin: 0;
+}
+
+/* ── BACK ─────────────────────────────────── */
 .back-section {
   text-align: center;
-  margin-top: 2.5rem;
+  margin-top: 2rem;
 }
 
-/* ================================================
-   RESPONSIVE
-   ================================================ */
-
-/* 4K / ultrawide (≥2560px) */
-@media (min-width: 2560px) {
-  .teams-main { padding: 6rem 4rem 5rem; }
-  .houses-grid { gap: 1.5rem; }
-  .banner-crest { width: 68px; height: 68px; }
-  .banner-name { font-size: 1.15rem; }
-  .page-title { font-size: 5rem; }
-}
-
-/* 2K QHD (1920≃2559px) */
-@media (min-width: 1920px) and (max-width: 2559px) {
-  .teams-main { padding: 5.5rem 3rem 4rem; }
-  .houses-grid { gap: 1.25rem; }
-  .banner-name { font-size: 1.1rem; }
-}
-
-/* FHD range handled by 6-col default */
-
-/* HD/wide tablets (1301–1919px) */
-/* already 6 cols */
-
-@media (max-width: 1300px) {
-  .houses-grid { grid-template-columns: repeat(4, 1fr); }
-}
-
-@media (max-width: 1000px) {
+/* ── RESPONSIVE ───────────────────────────── */
+@media (max-width: 1200px) {
   .houses-grid { grid-template-columns: repeat(3, 1fr); }
+  .minor-grid  { grid-template-columns: repeat(3, 1fr); }
 }
 
-@media (max-width: 700px) {
-  .teams-main {
-    padding: 5rem 0.75rem 3rem;
-  }
-
+@media (max-width: 900px) {
   .houses-grid { grid-template-columns: repeat(2, 1fr); }
-
-  .banner-crest {
-    width: 48px;
-    height: 48px;
-  }
+  .minor-grid  { grid-template-columns: repeat(2, 1fr); }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 600px) {
+  .teams-main  { padding: 5rem .75rem 3rem; }
   .houses-grid { grid-template-columns: 1fr; }
+  .crest-ring  { width: 80px; height: 80px; }
+  .crest-img   { width: 60px; height: 60px; }
+}
+
+@media (max-width: 380px) {
+  .minor-grid { grid-template-columns: 1fr; }
 }
 </style>
