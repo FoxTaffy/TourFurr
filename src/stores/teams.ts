@@ -75,7 +75,7 @@ const FALLBACK_TEAMS: Team[] = [
     name: 'Аррен',
     slug: 'arryn',
     description: '«Высоко, как честь». Владыки Долины Аррен.',
-    crest_url: null,
+    crest_url: '/images/crests/arryn.png',
     color: '#6BAED6',
     created_at: ''
   },
@@ -84,7 +84,7 @@ const FALLBACK_TEAMS: Team[] = [
     name: 'Флорент',
     slug: 'florent',
     description: '«Наша честь чиста». Лорды Бьюфорта.',
-    crest_url: null,
+    crest_url: '/images/crests/florent.png',
     color: '#C94040',
     created_at: ''
   },
@@ -93,7 +93,7 @@ const FALLBACK_TEAMS: Team[] = [
     name: 'Грейджой',
     slug: 'greyjoy',
     description: '«Мы не сеем». Владыки Железных островов.',
-    crest_url: null,
+    crest_url: '/images/crests/greyjoy.png',
     color: '#8B7355',
     created_at: ''
   },
@@ -102,7 +102,7 @@ const FALLBACK_TEAMS: Team[] = [
     name: 'Тарт',
     slug: 'tarth',
     description: 'Лорды сапфирового острова Тарт.',
-    crest_url: null,
+    crest_url: '/images/crests/tarth.png',
     color: '#4A9BBF',
     created_at: ''
   },
@@ -111,7 +111,7 @@ const FALLBACK_TEAMS: Team[] = [
     name: 'Стронг',
     slug: 'strong',
     description: 'Древний дом Речных земель.',
-    crest_url: null,
+    crest_url: '/images/crests/strong.png',
     color: '#7B6EA8',
     created_at: ''
   },
@@ -120,7 +120,7 @@ const FALLBACK_TEAMS: Team[] = [
     name: 'Хайтауэр',
     slug: 'hightower',
     description: '«Мы освещаем путь». Владыки Древней Дубравы.',
-    crest_url: null,
+    crest_url: '/images/crests/hightower.png',
     color: '#7BB7C4',
     created_at: ''
   },
@@ -129,7 +129,7 @@ const FALLBACK_TEAMS: Team[] = [
     name: 'Талли',
     slug: 'tully',
     description: '«Семья, долг, честь». Лорды-сюзерены Речных земель.',
-    crest_url: null,
+    crest_url: '/images/crests/tully.png',
     color: '#3B82B0',
     created_at: ''
   },
@@ -138,7 +138,7 @@ const FALLBACK_TEAMS: Team[] = [
     name: 'Бейлиш',
     slug: 'baelish',
     description: 'Дом пересмешника. Хитрость и знание — оружие.',
-    crest_url: null,
+    crest_url: '/images/crests/baelish.png',
     color: '#6B5B95',
     created_at: ''
   }
@@ -158,6 +158,9 @@ export interface HouseLore {
   closingRemark: string
   emoji: string
   isOrder?: boolean
+  isAfk?: boolean
+  curator?: string
+  curatorHandle?: string
 }
 
 export const HOUSE_LORE: Record<string, HouseLore> = {
@@ -174,8 +177,9 @@ export const HOUSE_LORE: Record<string, HouseLore> = {
     flavorText: 'Помни: настоящие Старки всегда держатся вместе!',
     closingRemark: 'Наши механики и сюжет продуманы так, что будут понятны и увлекательны даже для тех, кто не смотрел сериал. Увидимся на ТурФурре! 🐾',
     emoji: '🐺',
+    curator: 'Маркус',
+    curatorHandle: '@MarcusR1te',
   },
-  lannister: {
     hookQuestion: 'Ты идёшь к своей цели с улыбкой и железной волей?',
     emblem: 'Золотой лев на алом поле',
     fullDescription: 'Дом Ланнистеров — это блеск победных наград, умные интриги за игровым столом и законная роскошь, которая говорит сама за себя.\n\nЕсли ты веришь, что побеждает не только сила, но и ум, если твой стиль — твоё оружие, а амбиции ведут тебя только вперёд — этот дом для тебя.',
@@ -188,8 +192,9 @@ export const HOUSE_LORE: Record<string, HouseLore> = {
     flavorText: 'Помни: Лев не спрашивает разрешения. Он берёт своё!',
     closingRemark: 'Наши механики и сюжет продуманы так, что будут понятны и увлекательны даже для тех, кто не смотрел сериал. Главное — твоя жажда триумфа! Увидимся на ТурФурре! 🦁✨',
     emoji: '🦁',
+    curator: 'Акиро',
+    curatorHandle: '@akiro_wolf',
   },
-  baratheon: {
     hookQuestion: 'Ты побеждаешь с размахом, а празднуешь с душой?',
     emblem: 'Коронованный угольно-чёрный олень на золотом поле',
     fullDescription: 'Дом Баратеонов — это громкий смех победителей, щедрые пиры после честной борьбы и энергия, которая заряжает весь лагерь.\n\nЕсли ты веришь, что сила и отвага заслуживают такого же грандиозного праздника, если ты играешь на полную и делишься победой со всеми — этот дом для тебя.',
@@ -202,8 +207,9 @@ export const HOUSE_LORE: Record<string, HouseLore> = {
     flavorText: 'Помни: олень горд и силён, но настоящая мощь — его стадо!',
     closingRemark: 'Наши механики и сюжет продуманы так, что будут понятны и увлекательны даже для тех, кто не смотрел сериал. Главное — твоя страсть к жизни и честной игре! Увидимся на ТурФурре! 🦌🔥',
     emoji: '🦌',
+    curator: 'Ройскрим',
+    curatorHandle: '@Royskrim',
   },
-  tyrell: {
     hookQuestion: 'Ты ценишь изящество, красоту и силу, что скрыта в лепестках розы?',
     emblem: 'Золотая роза на изумрудно-зелёном поле',
     fullDescription: 'Дом Тиреллов — это утончённая эстетика в каждой детали, тёплые и умные беседы в тенистом саду и гармония, которую ты создаёшь вокруг себя.\n\nЕсли ты веришь, что сила — в дипломатии и мудрости, а настоящая роскошь — это красота, искусство и изысканное общение — этот дом для тебя.',
@@ -216,8 +222,9 @@ export const HOUSE_LORE: Record<string, HouseLore> = {
     flavorText: 'Помни: даже самый крепкий камень уступает натиску корней.',
     closingRemark: 'Наши механики и сюжет продуманы так, что будут понятны и увлекательны даже для тех, кто не смотрел сериал. Главное — твоё стремление к гармонии и изяществу! Увидимся на ТурФурре! 🌹✨',
     emoji: '🌹',
+    curator: 'Кусака',
+    curatorHandle: '@Kusaka_Yep',
   },
-  martell: {
     hookQuestion: 'Ты живёшь с неукротимой страстью и пылающим сердцем?',
     emblem: 'Алое солнце, пронзённое золотым копьём',
     fullDescription: 'Дом Мартеллов — это ритм барабанов у ночного костра, жар танца, пылкая преданность и справедливость, за которую не жалко сразиться.\n\nЕсли ты веришь, что жизнь стоит того, чтобы прожить её максимально ярко, если твои эмоции — это сила, а не слабость, и ты всегда встаёшь на защиту того, что считаешь правдой — этот дом для тебя.',
@@ -230,6 +237,8 @@ export const HOUSE_LORE: Record<string, HouseLore> = {
     flavorText: 'Дорн — единственный регион Семи Королевств, который никогда не смогли победить. Лишь дипломатия и свадьбы смогли положить конец распрям и войнам с жителями юга.\n\nПомни: копьё солнца не знает страха, оно знает только цель.',
     closingRemark: 'Наши механики и сюжет продуманы так, что будут понятны и увлекательны даже для тех, кто не смотрел сериал. Главное — твоё пылающее сердце и любовь к жизни! Увидимся на ТурФурре! ☀️✨',
     emoji: '☀️',
+    curator: 'Кесаран',
+    curatorHandle: '@Kesaran_Pasaran',
   },
   'nights-watch': {
     hookQuestion: 'Твоя цель на ТурФурр — отдыхать, отключиться от всего и просто кайфовать?',
@@ -245,6 +254,7 @@ export const HOUSE_LORE: Record<string, HouseLore> = {
     closingRemark: 'Наши механики и сюжет продуманы так, что даже в Ночном Дозоре ты ничего не упустишь. Просто потому, что твоя механика — это твоё удовольствие. Увидимся на ТурФурре... особенно после заката! 🌙🍻',
     emoji: '🌙',
     isOrder: true,
+    isAfk: true,
   },
 }
 

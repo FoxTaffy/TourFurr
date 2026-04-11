@@ -107,6 +107,31 @@
           <p v-if="errors.experience" class="error-text">{{ errors.experience }}</p>
         </div>
 
+        <!-- RPG Interest -->
+        <div class="form-group">
+          <label class="form-label">
+            Насколько активно вы хотите участвовать в сюжетно-ролевой игре? <span class="required">*</span>
+          </label>
+          <div class="rpg-options">
+            <label class="rpg-option" :class="{ selected: form.rpgInterest === 'very_active' }">
+              <input type="radio" v-model="form.rpgInterest" value="very_active" class="rpg-radio" />
+              <span class="rpg-option-key">А</span>
+              <span class="rpg-option-text">Очень хочу! Буду участвовать по максимуму</span>
+            </label>
+            <label class="rpg-option" :class="{ selected: form.rpgInterest === 'somewhat' }">
+              <input type="radio" v-model="form.rpgInterest" value="somewhat" class="rpg-radio" />
+              <span class="rpg-option-key">Б</span>
+              <span class="rpg-option-text">Хочу, но немного — по настроению</span>
+            </label>
+            <label class="rpg-option" :class="{ selected: form.rpgInterest === 'not_interested' }">
+              <input type="radio" v-model="form.rpgInterest" value="not_interested" class="rpg-radio" />
+              <span class="rpg-option-key">В</span>
+              <span class="rpg-option-text">Вообще не хочу участвовать</span>
+            </label>
+          </div>
+          <p v-if="errors.rpgInterest" class="error-text">{{ errors.rpgInterest }}</p>
+        </div>
+
         <!-- Skills/Talents -->
         <div class="form-group">
           <label for="skills" class="form-label">
@@ -205,13 +230,15 @@ const authStore = useAuthStore()
 const form = reactive({
   motivation: '',
   experience: '',
+  rpgInterest: '',
   skills: '',
   additionalInfo: ''
 })
 
 const errors = reactive({
   motivation: '',
-  experience: ''
+  experience: '',
+  rpgInterest: ''
 })
 
 const isLoading = ref(false)
@@ -244,7 +271,10 @@ const schema = yup.object({
     .min(50, 'Минимум 50 символов')
     .max(1000, 'Максимум 1000 символов'),
   experience: yup.string()
-    .required('Пожалуйста, укажите ваш опыт')
+    .required('Пожалуйста, укажите ваш опыт'),
+  rpgInterest: yup.string()
+    .required('Пожалуйста, укажите ваш вариант')
+    .oneOf(['very_active', 'somewhat', 'not_interested'], 'Неверный вариант')
 })
 
 // SmartCaptcha handlers
@@ -414,6 +444,7 @@ async function handleSubmit() {
         user_id: authStore.user.id,
         motivation: form.motivation.trim(),
         experience_level: form.experience,
+        rpg_interest: form.rpgInterest,
         skills: form.skills.trim() || null,
         additional_info: form.additionalInfo.trim() || null,
         status: 'pending'
@@ -440,6 +471,7 @@ async function handleSubmit() {
     // Reset form
     form.motivation = ''
     form.experience = ''
+    form.rpgInterest = ''
     form.skills = ''
     form.additionalInfo = ''
     captchaToken.value = null
@@ -642,6 +674,73 @@ async function handleSubmit() {
   font-size: 0.8rem;
   color: var(--sage);
   margin-top: -4px;
+}
+
+/* RPG Interest Poll */
+.rpg-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.rpg-option {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(97, 137, 108, 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background: rgba(97, 137, 108, 0.05);
+}
+
+.rpg-option.selected {
+  border-color: var(--fire);
+  background: rgba(255, 107, 53, 0.1);
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
+}
+
+.rpg-option:hover {
+  border-color: rgba(97, 137, 108, 0.6);
+  background: rgba(97, 137, 108, 0.1);
+}
+
+.rpg-option.selected:hover {
+  border-color: var(--fire);
+  background: rgba(255, 107, 53, 0.12);
+}
+
+.rpg-radio {
+  display: none;
+}
+
+.rpg-option-key {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(97, 137, 108, 0.2);
+  border: 1px solid rgba(97, 137, 108, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--sage);
+  transition: all 0.25s ease;
+}
+
+.rpg-option.selected .rpg-option-key {
+  background: var(--fire);
+  border-color: var(--fire);
+  color: white;
+}
+
+.rpg-option-text {
+  color: var(--cream);
+  font-size: 0.95rem;
 }
 
 .error-text {

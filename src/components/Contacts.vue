@@ -8,13 +8,21 @@
               Есть вопросы? Хочешь узнать больше? Напиши нам!
             </p>
 
-            <!-- Telegram Channel -->
-            <div class="telegram-channel">
-              <a :href="telegramChannel.link" target="_blank" rel="noopener noreferrer" class="channel-link">
-                <i :class="telegramChannel.icon"></i>
-                <div class="channel-info">
-                  <div class="channel-name">{{ telegramChannel.name }}</div>
-                  <div class="channel-desc">{{ telegramChannel.description }}</div>
+            <!-- Telegram Chat -->
+            <div class="telegram-chat-hero">
+              <a :href="telegramChannel.link" target="_blank" rel="noopener noreferrer" class="chat-hero-link">
+                <div class="chat-hero-icon">
+                  <i :class="telegramChannel.icon"></i>
+                </div>
+                <div class="chat-hero-body">
+                  <span class="chat-badge">Telegram ЧАТ</span>
+                  <div class="chat-hero-name">{{ telegramChannel.name }}</div>
+                  <div class="chat-hero-desc">{{ telegramChannel.description }}</div>
+                </div>
+                <div class="chat-hero-arrow">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                  </svg>
                 </div>
               </a>
             </div>
@@ -88,8 +96,8 @@
     data() {
       return {
         telegramChannel: {
-          name: 'TourFurr News',
-          description: 'Официальный канал события',
+          name: 'Чат участников TourFurr',
+          description: 'Присоединяйтесь к нашему Telegram-чату — общение, объявления и поддержка',
           icon: 'fab fa-telegram',
           link: 'https://t.me/+kUEOJ68BbxZkZmRi'
         },
@@ -143,54 +151,111 @@
       margin-bottom: 2.5rem;
   }
 
-  /* Telegram Channel */
-  .telegram-channel {
+  /* Telegram Chat Hero */
+  .telegram-chat-hero {
       margin-bottom: 3rem;
   }
 
-  .channel-link {
-      display: inline-flex;
+  .chat-hero-link {
+      display: flex;
       align-items: center;
       gap: 1.5rem;
-      padding: 1.5rem 3rem;
+      padding: 1.75rem 2rem;
       background: linear-gradient(
           135deg,
-          rgba(61, 45, 36, 0.6) 0%,
-          rgba(42, 31, 26, 0.5) 100%
+          rgba(41, 120, 191, 0.25) 0%,
+          rgba(29, 91, 148, 0.2) 100%
       );
       border-radius: 20px;
       text-decoration: none;
-      border: 1px solid rgba(139, 111, 71, 0.4);
+      border: 2px solid rgba(41, 120, 191, 0.6);
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 6px 25px rgba(41, 120, 191, 0.25);
+      position: relative;
+      overflow: hidden;
   }
 
-  .channel-link i {
-      font-size: 3rem;
-      color: var(--fire-glow);
-      filter: drop-shadow(0 0 10px rgba(255, 179, 71, 0.5));
+  .chat-hero-link::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(41, 120, 191, 0.1), transparent);
+      pointer-events: none;
   }
 
-  .channel-info {
+  .chat-hero-icon {
+      flex-shrink: 0;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(41, 120, 191, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid rgba(41, 120, 191, 0.7);
+  }
+
+  .chat-hero-icon i {
+      font-size: 2rem;
+      color: #5ba3e0;
+      filter: drop-shadow(0 0 8px rgba(91, 163, 224, 0.7));
+  }
+
+  .chat-hero-body {
+      flex: 1;
       text-align: left;
   }
 
-  .channel-name {
-      font-size: 1.5rem;
+  .chat-badge {
+      display: inline-block;
+      background: rgba(41, 120, 191, 0.4);
+      border: 1px solid rgba(91, 163, 224, 0.6);
+      color: #7dc4f5;
+      font-size: 0.7rem;
       font-weight: 700;
-      color: var(--fire-glow);
-      margin-bottom: 0.25rem;
+      letter-spacing: 0.1em;
+      padding: 0.2rem 0.6rem;
+      border-radius: 50px;
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
   }
 
-  .channel-desc {
+  .chat-hero-name {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #a3d4f7;
+      margin-bottom: 0.3rem;
+  }
+
+  .chat-hero-desc {
       color: var(--sage);
-      font-size: 1rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
   }
 
-  .channel-link:hover {
+  .chat-hero-arrow {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      color: #5ba3e0;
+      opacity: 0.7;
+      transition: all 0.3s ease;
+  }
+
+  .chat-hero-arrow svg {
+      width: 100%;
+      height: 100%;
+  }
+
+  .chat-hero-link:hover {
       transform: translateY(-4px);
-      border-color: var(--fire);
-      box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+      border-color: #5ba3e0;
+      box-shadow: 0 12px 35px rgba(41, 120, 191, 0.45);
+  }
+
+  .chat-hero-link:hover .chat-hero-arrow {
+      opacity: 1;
+      transform: translateX(4px);
   }
 
   /* Organizers */

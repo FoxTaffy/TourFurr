@@ -39,7 +39,18 @@
               <div class="banner-text">
                 <span class="banner-tag">{{ HOUSE_LORE[team.slug]?.isOrder ? 'Орден' : 'Великий Дом' }}</span>
                 <h2 class="banner-name">{{ team.name }}</h2>
-
+                <!-- AFK badge -->
+                <span v-if="HOUSE_LORE[team.slug]?.isAfk" class="afk-badge">⛺ Полностью АФК</span>
+                <!-- Curator -->
+                <div v-if="HOUSE_LORE[team.slug]?.curator" class="curator-row">
+                  <span class="curator-label">Куратор:</span>
+                  <a
+                    :href="`https://t.me/${HOUSE_LORE[team.slug]!.curatorHandle!.replace('@', '')}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="curator-link"
+                  >{{ HOUSE_LORE[team.slug]!.curator }} {{ HOUSE_LORE[team.slug]!.curatorHandle }}</a>
+                </div>
               </div>
               <div class="banner-count">
                 <span class="count-num">{{ getMemberCount(team.id) }}</span>
@@ -434,6 +445,48 @@ onMounted(async () => {
   color: var(--cream);
   line-height: 1.2;
   margin-bottom: 0.2rem;
+}
+
+/* AFK badge */
+.afk-badge {
+  display: inline-block;
+  background: rgba(100, 100, 100, 0.3);
+  border: 1px solid rgba(150, 150, 150, 0.5);
+  color: #bbb;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 50px;
+  margin-top: 0.3rem;
+  letter-spacing: 0.04em;
+}
+
+/* Curator row */
+.curator-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.curator-label {
+  font-size: 0.72rem;
+  color: var(--sage);
+  opacity: 0.8;
+}
+
+.curator-link {
+  font-size: 0.72rem;
+  color: #7dc4f5;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.curator-link:hover {
+  color: #a3d4f7;
+  text-decoration: underline;
 }
 
 .banner-motto {

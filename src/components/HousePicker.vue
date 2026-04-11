@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useTeamsStore } from '../stores/teams'
+import { useTeamsStore, MINOR_HOUSE_SLUGS } from '../stores/teams'
 import { useAuthStore } from '../stores/auth'
 import { safeStorage } from '../utils/safeStorage'
 
@@ -57,7 +57,7 @@ const emit = defineEmits<{
 const teamsStore = useTeamsStore()
 const authStore = useAuthStore()
 
-const teams = computed(() => teamsStore.teams)
+const teams = computed(() => teamsStore.teams.filter(t => !MINOR_HOUSE_SLUGS.includes(t.slug)))
 const selectedTeamId = ref<string | null>(null)
 const isSaving = ref(false)
 const errorMsg = ref('')
