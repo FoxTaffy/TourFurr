@@ -65,7 +65,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Password must be at least 8 characters'
+          error: 'Пароль должен быть не менее 8 символов'
         }),
         {
           status: 400,

@@ -157,15 +157,6 @@ function validate(): boolean {
   } else if (password.value.length < 8) {
     errors.password = 'Минимум 8 символов'
     isValid = false
-  } else if (!/[a-zA-Z]/.test(password.value)) {
-    errors.password = 'Должен содержать буквы'
-    isValid = false
-  } else if (!/\d/.test(password.value)) {
-    errors.password = 'Должен содержать цифры'
-    isValid = false
-  } else if (!/[^a-zA-Z0-9]/.test(password.value)) {
-    errors.password = 'Должен содержать специальный символ'
-    isValid = false
   }
 
   if (!confirmPassword.value) {
@@ -195,22 +186,16 @@ async function handleSubmit() {
       return
     }
 
-    // Update password via Edge Function
-    const { data, error } = await supabase.functions.invoke('update-password', {
-      body: {
-        email: resetEmail.trim().toLowerCase(),
-        newPassword: password.value
-      }
-    })
+    // Update password using the recovery session established after OTP verification
+    const { error } = await supabase.auth.updateUser({ password: password.value })
 
     if (error) {
       logger.error('Password update error:', error)
-      serverError.value = 'Ошибка обновления пароля. Попробуйте снова.'
-      return
-    }
-
-    if (!data?.success) {
-      serverError.value = data?.error || 'Ошибка обновления пароля'
+      if (error.message?.toLowerCase().includes('same')) {
+        serverError.value = 'Новый пароль должен отличаться от текущего.'
+      } else {
+        serverError.value = 'Ошибка обновления пароля. Попробуйте снова.'
+      }
       return
     }
 
