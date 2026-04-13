@@ -331,44 +331,24 @@ export const useTeamsStore = defineStore('teams', () => {
   }
 
   async function fetchTeamMembers(teamId: string) {
-    // Try DB first
     try {
       const { data, error: dbError } = await supabase
         .from('users')
         .select('id, nickname, avatar_url, status, team_id')
         .eq('team_id', teamId)
+        .in('status', ['approved', 'paid'])
         .order('nickname')
 
-      if (!dbError && data && data.length > 0) {
-        members.value[teamId] = data
+      if (dbError) {
+        logger.error('fetchTeamMembers error:', dbError)
+        if (!members.value[teamId]) members.value[teamId] = []
         return
       }
-    } catch {
-      // DB column may not exist
-    }
 
-    // Fallback: check current user from safeStorage (teamId comes from DB via mapDbUserToUser)
-    try {
-      const stored = safeStorage.getItem('current_user')
-      if (stored) {
-        const currentUser = JSON.parse(stored)
-        if (currentUser.teamId === teamId) {
-          members.value[teamId] = [{
-            id: currentUser.id,
-            nickname: currentUser.nickname,
-            avatar_url: currentUser.avatar || null,
-            status: currentUser.status || 'approved',
-            team_id: teamId
-          }]
-          return
-        }
-      }
-    } catch {
-      // ignore parse errors
-    }
-
-    if (!members.value[teamId]) {
-      members.value[teamId] = []
+      members.value[teamId] = data ?? []
+    } catch (err) {
+      logger.error('fetchTeamMembers exception:', err)
+      if (!members.value[teamId]) members.value[teamId] = []
     }
   }
 
