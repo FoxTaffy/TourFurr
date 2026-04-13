@@ -755,8 +755,7 @@ function handleLogout() {
 
 <style scoped>
 .dashboard-page {
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
   position: relative;
 }
 
@@ -766,9 +765,7 @@ function handleLogout() {
   z-index: 10;
   padding: 1.5rem 2rem;
   padding-top: 5.5rem;
-  height: 100vh;
   box-sizing: border-box;
-  overflow: hidden;
 }
 
 .dashboard-grid {
@@ -776,13 +773,14 @@ function handleLogout() {
   margin: 0 auto;
   display: grid;
   grid-template-columns: 270px 1fr 1fr;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto;
   grid-template-areas:
     "profile details  payment"
     "profile location location"
     "profile telegram telegram";
   gap: 1.25rem;
-  height: calc(100vh - 5.5rem - 3rem);
+  min-height: calc(100vh - 5.5rem - 3rem);
+  align-items: start;
 }
 
 /* Card Base Styles */
@@ -808,7 +806,10 @@ function handleLogout() {
 .profile-card {
   grid-area: profile;
   text-align: center;
-  position: relative;
+  position: sticky;
+  top: 5.5rem;
+  align-self: start;
+  max-height: calc(100vh - 6.5rem);
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
@@ -1934,8 +1935,8 @@ function handleLogout() {
   border: 2px solid rgba(139, 111, 71, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: box-shadow 0.3s ease;
-  flex: 1;
-  min-height: 0;
+  height: 360px;
+  flex: none;
   display: flex;
   flex-direction: column;
 }
@@ -1946,8 +1947,8 @@ function handleLogout() {
 
 .yandex-map {
   width: 100%;
-  flex: 1;
-  min-height: 0;
+  height: 360px;
+  flex: none;
   border: none;
   border-radius: 8px;
   display: block;
@@ -1984,22 +1985,12 @@ function handleLogout() {
 
 /* Responsive */
 @media (max-width: 1280px) {
-  .dashboard-page {
-    height: auto;
-    overflow: auto;
-  }
   .dashboard-main {
-    height: auto;
-    overflow: auto;
     padding: 1.5rem;
     padding-top: 5.5rem;
   }
   .dashboard-grid {
     grid-template-columns: 250px 1fr 1fr;
-    height: auto;
-  }
-  .profile-card {
-    overflow-y: visible;
   }
 }
 
@@ -2010,13 +2001,7 @@ function handleLogout() {
 }
 
 @media (max-width: 1024px) {
-  .dashboard-page {
-    height: auto;
-    overflow: auto;
-  }
   .dashboard-main {
-    height: auto;
-    overflow: auto;
     padding: 1.25rem;
     padding-top: 5.5rem;
   }
@@ -2028,10 +2013,11 @@ function handleLogout() {
       "profile payment"
       "location location"
       "telegram telegram";
-    height: auto;
     gap: 1rem;
   }
   .profile-card {
+    position: static;
+    max-height: none;
     overflow-y: visible;
   }
 }
