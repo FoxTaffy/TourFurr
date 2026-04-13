@@ -14,5 +14,5 @@ COMMENT ON COLUMN users.status IS 'User approval status: pending, approved, reje
 
 -- Fix Ночной Дозор crest path (SVG instead of missing PNG)
 INSERT INTO teams (name, slug, description, crest_url, color)
-VALUES ('Ночной Дозор', 'nights-watch', 'Девиза нет. Есть клятва — но это на другой раз. И вообще мы отдыхаем.', '/images/crests/the-wall-bg.png', '#555565')
-ON CONFLICT (slug) DO UPDATE SET crest_url = '/images/crests/the-wall-bg.png';
+VALUES ('Ночной Дозор', 'nights-watch', 'Девиза нет. Есть клятва — но это на другой раз. И вообще мы отдыхаем.', '/images/the-wall-bg.png', '#555565')
+ON CONFLICT (slug) DO UPDATE SET crest_url = '/images/the-wall-bg.png';

@@ -25,7 +25,7 @@ const CREST_MAP: Record<string, string> = {
   tyrell: '/images/crests/tyrell.png',
   baratheon: '/images/crests/baratheon.png',
   martell: '/images/crests/martell.png',
-  'nights-watch': '/images/crests/the-wall-bg.png'
+  'nights-watch': '/images/the-wall-bg.png'
 }
 
 const props = defineProps<{

@@ -33,6 +33,7 @@
 
             <div class="card-top">
               <div class="crest-ring">
+                <span class="crest-letter">{{ team.name[0] }}</span>
                 <img
                   :src="getCrestSrc(team)"
                   :alt="team.name"
@@ -53,6 +54,10 @@
               <span class="card-tag">{{ HOUSE_LORE[team.slug]?.isOrder ? 'Орден' : 'Великий Дом' }}</span>
               <h2 class="card-name">{{ team.name }}</h2>
               <span v-if="HOUSE_LORE[team.slug]?.isAfk" class="afk-badge">⛺ Полностью АФК</span>
+            </div>
+
+            <div v-if="team.slug === 'nights-watch'" class="nw-switch-note">
+              💡 Участники Дозора могут в любой момент перейти в один из Великих Домов — просто напишите организаторам.
             </div>
 
             <p v-if="HOUSE_LORE[team.slug]" class="card-hook">
@@ -336,9 +341,23 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  position: relative;
+}
+
+.crest-letter {
+  position: absolute;
+  font-family: 'Merriweather', serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--tc,var(--fire)) 80%, var(--cream));
+  opacity: .6;
+  z-index: 0;
+  user-select: none;
 }
 
 .crest-img {
+  position: relative;
+  z-index: 1;
   width: 74px;
   height: 74px;
   object-fit: contain;
@@ -367,7 +386,7 @@ onMounted(async () => {
 .house-card.nw .crest-ring {
   width: 110px;
   height: 110px;
-  background: rgba(230,230,238,.9);
+  background: rgba(225,225,232,.92);
   border-color: rgba(160,160,185,.6);
   box-shadow: 0 0 0 4px rgba(90,90,110,.15),
               0 8px 30px rgba(0,0,0,.5),
@@ -377,7 +396,23 @@ onMounted(async () => {
   width: 88px;
   height: 88px;
   opacity: 1;
-  filter: drop-shadow(0 1px 4px rgba(0,0,0,.4));
+  filter: drop-shadow(0 1px 4px rgba(0,0,0,.35));
+}
+.house-card.nw .crest-letter {
+  color: rgba(80,80,100,.5);
+}
+
+/* NW switch note */
+.nw-switch-note {
+  margin: .75rem 1.25rem 0;
+  padding: .6rem .9rem;
+  background: rgba(255,179,71,.06);
+  border: 1px solid rgba(255,179,71,.2);
+  border-radius: 10px;
+  font-size: .8rem;
+  color: var(--cream);
+  opacity: .85;
+  line-height: 1.5;
 }
 
 /* ── identity ── */
