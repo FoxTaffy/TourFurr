@@ -141,12 +141,21 @@ const FALLBACK_TEAMS: Team[] = [
     crest_url: '/images/crests/baelish.png',
     color: '#6B5B95',
     created_at: ''
+  },
+  {
+    id: 'redwyne',
+    name: 'Редвин',
+    slug: 'redwyne',
+    description: 'Переполнился дом, в который хотят многие. Лорды Винодела.',
+    crest_url: '/images/crests/Redwyne.png',
+    color: '#8B0000',
+    created_at: ''
   }
 ]
 
 // Slugs of minor (organizer-only) houses
 export const MINOR_HOUSE_SLUGS = [
-  'arryn', 'florent', 'greyjoy', 'tarth', 'strong', 'hightower', 'tully', 'baelish'
+  'arryn', 'florent', 'greyjoy', 'tarth', 'strong', 'hightower', 'tully', 'baelish', 'redwyne'
 ]
 
 export interface HouseLore {
