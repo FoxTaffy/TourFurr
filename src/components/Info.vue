@@ -55,12 +55,22 @@
   const approvedCount = ref<number | null>(null)
 
   onMounted(async () => {
-    const { count } = await supabase
-      .from('users')
-      .select('id', { count: 'exact', head: true })
-      .in('status', ['approved', 'paid'])
-    if (count !== null && count !== undefined) {
-      approvedCount.value = count
+    try {
+      const { count, error } = await supabase
+        .from('users')
+        .select('id', { count: 'exact', head: true })
+        .in('status', ['approved', 'paid'])
+      
+      if (error) {
+        console.error('Ошибка при загрузке данных:', error)
+        return
+      }
+      
+      if (count !== null && count !== undefined) {
+        approvedCount.value = count
+      }
+    } catch (err) {
+      console.error('Ошибка подключения к базе данных:', err)
     }
   })
 

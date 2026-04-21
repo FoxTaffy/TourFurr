@@ -68,22 +68,35 @@ const isLoading = ref(true)
 
 onMounted(async () => {
   try {
-    const { data: teamsData } = await supabase.from('teams').select('id, name, slug, color, crest_url')
+    const { data: teamsData, error: teamsError } = await supabase.from('teams').select('id, name, slug, color, crest_url')
+    
+    if (teamsError) {
+      console.error('Ошибка при загрузке домов:', teamsError)
+      return
+    }
+    
     const teamsMap: Record<string, Team> = {}
     for (const t of (teamsData || [])) {
       teamsMap[t.id] = t
     }
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('users')
       .select('id, nickname, avatar_url, team_id')
       .in('status', ['approved', 'paid'])
       .order('nickname')
 
+    if (error) {
+      console.error('Ошибка при загрузке участников:', error)
+      return
+    }
+
     participants.value = (data || []).map((u: any) => ({
       ...u,
       team: u.team_id ? (teamsMap[u.team_id] || null) : null
     }))
+  } catch (err) {
+    console.error('Ошибка подключения к базе данных:', err)
   } finally {
     isLoading.value = false
   }
