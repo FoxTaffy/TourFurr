@@ -1,6 +1,6 @@
 import { supabase } from '../services/supabase'
 import { logger } from './logger'
-import { DISABLE_EMAIL } from './env'
+import { DISABLE_EMAIL, SUPABASE_URL } from './env'
 
 export type PasswordResetCode = {
   id: string; email: string; used: boolean; expires_at: string
@@ -8,8 +8,8 @@ export type PasswordResetCode = {
 }
 
 /**
- * Запрашиваем сброс пароля через Supabase Auth.
- * Supabase отправляет email с OTP через настроенный SMTP (Gmail).
+ * Запрашиваем сброс пароля через Edge Function.
+ * Edge Function генерирует OTP через Supabase Admin API и отправляет через Resend.
  */
 export async function createPasswordResetCode(email: string): Promise<{
   success: boolean
@@ -22,20 +22,28 @@ export async function createPasswordResetCode(email: string): Promise<{
       return { success: true, expiresAt: new Date(Date.now() + 15 * 60 * 1000) }
     }
 
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      email.toLowerCase(),
-      { redirectTo: `${window.location.origin}/auth/verify-reset-code` }
-    )
+    // Call the Edge Function to send password reset email
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/send-password-reset-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabase.auth.session?.access_token || ''}`
+      },
+      body: JSON.stringify({ email: email.toLowerCase() })
+    })
 
-    if (error) {
-      if (error.status === 429 || error.message.toLowerCase().includes('rate limit')) {
+    const data = await response.json()
+
+    if (!response.ok) {
+      const statusCode = response.status
+      if (statusCode === 429) {
         return { success: false, error: 'Слишком много запросов. Подождите и попробуйте снова.' }
       }
-      logger.error('resetPasswordForEmail error:', error)
-      return { success: false, error: 'Не удалось отправить письмо. Попробуйте позже.' }
+      logger.error('send-password-reset-email error:', data)
+      return { success: false, error: data.error || 'Не удалось отправить письмо. Попробуйте позже.' }
     }
 
-    logger.log('Password reset email sent via Supabase Auth (Gmail SMTP)')
+    logger.log('Password reset email sent via Resend service')
     return { success: true, expiresAt: new Date(Date.now() + 15 * 60 * 1000) }
   } catch (err: any) {
     logger.error('Exception requesting password reset:', err)
