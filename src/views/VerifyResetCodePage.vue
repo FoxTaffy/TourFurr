@@ -45,6 +45,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ResetCodeInput from '../components/auth/ResetCodeInput.vue'
+import { supabase } from '../services/supabase'
 import { createPasswordResetCode, sendPasswordResetEmail, invalidateOldResetCodes } from '../utils/passwordReset'
 import { DISABLE_EMAIL } from '../utils/env'
 import { logger } from '../utils/logger'
@@ -89,8 +90,25 @@ onMounted(async () => {
 
 async function handleVerified() {
   try {
+    // Get and verify that session was established
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (!session) {
+      logger.error('No session established after OTP verification')
+      router.push({
+        path: '/auth/verify-reset-code',
+        query: {
+          email: email.value,
+          emailError: 'Ошибка проверки кода. Попробуйте снова.'
+        }
+      })
+      return
+    }
+    
     // Store email in sessionStorage for password update page
     sessionStorage.setItem('reset_email', email.value)
+    
+    logger.log('Recovery session verified, redirecting to password update')
 
     // Redirect to update password page
     router.push('/auth/update-password')

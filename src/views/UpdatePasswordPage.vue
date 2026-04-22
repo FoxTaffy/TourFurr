@@ -186,6 +186,17 @@ async function handleSubmit() {
       return
     }
 
+    // Check if user has an active recovery session from verifyOtp
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (!session) {
+      logger.error('No recovery session found after OTP verification')
+      serverError.value = 'Сессия восстановления истекла. Пожалуйста, запросите новый код восстановления.'
+      sessionStorage.removeItem('reset_email')
+      router.push('/reset-password')
+      return
+    }
+
     // Update password using the recovery session established after OTP verification
     const { error } = await supabase.auth.updateUser({ password: password.value })
 
@@ -193,6 +204,10 @@ async function handleSubmit() {
       logger.error('Password update error:', error)
       if (error.message?.toLowerCase().includes('same')) {
         serverError.value = 'Новый пароль должен отличаться от текущего.'
+      } else if (error.message?.toLowerCase().includes('not authenticated')) {
+        serverError.value = 'Сессия истекла. Запросите сброс пароля заново.'
+        sessionStorage.removeItem('reset_email')
+        setTimeout(() => router.push('/reset-password'), 2000)
       } else {
         serverError.value = 'Ошибка обновления пароля. Попробуйте снова.'
       }

@@ -51,7 +51,7 @@ export async function verifyResetCode(email: string, code: string): Promise<{
   error?: string
 }> {
   try {
-    const { error } = await supabase.auth.verifyOtp({
+    const { error, data } = await supabase.auth.verifyOtp({
       email: email.toLowerCase(),
       token: code,
       type: 'recovery'
@@ -63,6 +63,15 @@ export async function verifyResetCode(email: string, code: string): Promise<{
         error: 'Неверный или истёкший код. Проверьте письмо или запросите новый.'
       }
     }
+    
+    // Сохраняем информацию о восстановлении пароля
+    if (data.session) {
+      logger.log('Recovery session established:', {
+        user_id: data.user?.id,
+        email: data.user?.email
+      })
+    }
+    
     logger.log('Password reset OTP verified')
     return { success: true }
   } catch (err: any) {
