@@ -71,7 +71,15 @@ export async function debugPasswordResetCall(email: string): Promise<void> {
     })
   }
   
-  logger.log('=== 🔍 PASSWORD RESET DEBUG END ===\n')
+  logger.log('=== 🔍 PASSWORD RESET DEBUG END ===')
 }
 
-export function logPasswordResetAttempt(email: string, result: any): void {\n  logger.log('📊 Password Reset Attempt Log:', {\n    timestamp: new Date().toISOString(),\n    email,\n    success: result.success,\n    error: result.error,\n    statusCode: result.statusCode\n  })\n}
+export function logPasswordResetAttempt(email: string, result: any): void {
+  logger.log('📊 Password Reset Attempt Log:', {
+    timestamp: new Date().toISOString(),
+    email,
+    success: result.success,
+    error: result.error,
+    statusCode: result.statusCode
+  })
+}
