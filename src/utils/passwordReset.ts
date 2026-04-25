@@ -25,13 +25,23 @@ export async function createPasswordResetCode(email: string): Promise<{
     const url = `${SUPABASE_URL}/functions/v1/send-password-reset-email`
     logger.log('🔐 Password reset: calling Edge Function at:', url)
 
+    // Prepare headers - only add Authorization if we have a token
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    }
+    
+    const accessToken = supabase.auth.session?.access_token
+    if (accessToken) {
+      logger.log('🔐 Password reset: using access token')
+      headers['Authorization'] = `Bearer ${accessToken}`
+    } else {
+      logger.log('🔐 Password reset: no access token (user not logged in)')
+    }
+
     // Call the Edge Function to send password reset email
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabase.auth.session?.access_token || ''}`
-      },
+      headers,
       body: JSON.stringify({ email: email.toLowerCase() })
     })
 
