@@ -27,14 +27,13 @@ export async function debugPasswordResetCall(email: string): Promise<void> {
   logger.log('   Full URL:', url)
   logger.log('   URL valid:', /^https?:\/\//.test(url))
   
-  // 4. Test fetch with proper headers
-  logger.log('4️⃣ Test Fetch:')
+  // 4. Test fetch with proper headers (NO authorization)
+  logger.log('4️⃣ Test Fetch (without Authorization):')
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session?.access_token || ''}`,
         'Accept': 'application/json'
       },
       body: JSON.stringify({ email: email.toLowerCase() })
@@ -45,16 +44,17 @@ export async function debugPasswordResetCall(email: string): Promise<void> {
     logger.log('     Content-Type:', response.headers.get('content-type'))
     logger.log('     Server:', response.headers.get('server'))
     
+    const responseText = await response.text()
     let responseBody: any
     try {
-      responseBody = await response.json()
+      responseBody = JSON.parse(responseText)
       logger.log('   Response Body:', responseBody)
-    } catch (parseErr) {
-      logger.log('   Response Body (raw):', await response.text())
+    } catch {
+      logger.log('   Response Body (raw):', responseText)
     }
     
     if (!response.ok) {
-      logger.error('   ❌ Response NOT OK')
+      logger.error('   ❌ Response NOT OK (status', response.status + ')')
       logger.log('   Full response:', {
         status: response.status,
         statusText: response.statusText,
