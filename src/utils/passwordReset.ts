@@ -22,8 +22,11 @@ export async function createPasswordResetCode(email: string): Promise<{
       return { success: true, expiresAt: new Date(Date.now() + 15 * 60 * 1000) }
     }
 
+    const url = `${SUPABASE_URL}/functions/v1/send-password-reset-email`
+    logger.log('🔐 Password reset: calling Edge Function at:', url)
+
     // Call the Edge Function to send password reset email
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/send-password-reset-email`, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -32,21 +35,29 @@ export async function createPasswordResetCode(email: string): Promise<{
       body: JSON.stringify({ email: email.toLowerCase() })
     })
 
+    logger.log('🔐 Password reset: response status:', response.status)
+
     const data = await response.json()
+    logger.log('🔐 Password reset: response data:', data)
 
     if (!response.ok) {
       const statusCode = response.status
       if (statusCode === 429) {
+        logger.warn('🔐 Password reset: rate limited (429)')
         return { success: false, error: 'Слишком много запросов. Подождите и попробуйте снова.' }
       }
-      logger.error('send-password-reset-email error:', data)
+      logger.error('🔐 Password reset: error response', { status: statusCode, error: data })
       return { success: false, error: data.error || 'Не удалось отправить письмо. Попробуйте позже.' }
     }
 
-    logger.log('Password reset email sent via Resend service')
+    logger.log('✅ Password reset: email sent via Resend service, messageId:', data.messageId)
     return { success: true, expiresAt: new Date(Date.now() + 15 * 60 * 1000) }
   } catch (err: any) {
-    logger.error('Exception requesting password reset:', err)
+    logger.error('❌ Password reset: Exception during fetch/fetch processing:', {
+      message: err.message,
+      name: err.name,
+      stack: err.stack
+    })
     return { success: false, error: err.message || 'Неизвестная ошибка' }
   }
 }

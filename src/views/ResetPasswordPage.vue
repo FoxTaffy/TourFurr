@@ -83,6 +83,24 @@ import { useRouter } from 'vue-router'
 import { supabase } from '../services/supabase'
 import { createPasswordResetCode } from '../utils/passwordReset'
 import { logger } from '../utils/logger'
+import { debugPasswordResetCall } from '../utils/edgeFunctionDebug'
+
+const router = useRouter()
+const email = ref('')
+const error = ref('')
+const isLoading = ref(false)
+const submitted = ref(false)
+
+// Keyboard shortcut for debugging: Ctrl+Alt+D
+if (typeof window !== 'undefined') {
+  window.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'd') {
+      const testEmail = email.value || 'debug@test.com'
+      logger.log('🔧 DEBUG MODE ACTIVATED for:', testEmail)
+      debugPasswordResetCall(testEmail)
+    }
+  })
+}
 
 const router = useRouter()
 const email = ref('')

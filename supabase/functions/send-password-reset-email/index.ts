@@ -86,10 +86,13 @@ function buildHtml(code: string): string {
 }
 
 serve(async (req) => {
+  console.log('[SEND-PWD-RESET] Incoming request:', { method: req.method, url: req.url })
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders })
   }
   if (req.method !== 'POST') {
+    console.log('[SEND-PWD-RESET] Invalid method:', req.method)
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
@@ -99,7 +102,10 @@ serve(async (req) => {
     const body = await req.json()
     const email = body.email?.toLowerCase().trim()
 
+    console.log('[SEND-PWD-RESET] Received request for email:', email)
+
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      console.log('[SEND-PWD-RESET] Invalid email format:', email)
       return new Response(JSON.stringify({ error: 'Invalid email' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -108,6 +114,12 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
+
+    console.log('[SEND-PWD-RESET] Env check:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      hasResendKey: !!resendApiKey
+    })
 
     if (!supabaseUrl || !supabaseServiceKey || !resendApiKey) {
       return new Response(JSON.stringify({ error: 'Server misconfigured' }), {
@@ -119,35 +131,37 @@ serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false }
     })
 
-    // Check user exists (don't leak whether email is registered)
-    const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers()
-    if (listError) {
-      console.error('listUsers error:', listError)
-    }
-    const userExists = users?.some(u => u.email?.toLowerCase() === email)
-
-    // Always return success to prevent email enumeration, but only send if user exists
-    if (!userExists) {
-      console.log('Password reset requested for non-existent email:', email)
-      return new Response(JSON.stringify({ success: true }), {
-        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+    console.log('[SEND-PWD-RESET] Starting password reset for:', email)
 
     // Generate the REAL Supabase recovery OTP
+    // This will fail silently if user doesn't exist, which is what we want
+    console.log('[SEND-PWD-RESET] Calling generateLink...')
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
       email,
     })
 
-    if (linkError || !linkData?.properties?.email_otp) {
-      console.error('generateLink recovery error:', linkError)
-      return new Response(JSON.stringify({ error: 'Could not generate reset code' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    console.log('[SEND-PWD-RESET] generateLink response:', { linkError, hasOtp: !!linkData?.properties?.email_otp })
+
+    if (linkError) {
+      // Don't leak whether email exists - return success anyway
+      console.log('[SEND-PWD-RESET] generateLink error (returning success anyway):', linkError.message)
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    if (!linkData?.properties?.email_otp) {
+      console.log('[SEND-PWD-RESET] No OTP generated for:', email)
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     const code = linkData.properties.email_otp
+
+    console.log('[SEND-PWD-RESET] Generated OTP for:', email)
+    console.log('[SEND-PWD-RESET] Calling Resend API...')
 
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -166,26 +180,33 @@ serve(async (req) => {
 
     const resendData = await resendResponse.json()
 
+    console.log('[SEND-PWD-RESET] Resend response status:', resendResponse.status)
+    console.log('[SEND-PWD-RESET] Resend response:', resendData)
+
     if (!resendResponse.ok) {
-      console.error('Resend error:', resendData)
+      console.error('[SEND-PWD-RESET] Resend error (status ' + resendResponse.status + '):', resendData)
       if (resendResponse.status === 429) {
         return new Response(JSON.stringify({ error: 'Email rate limit exceeded' }), {
           status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
-      return new Response(JSON.stringify({ error: 'Failed to send email' }), {
+      return new Response(JSON.stringify({ error: 'Failed to send email', details: resendData }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    console.log('Password reset email sent:', { email, messageId: resendData.id })
+    console.log('[SEND-PWD-RESET] ✅ Password reset email sent:', { email, messageId: resendData.id })
     return new Response(JSON.stringify({ success: true, messageId: resendData.id }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
 
   } catch (err: any) {
-    console.error('Error in send-password-reset-email:', err)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    console.error('[SEND-PWD-RESET] ❌ Unexpected error:', {
+      message: err.message,
+      name: err.name,
+      stack: err.stack
+    })
+    return new Response(JSON.stringify({ error: 'Internal server error', details: err.message }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
