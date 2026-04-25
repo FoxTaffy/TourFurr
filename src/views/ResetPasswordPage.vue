@@ -92,6 +92,13 @@ const isLoading = ref(false)
 const submitted = ref(false)
 
 // Keyboard shortcut for debugging: Ctrl+Alt+D
+const router = useRouter()
+const email = ref('')
+const error = ref('')
+const isLoading = ref(false)
+const submitted = ref(false)
+
+// Keyboard shortcut for debugging: Ctrl+Alt+D
 if (typeof window !== 'undefined') {
   window.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'd') {
@@ -101,12 +108,6 @@ if (typeof window !== 'undefined') {
     }
   })
 }
-
-const router = useRouter()
-const email = ref('')
-const error = ref('')
-const isLoading = ref(false)
-const submitted = ref(false)
 
 async function handleSubmit() {
   error.value = ''
