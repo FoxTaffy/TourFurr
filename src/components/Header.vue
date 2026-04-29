@@ -2,7 +2,7 @@
     <div :class="{'header-dashboard': isDashboard}">
       <header>
         <nav>
-          <a :href="isDashboard ? '/' : '#'" class="logo">
+          <a :href="isDashboard || !isHomePage ? '/' : '#'" class="logo">
             <img :src="logoImg" alt="TourFurr" class="logo-img" />
             <span class="logo-text">TourFurr</span>
           </a>
@@ -22,11 +22,11 @@
 
           <!-- Navigation Links (for home page) -->
           <ul v-if="!isDashboard" class="nav-links" :class="{ open: mobileMenuOpen }">
-            <li><a href="#event" @click.prevent="scrollToAndClose('event')">О событии</a></li>
-            <li><a href="#info" @click.prevent="scrollToAndClose('info')">Информация</a></li>
-            <li><a href="#rules" @click.prevent="scrollToAndClose('rules')">Правила</a></li>
-            <li><a href="#faq" @click.prevent="scrollToAndClose('faq')">FAQ</a></li>
-            <li><a href="#contacts" @click.prevent="scrollToAndClose('contacts')">Контакты</a></li>
+            <li><a href="#event" @click.prevent="navigateTo('event')">О событии</a></li>
+            <li><a href="#info" @click.prevent="navigateTo('info')">Информация</a></li>
+            <li><a href="#rules" @click.prevent="navigateTo('rules')">Правила</a></li>
+            <li><a href="#faq" @click.prevent="navigateTo('faq')">FAQ</a></li>
+            <li><a href="#contacts" @click.prevent="navigateTo('contacts')">Контакты</a></li>
             <li><a href="/rental" @click="mobileMenuOpen = false" class="rental-nav-link">Аренда</a></li>
             <li v-if="showAuthButtons && !isAuthenticated">
               <a href="/auth" class="auth-button">Войти</a>
@@ -87,6 +87,7 @@
   import logoImg from '../assets/logo.png'
   import { useAuthStore } from '../stores/auth'
   import { computed } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
   import TeamBadge from './TeamBadge.vue'
 
   export default {
@@ -100,10 +101,16 @@
     },
     setup() {
       const authStore = useAuthStore()
+      const route = useRoute()
+      const router = useRouter()
+      const isHomePage = computed(() => route.name === 'Home')
+
       return {
         authStore,
         isAuthenticated: computed(() => authStore.isAuthenticated),
-        currentUser: computed(() => authStore.user)
+        currentUser: computed(() => authStore.user),
+        router,
+        isHomePage
       }
     },
     data() {
@@ -136,8 +143,12 @@
           element.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }
       },
-      scrollToAndClose(id) {
-        this.scrollTo(id)
+      navigateTo(id) {
+        if (this.isHomePage) {
+          this.scrollTo(id)
+        } else {
+          this.router.push({ path: '/', hash: `#${id}` })
+        }
         this.mobileMenuOpen = false
       },
       async handleLogout() {

@@ -1,9 +1,13 @@
 <template>
-  <main class="rental-page">
+  <div id="app">
+    <div class="bg-forest"></div>
+    <div class="fog"></div>
+
     <Header :isDashboard="false" />
-    
-    <div class="page-container">
-      <section id="rental-hero" class="rental-hero">
+
+    <main class="rental-page">
+      <div class="page-container">
+        <section id="rental-hero" class="rental-hero">
         <div class="container">
           <div class="hero-content">
             <h1 class="hero-title">Аренда снаряжения</h1>
@@ -93,10 +97,11 @@
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </main>
 
     <Footer />
-  </main>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -109,7 +114,7 @@ import Footer from '../components/Footer.vue'
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--background);
+  background: transparent;
 }
 
 .page-container {
