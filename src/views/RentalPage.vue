@@ -23,29 +23,37 @@
             
             <div class="equipment-grid">
               <!-- Equipment cards from images -->
-              <div class="equipment-card">
-                <div class="equipment-image"></div>
+              <div class="equipment-card" @click="openModal('/images/rental-1.jpg', 'Люкс палатка')">
+                <div class="equipment-image">
+                  <img src="/images/rental-1.jpg" alt="Люкс палатка" />
+                </div>
                 <h3 class="equipment-name">Люкс палатка</h3>
                 <p class="equipment-price">25 000 ₽</p>
                 <p class="equipment-desc">Полный комплект: палатка 2.5м, матрас, спальник, подушки, полотенца, фонари</p>
               </div>
 
-              <div class="equipment-card">
-                <div class="equipment-image"></div>
+              <div class="equipment-card" @click="openModal('/images/rental-2.jpg', 'Комфорт+')">
+                <div class="equipment-image">
+                  <img src="/images/rental-2.jpg" alt="Комфорт палатка" />
+                </div>
                 <h3 class="equipment-name">Комфорт+</h3>
                 <p class="equipment-price">10 000 ₽</p>
                 <p class="equipment-desc">Удобный вариант: палатка, большой матрас, тёплые пледы, подушки, столик, фонарь</p>
               </div>
 
-              <div class="equipment-card">
-                <div class="equipment-image"></div>
+              <div class="equipment-card" @click="openModal('/images/rental-3.jpg', 'Базовый комплект')">
+                <div class="equipment-image">
+                  <img src="/images/rental-3.jpg" alt="Базовый комплект" />
+                </div>
                 <h3 class="equipment-name">Базовый комплект</h3>
                 <p class="equipment-price">5 000 ₽</p>
                 <p class="equipment-desc">Оптимальный вариант: палатка на двоих, матрас, полотенца, спальник</p>
               </div>
 
-              <div class="equipment-card">
-                <div class="equipment-image"></div>
+              <div class="equipment-card" @click="openModal('/images/rental-4.jpg', 'Минимальный комплект')">
+                <div class="equipment-image">
+                  <img src="/images/rental-4.jpg" alt="Минимальный комплект" />
+                </div>
                 <h3 class="equipment-name">Минимальный комплект</h3>
                 <p class="equipment-price">2 500 ₽</p>
                 <p class="equipment-desc">Экономный вариант: палатка, матрас, спальный мешок</p>
@@ -98,6 +106,16 @@
         </div>
       </section>
       </div>
+
+      <!-- Modal for image viewing -->
+      <div v-if="showModal" class="modal" @click="closeModal">
+        <div class="modal-content" @click.stop>
+          <button class="close-btn" @click="closeModal">&times;</button>
+          <img :src="selectedImage" :alt="selectedName" class="modal-image" />
+          <h3 class="modal-title">{{ selectedName }}</h3>
+        </div>
+      </div>
+
     </main>
 
     <Footer />
@@ -107,6 +125,21 @@
 <script setup lang="ts">
 import Header from '../components/Header.vue'
 import Footer from '../components/Footer.vue'
+import { ref } from 'vue'
+
+const showModal = ref(false)
+const selectedImage = ref('')
+const selectedName = ref('')
+
+const openModal = (image: string, name: string) => {
+  selectedImage.value = image
+  selectedName.value = name
+  showModal.value = true
+}
+
+const closeModal = () => {
+  showModal.value = false
+}
 </script>
 
 <style scoped>
@@ -179,7 +212,7 @@ import Footer from '../components/Footer.vue'
 
 .equipment-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
   margin-bottom: 2rem;
 }
@@ -190,6 +223,7 @@ import Footer from '../components/Footer.vue'
   border-radius: 16px;
   overflow: hidden;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .equipment-card:hover {
@@ -361,5 +395,63 @@ import Footer from '../components/Footer.vue'
     height: 40px;
     font-size: 1rem;
   }
+}
+
+/* Modal styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: rgba(26, 17, 14, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 111, 71, 0.5);
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 90vw;
+  max-height: 90vh;
+  position: relative;
+  text-align: center;
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--fire-glow);
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background 0.3s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 179, 71, 0.2);
+}
+
+.modal-image {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.modal-title {
+  color: var(--fire-glow);
+  margin-top: 1rem;
+  font-family: 'Merriweather', serif;
+  font-size: 1.5rem;
 }
 </style>
