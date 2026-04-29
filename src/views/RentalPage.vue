@@ -9,7 +9,7 @@
       <div class="page-container">
         <section id="rental-hero" class="rental-hero">
         <div class="container">
-          <div class="hero-content">
+          <div class="hero-content glass-card">
             <h1 class="hero-title">Аренда снаряжения</h1>
             <p class="hero-subtitle">Полный комфорт без забот о снаряжении</p>
           </div>
@@ -224,6 +224,10 @@ const closeModal = () => {
   overflow: hidden;
   transition: all 0.3s ease;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .equipment-card:hover {
@@ -248,7 +252,7 @@ const closeModal = () => {
 }
 
 .equipment-card > * {
-  padding: 0 1.5rem;
+  padding: 0 1rem;
 }
 
 .equipment-card > :first-child {
@@ -260,7 +264,6 @@ const closeModal = () => {
   font-size: 1.2rem;
   color: var(--fire-glow);
   margin: 1.25rem 0 0.5rem 0;
-  padding: 0 1.5rem !important;
 }
 
 .equipment-price {
@@ -268,15 +271,13 @@ const closeModal = () => {
   font-weight: 700;
   color: var(--moss);
   margin: 0.5rem 0;
-  padding: 0 1.5rem !important;
 }
 
 .equipment-desc {
   font-size: 0.9rem;
   color: var(--sage);
   line-height: 1.5;
-  margin: 1rem 0;
-  padding: 0 1.5rem 1.5rem 1.5rem !important;
+  margin: 1rem 0 1.5rem 0;
 }
 
 .info-card {
