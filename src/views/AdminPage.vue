@@ -1035,10 +1035,6 @@ async function toggleDeferredPayment(userId: string) {
     isUpdating.value = null
   }
 }
-  } finally {
-    isUpdating.value = null
-  }
-}
 
 async function sendApprovalEmail(email: string, nickname: string, status: string) {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
