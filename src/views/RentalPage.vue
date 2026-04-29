@@ -20,36 +20,28 @@
             <div class="equipment-grid">
               <!-- Equipment cards from images -->
               <div class="equipment-card">
-                <div class="equipment-image">
-                  <img src="/images/rental-1.jpg" alt="Люкс палатка" />
-                </div>
+                <div class="equipment-image"></div>
                 <h3 class="equipment-name">Люкс палатка</h3>
                 <p class="equipment-price">25 000 ₽</p>
                 <p class="equipment-desc">Полный комплект: палатка 2.5м, матрас, спальник, подушки, полотенца, фонари</p>
               </div>
 
               <div class="equipment-card">
-                <div class="equipment-image">
-                  <img src="/images/rental-2.jpg" alt="Комфорт палатка" />
-                </div>
+                <div class="equipment-image"></div>
                 <h3 class="equipment-name">Комфорт+</h3>
                 <p class="equipment-price">10 000 ₽</p>
                 <p class="equipment-desc">Удобный вариант: палатка, большой матрас, тёплые пледы, подушки, столик, фонарь</p>
               </div>
 
               <div class="equipment-card">
-                <div class="equipment-image">
-                  <img src="/images/rental-3.jpg" alt="Базовый комплект" />
-                </div>
+                <div class="equipment-image"></div>
                 <h3 class="equipment-name">Базовый комплект</h3>
                 <p class="equipment-price">5 000 ₽</p>
                 <p class="equipment-desc">Оптимальный вариант: палатка на двоих, матрас, полотенца, спальник</p>
               </div>
 
               <div class="equipment-card">
-                <div class="equipment-image">
-                  <img src="/images/rental-4.jpg" alt="Минимальный комплект" />
-                </div>
+                <div class="equipment-image"></div>
                 <h3 class="equipment-name">Минимальный комплект</h3>
                 <p class="equipment-price">2 500 ₽</p>
                 <p class="equipment-desc">Экономный вариант: палатка, матрас, спальный мешок</p>
