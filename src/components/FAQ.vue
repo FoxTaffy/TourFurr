@@ -10,7 +10,10 @@
               class="faq-item"
             >
               <div class="faq-question">{{ item.question }}</div>
-              <div class="faq-answer">{{ item.answer }}</div>
+              <div class="faq-answer" :class="{ 'faq-answer-html': item.isHtml }">
+                <div v-if="item.isHtml" v-html="item.answer"></div>
+                <div v-else>{{ item.answer }}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -37,7 +40,8 @@
           {
             id: 3,
             question: 'Что взять с собой?',
-            answer: 'Обязательно: палатку, спальник, коврик, фонарик, одежду по погоде (в том числе теплую для вечера), средства гигиены. Рекомендуем: powerbank, дождевик, посуду, термос. Не берите дорогие вещи, которые жалко потерять.'
+            isHtml: true,
+            answer: 'Обязательно: палатку, спальник, коврик, фонарик, одежду по погоде (в том числе теплую для вечера), средства гигиены. Рекомендуем: powerbank, дождевик, посуду, термос. Не берите дорогие вещи, которые жалко потерять.<br><br><a href="/rental" class="rental-link">Или обратиться к нам для аренды</a>'
           },
           {
             id: 4,
@@ -117,6 +121,19 @@
       color: var(--sage);
       line-height: 1.8;
       font-size: 1.05rem;
+  }
+
+  .rental-link {
+      color: var(--fire-glow);
+      text-decoration: none;
+      border-bottom: 2px solid var(--fire-glow);
+      transition: all 0.3s ease;
+      cursor: pointer;
+  }
+
+  .rental-link:hover {
+      color: var(--fire);
+      border-bottom-color: var(--fire);
   }
 
   @media (max-width: 768px) {

@@ -27,6 +27,7 @@
             <li><a href="#rules" @click.prevent="scrollToAndClose('rules')">Правила</a></li>
             <li><a href="#faq" @click.prevent="scrollToAndClose('faq')">FAQ</a></li>
             <li><a href="#contacts" @click.prevent="scrollToAndClose('contacts')">Контакты</a></li>
+            <li><a href="/rental" @click="mobileMenuOpen = false" class="rental-nav-link">Аренда</a></li>
             <li v-if="showAuthButtons && !isAuthenticated">
               <a href="/auth" class="auth-button">Войти</a>
             </li>
@@ -623,6 +624,27 @@
   }
 
   .teams-nav-link::after {
+      display: none !important;
+  }
+
+  /* Rental Navigation */
+  .rental-nav-link {
+      color: var(--moss) !important;
+      font-weight: 600 !important;
+      padding: 0.4rem 1rem !important;
+      border: 1px solid rgba(97, 137, 108, 0.4);
+      border-radius: 20px;
+      background: rgba(97, 137, 108, 0.1);
+      transition: all 0.3s ease;
+  }
+
+  .rental-nav-link:hover {
+      background: rgba(97, 137, 108, 0.2);
+      border-color: var(--moss);
+      transform: translateY(-1px);
+  }
+
+  .rental-nav-link::after {
       display: none !important;
   }
 

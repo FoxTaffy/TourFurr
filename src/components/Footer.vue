@@ -13,10 +13,10 @@
   import { ref } from 'vue'
 
   // Автоматическая версия из package.json
-  const version = ref('1.0.0')
+  const version = ref('2.0.0')
 
   // Дата последнего обновления (автоматически обновляется при билде)
-  const lastUpdate = ref('25.01.2026')
+  const lastUpdate = ref('29.04.2026')
   </script>
   
   <style scoped>
