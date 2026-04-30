@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div class="rental-page-root">
     <div class="bg-forest"></div>
     <div class="fog"></div>
 
@@ -8,13 +8,13 @@
     <main class="rental-page">
       <div class="page-container">
         <section id="rental-hero" class="rental-hero">
-        <div class="container">
-          <div class="hero-content glass-card">
-            <h1 class="hero-title">Аренда снаряжения</h1>
-            <p class="hero-subtitle">Полный комфорт без забот о снаряжении</p>
+          <div class="container">
+            <div class="hero-content glass-card">
+              <h1 class="hero-title">Аренда снаряжения</h1>
+              <p class="hero-subtitle">Полный комфорт без забот о снаряжении</p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
       <section id="rental-equipment" class="rental-section">
         <div class="container">
@@ -143,11 +143,19 @@ const closeModal = () => {
 </script>
 
 <style scoped>
-.rental-page {
+.rental-page-root {
+  position: relative;
   min-height: 100vh;
+  overflow: hidden;
+}
+
+.rental-page {
+  min-height: calc(100vh - 6rem);
   display: flex;
   flex-direction: column;
   background: transparent;
+  position: relative;
+  z-index: 1;
 }
 
 .page-container {
@@ -212,9 +220,10 @@ const closeModal = () => {
 
 .equipment-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
   margin-bottom: 2rem;
+  align-items: stretch;
 }
 
 .equipment-card {
@@ -228,6 +237,7 @@ const closeModal = () => {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  min-height: 100%;
 }
 
 .equipment-card:hover {
@@ -418,8 +428,10 @@ const closeModal = () => {
   border: 1px solid rgba(139, 111, 71, 0.5);
   border-radius: 20px;
   padding: 2rem;
+  width: min(100%, 960px);
   max-width: 90vw;
   max-height: 90vh;
+  overflow: auto;
   position: relative;
   text-align: center;
 }
