@@ -220,9 +220,10 @@ const closeModal = () => {
 
 .equipment-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
   gap: 2rem;
-  margin-bottom: 2rem;
+  margin: 0 auto 2rem;
+  max-width: 1040px;
   align-items: stretch;
 }
 
@@ -258,7 +259,7 @@ const closeModal = () => {
 .equipment-image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .equipment-card > * {
