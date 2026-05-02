@@ -144,17 +144,16 @@ serve(async (req) => {
     console.log('[SEND-PWD-RESET] generateLink response:', { linkError, hasOtp: !!linkData?.properties?.email_otp })
 
     if (linkError) {
-      // Don't leak whether email exists - return success anyway
-      console.log('[SEND-PWD-RESET] generateLink error (returning success anyway):', linkError.message)
-      return new Response(JSON.stringify({ success: true }), {
-        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      console.error('[SEND-PWD-RESET] generateLink error:', linkError)
+      return new Response(JSON.stringify({ error: 'Could not generate recovery code', details: linkError.message }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     if (!linkData?.properties?.email_otp) {
-      console.log('[SEND-PWD-RESET] No OTP generated for:', email)
-      return new Response(JSON.stringify({ success: true }), {
-        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      console.error('[SEND-PWD-RESET] No OTP generated for recovery link:', { email, linkData })
+      return new Response(JSON.stringify({ error: 'Could not generate recovery code', details: 'No recovery OTP was returned by Supabase' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 

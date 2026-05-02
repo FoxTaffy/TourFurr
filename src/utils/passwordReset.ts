@@ -57,7 +57,7 @@ export async function createPasswordResetCode(email: string): Promise<{
         return { success: false, error: 'Слишком много запросов. Подождите и попробуйте снова.' }
       }
       logger.error('🔐 Password reset: error response', { status: statusCode, error: data })
-      return { success: false, error: data.error || 'Не удалось отправить письмо. Попробуйте позже.' }
+    return { success: false, error: data.error || data.details || 'Не удалось отправить письмо. Попробуйте позже.' }
     }
 
     logger.log('✅ Password reset: email sent via Resend service, messageId:', data.messageId)
