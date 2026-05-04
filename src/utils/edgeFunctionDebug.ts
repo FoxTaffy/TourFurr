@@ -2,7 +2,7 @@
  * Diagnostic tools for Edge Function debugging
  */
 import { logger } from './logger'
-import { SUPABASE_URL } from './env'
+import { getEdgeFunctionUrl } from './env'
 import { supabase } from '../services/supabase'
 
 export async function debugPasswordResetCall(email: string): Promise<void> {
@@ -10,8 +10,9 @@ export async function debugPasswordResetCall(email: string): Promise<void> {
   
   // 1. Check environment
   logger.log('1️⃣ Environment Check:')
-  logger.log('   SUPABASE_URL:', SUPABASE_URL)
-  logger.log('   SUPABASE_URL is truthy:', !!SUPABASE_URL)
+  const proxyUrl = getEdgeFunctionUrl('send-password-reset-email')
+  logger.log('   Proxy URL:', proxyUrl)
+  logger.log('   Using local proxy:', proxyUrl.includes(window.location.origin))
   
   // 2. Check Supabase session
   logger.log('2️⃣ Supabase Session Check:')
@@ -23,9 +24,9 @@ export async function debugPasswordResetCall(email: string): Promise<void> {
   
   // 3. Check URL construction
   logger.log('3️⃣ URL Construction:')
-  const url = `${SUPABASE_URL}/functions/v1/send-password-reset-email`
+  const url = getEdgeFunctionUrl('send-password-reset-email')
   logger.log('   Full URL:', url)
-  logger.log('   URL valid:', /^https?:\/\//.test(url))
+  logger.log('   URL is from same origin:', url.includes(window.location.origin))
   
   // 4. Test fetch with proper headers (NO authorization)
   logger.log('4️⃣ Test Fetch (without Authorization):')

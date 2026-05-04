@@ -1,6 +1,6 @@
 import { supabase } from '../services/supabase'
 import { logger } from './logger'
-import { DISABLE_EMAIL, SUPABASE_URL } from './env'
+import { DISABLE_EMAIL, getEdgeFunctionUrl } from './env'
 
 export type PasswordResetCode = {
   id: string; email: string; used: boolean; expires_at: string
@@ -22,7 +22,7 @@ export async function createPasswordResetCode(email: string): Promise<{
       return { success: true, expiresAt: new Date(Date.now() + 15 * 60 * 1000) }
     }
 
-    const url = `${SUPABASE_URL}/functions/v1/send-password-reset-email`
+    const url = getEdgeFunctionUrl('send-password-reset-email')
     logger.log('🔐 Password reset: calling Edge Function at:', url)
 
     // Prepare headers - only add Authorization if we have a token

@@ -585,6 +585,7 @@ import logoImg from '../assets/logo.png'
 import { safeStorage } from '../utils/safeStorage'
 import logger from '../utils/logger'
 import { getIsAdminFromToken } from '../utils/jwt'
+import { getEdgeFunctionUrl } from '../utils/env'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -1037,17 +1038,11 @@ async function toggleDeferredPayment(userId: string) {
 }
 
 async function sendApprovalEmail(email: string, nickname: string, status: string) {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-  if (!supabaseUrl) {
-    showToast('Email не отправлен: SUPABASE_URL не настроен', 'error', 8000)
-    return
-  }
-
   try {
     const { data: { session } } = await supabase.auth.getSession()
     const token = session?.access_token
 
-    const response = await fetch(`${supabaseUrl}/functions/v1/send-approval-email`, {
+    const response = await fetch(getEdgeFunctionUrl('send-approval-email'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1085,7 +1080,7 @@ async function sendApprovalEmail(email: string, nickname: string, status: string
     const message = fetchError instanceof Error ? fetchError.message : ''
 
     if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
-      showToast('Email не отправлен: нет связи с Supabase. Проверьте SUPABASE_URL и что Edge Functions задеплоены.', 'error', 10000)
+      showToast('Email не отправлен: нет связи с Supabase. Проверьте что Edge Functions задеплоены.', 'error', 10000)
     } else {
       showToast(`Email не отправлен: ${message || 'сетевая ошибка'}`, 'error', 8000)
     }
@@ -1109,22 +1104,16 @@ function formatRelativeDate(dateStr: string) {
 }
 
 async function checkEmailService() {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-  if (!supabaseUrl) {
-    showToast('SUPABASE_URL не настроен — email-уведомления не будут работать', 'error', 10000)
-    return
-  }
-
   try {
     // Preflight OPTIONS check — if function is deployed, it returns 200
-    const res = await fetch(`${supabaseUrl}/functions/v1/send-approval-email`, {
+    const res = await fetch(getEdgeFunctionUrl('send-approval-email'), {
       method: 'OPTIONS'
     })
     if (res.status === 404) {
       showToast('Edge Function "send-approval-email" не задеплоена в Supabase. Письма не будут отправляться.', 'error', 12000)
     }
   } catch {
-    showToast('Нет связи с Supabase Edge Functions. Письма не будут отправляться. Проверьте сеть и URL.', 'error', 12000)
+    showToast('Нет связи с Supabase Edge Functions. Письма не будут отправляться. Проверьте сеть.', 'error', 12000)
   }
 }
 

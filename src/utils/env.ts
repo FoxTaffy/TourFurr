@@ -41,6 +41,12 @@ export const GRACE_PERIOD_MINUTES: number = parseInt(gracePeriodStr, 10)
 export const IS_PRODUCTION: boolean = viteProd || false
 export const IS_DEVELOPMENT: boolean = viteDev || false
 
+// Get Edge Function URL through local proxy (important for Russia)
+// This bypasses geographic restrictions by routing through the same origin
+export function getEdgeFunctionUrl(functionName: string): string {
+  return `${window.location.origin}/api/functions/v1/${functionName}`
+}
+
 // Validation
 export function validateEnvironment(): void {
   const missing: string[] = []

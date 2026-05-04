@@ -1,4 +1,4 @@
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from './env'
+import { SUPABASE_ANON_KEY, getEdgeFunctionUrl } from './env'
 
 interface VerifyCaptchaResponse {
   success?: boolean
@@ -6,12 +6,12 @@ interface VerifyCaptchaResponse {
 }
 
 export async function verifyTurnstileToken(token: string): Promise<boolean> {
-  if (!token || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  if (!token || !SUPABASE_ANON_KEY) {
     return false
   }
 
   try {
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/turnstile-verify`, {
+    const response = await fetch(getEdgeFunctionUrl('turnstile-verify'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

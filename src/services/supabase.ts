@@ -3,17 +3,21 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, IS_DEVELOPMENT } from '../utils/env'
 import { logger } from '../utils/logger'
 import { safeStorage } from '../utils/safeStorage'
 
+// Use local proxy to bypass geographic restrictions (important for Russia)
+// The proxy is served at /api by Nginx, which forwards to actual Supabase URL
+const proxiedSupabaseUrl = `${window.location.origin}/api`
+
 // Валидация в production
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+if (!SUPABASE_ANON_KEY) {
   if (IS_DEVELOPMENT) {
-    logger.warn('⚠️ Supabase credentials not found. Please check your .env file.')
+    logger.warn('⚠️ Supabase anon key not found. Please check your .env file.')
   } else {
-    throw new Error('CRITICAL: Supabase credentials missing in production!')
+    throw new Error('CRITICAL: Supabase anon key missing in production!')
   }
 }
 
 export const supabase = createClient(
-  SUPABASE_URL || 'https://placeholder.supabase.co',
+  proxiedSupabaseUrl || 'https://placeholder.supabase.co',
   SUPABASE_ANON_KEY || 'placeholder-key',
   {
     auth: {
@@ -22,4 +26,4 @@ export const supabase = createClient(
   }
 )
 
-export const isSupabaseConfigured = !!(SUPABASE_URL && SUPABASE_ANON_KEY)
+export const isSupabaseConfigured = !!SUPABASE_ANON_KEY
