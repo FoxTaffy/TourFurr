@@ -29,6 +29,10 @@ FROM nginx:alpine
 # Install Node.js runtime in nginx image
 RUN apk add --no-cache nodejs npm
 
+# Propagate Supabase URL to runtime so proxy-server.js can use it
+ARG VITE_SUPABASE_URL
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+
 # Copy built frontend
 COPY --from=build /app/dist /usr/share/nginx/html
 

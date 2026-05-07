@@ -15,9 +15,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'apikey', 'x-client-info']
 }));
 
-// Parse JSON
-app.use(express.json());
-
 // Get Supabase URL from environment
 const supabaseUrl = process.env.SUPABASE_URL;
 
