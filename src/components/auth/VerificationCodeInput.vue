@@ -58,11 +58,11 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps<{
   email: string
+  resend?: () => Promise<{ success: boolean; error?: string }>
 }>()
 
 const emit = defineEmits<{
   verified: []
-  resend: []
 }>()
 
 const code = ref<string[]>(['', '', '', '', '', ''])
@@ -225,10 +225,17 @@ async function resendCode() {
   hasError.value = false
 
   try {
-    emit('resend')
+    if (props.resend) {
+      const result = await props.resend()
+      if (!result.success) {
+        error.value = result.error || 'Не удалось отправить письмо с кодом'
+        hasError.value = true
+      }
+    }
     startTimer()
   } catch (err: any) {
     error.value = err.message || 'Ошибка отправки кода'
+    hasError.value = true
   } finally {
     isResending.value = false
   }

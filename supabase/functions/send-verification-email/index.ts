@@ -134,26 +134,45 @@ serve(async (req) => {
 
     const code = linkData.properties.email_otp
 
-    const resendResponse = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'TourFurr 2026 <team@tourfurr.camp>',
-        to: [email],
-        subject: `${code} — код подтверждения TourFurr 2026`,
-        html: buildHtml(code),
-        text: `TourFurr 2026 — Подтверждение регистрации\n\nВаш код: ${code}\n\nДействителен 15 минут.\n\nhttps://www.tourfurr.camp/auth/verify-email`,
-      }),
+    const resendPayload = JSON.stringify({
+      from: 'TourFurr 2026 <team@tourfurr.camp>',
+      to: [email],
+      subject: `${code} — код подтверждения TourFurr 2026`,
+      html: buildHtml(code),
+      text: `TourFurr 2026 — Подтверждение регистрации\n\nВаш код: ${code}\n\nДействителен 15 минут.\n\nhttps://www.tourfurr.camp/auth/verify-email`,
     })
 
-    const resendData = await resendResponse.json()
+    let resendResponse: Response | null = null
+    let resendData: any = null
+    const maxAttempts = 3
 
-    if (!resendResponse.ok) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        resendResponse = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: resendPayload,
+        })
+        resendData = await resendResponse.json()
+
+        // Don't retry on rate limit or client errors (4xx)
+        if (resendResponse.ok || resendResponse.status === 429 || resendResponse.status < 500) break
+
+        console.warn(`Resend attempt ${attempt} failed with ${resendResponse.status}, retrying...`)
+        if (attempt < maxAttempts) await new Promise(r => setTimeout(r, attempt * 500))
+      } catch (fetchErr) {
+        console.warn(`Resend fetch attempt ${attempt} threw:`, fetchErr)
+        if (attempt < maxAttempts) await new Promise(r => setTimeout(r, attempt * 500))
+        else throw fetchErr
+      }
+    }
+
+    if (!resendResponse!.ok) {
       console.error('Resend error:', resendData)
-      if (resendResponse.status === 429) {
+      if (resendResponse!.status === 429) {
         return new Response(JSON.stringify({ error: 'Email rate limit exceeded' }), {
           status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
