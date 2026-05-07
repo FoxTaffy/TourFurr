@@ -3,13 +3,13 @@ set -e
 
 echo "=== TourFurr Deploy ==="
 
-DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEPLOY_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Load .env if it exists so VITE_SUPABASE_URL and friends are available
 if [ -f "${DEPLOY_DIR}/.env" ]; then
   set -a
   # shellcheck disable=SC1091
-  source "${DEPLOY_DIR}/.env"
+  . "${DEPLOY_DIR}/.env"
   set +a
 fi
 
