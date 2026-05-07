@@ -39,7 +39,7 @@ npm install --no-save express cors express-http-proxy morgan
 
 # Start or restart proxy server via PM2
 echo "[5/6] Starting proxy server via PM2..."
-pm2 startOrRestart "${DEPLOY_DIR}/ecosystem.config.js" --update-env
+pm2 startOrRestart "${DEPLOY_DIR}/ecosystem.config.cjs" --update-env
 pm2 save
 
 # ── Nginx config ──────────────────────────────────────────────────────────────
