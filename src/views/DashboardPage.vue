@@ -211,7 +211,7 @@
             </div>
             <div class="detail-row">
               <span class="detail-label">Дата регистрации</span>
-              <span class="detail-value">{{ formatDate(user?.createdAt) }}</span>
+              <span class="detail-value">{{ authStore.isFetchingUser ? '...' : formatDate(user?.createdAt) }}</span>
             </div>
           </div>
 

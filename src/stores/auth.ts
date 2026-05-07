@@ -168,6 +168,8 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
+  const isFetchingUser = ref(false)
+
   const isAuthenticated = computed(() => !!token.value)
   const userStatus = computed(() => user.value?.status || null)
 
@@ -671,6 +673,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (cachedUser) {
       user.value = cachedUser
+      isFetchingUser.value = true
 
       // Fetch fresh data from database to get updated status
       try {
@@ -693,6 +696,8 @@ export const useAuthStore = defineStore('auth', () => {
       } catch (err) {
         // Keep cached user if fetch fails
         logger.error('Failed to fetch fresh user data:', err)
+      } finally {
+        isFetchingUser.value = false
       }
       return
     }
@@ -944,6 +949,7 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     token,
     isLoading,
+    isFetchingUser,
     error,
     isAuthenticated,
     userStatus,
