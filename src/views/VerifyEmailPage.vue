@@ -81,8 +81,8 @@
       <VerificationCodeInput
         v-if="gracePeriodStatus && !gracePeriodStatus.isExpired && gracePeriodStatus.exists"
         :email="email"
+        :resend="handleResend"
         @verified="handleVerified"
-        @resend="handleResend"
       />
 
       <!-- Change email link -->
@@ -274,7 +274,7 @@ async function handleChangeEmail() {
   }
 }
 
-async function handleResend() {
+async function handleResend(): Promise<{ success: boolean; error?: string }> {
   try {
     await invalidateOldCodes(email.value) // no-op, для совместимости
 
@@ -285,16 +285,19 @@ async function handleResend() {
       emailNotSent.value = true
       emailError.value = emailResult.error || 'Не удалось отправить письмо с кодом подтверждения'
       fallbackCode.value = ''
-    } else {
-      emailNotSent.value = false
-      emailError.value = ''
-      fallbackCode.value = ''
+      return { success: false, error: emailError.value }
     }
+
+    emailNotSent.value = false
+    emailError.value = ''
+    fallbackCode.value = ''
+    return { success: true }
   } catch (err: any) {
     logger.error('Error resending code:', err)
     emailNotSent.value = true
     emailError.value = 'Ошибка отправки кода'
     fallbackCode.value = ''
+    return { success: false, error: emailError.value }
   }
 }
 </script>
