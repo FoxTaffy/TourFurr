@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 echo "=== TourFurr Deploy ==="
@@ -42,15 +42,34 @@ echo "[5/6] Starting proxy server via PM2..."
 pm2 startOrRestart "${DEPLOY_DIR}/ecosystem.config.js" --update-env
 pm2 save
 
-# Install nginx config with the correct document root, then reload
+# ── Nginx config ──────────────────────────────────────────────────────────────
 echo "[6/6] Installing nginx config and reloading..."
-sed "s|root /usr/share/nginx/html;|root ${DEPLOY_DIR}/dist;|" \
-  "${DEPLOY_DIR}/nginx.conf" \
-  | sudo tee /etc/nginx/sites-available/tourfurr > /dev/null
-sudo ln -sf /etc/nginx/sites-available/tourfurr /etc/nginx/sites-enabled/tourfurr
-# Disable the default vhost so it doesn't shadow our server block
+
+# Auto-detect which Let's Encrypt cert domain to use (prefer bare domain)
+if [ -d "/etc/letsencrypt/live/tourfurr.camp" ]; then
+  CERT_DOMAIN="tourfurr.camp"
+elif [ -d "/etc/letsencrypt/live/www.tourfurr.camp" ]; then
+  CERT_DOMAIN="www.tourfurr.camp"
+else
+  echo "WARNING: Let's Encrypt cert not found under /etc/letsencrypt/live/" >&2
+  echo "         Set CERT_DOMAIN manually and re-run step 6 if needed." >&2
+  CERT_DOMAIN="tourfurr.camp"
+fi
+
+# Generate the production nginx config from the template
+sed \
+  -e "s|DEPLOY_ROOT|${DEPLOY_DIR}|g" \
+  -e "s|CERT_DOMAIN|${CERT_DOMAIN}|g" \
+  "${DEPLOY_DIR}/nginx.production.conf" \
+  | sudo tee /etc/nginx/sites-available/tourfurr.camp > /dev/null
+
+# Enable our config and disable anything that might shadow it
+sudo ln -sf /etc/nginx/sites-available/tourfurr.camp \
+            /etc/nginx/sites-enabled/tourfurr.camp
 sudo rm -f /etc/nginx/sites-enabled/default
-nginx -t && sudo systemctl reload nginx
+
+# Test and reload
+sudo nginx -t && sudo systemctl reload nginx
 
 echo ""
 echo "=== Deploy complete! ==="
