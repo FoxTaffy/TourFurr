@@ -34,7 +34,7 @@
             <li v-if="showAuthButtons && isAuthenticated && (currentUser?.status === 'approved' || currentUser?.status === 'paid')">
               <a href="/teams" class="teams-nav-link">Великие Дома</a>
             </li>
-            <li v-if="showAuthButtons && isAuthenticated">
+            <li v-if="showAuthButtons && isAuthenticated && currentUser">
               <a href="/dashboard" class="user-mini-card-link">
                 <div class="user-mini-card">
                   <img :src="currentUser.avatar || defaultAvatar" :alt="currentUser.nickname" class="user-avatar" />
