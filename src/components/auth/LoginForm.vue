@@ -779,32 +779,25 @@ async function handlePasswordUpdate() {
   confirmPasswordError.value = ''
 
   try {
-    // Update password via Edge Function
-    const { data, error } = await supabase.functions.invoke('update-password', {
-      body: {
-        email: resetEmail.value,
-        newPassword: newPassword.value
-      }
-    })
+    // Use the Supabase recovery session established by verifyOtp (type: 'recovery')
+    const { error } = await supabase.auth.updateUser({ password: newPassword.value })
 
     if (error) {
       logger.error('Password update error:', error)
-      passwordError.value = 'Ошибка обновления пароля. Попробуйте снова.'
+      if (error.message?.toLowerCase().includes('same')) {
+        passwordError.value = 'Новый пароль должен отличаться от текущего.'
+      } else if (error.message?.toLowerCase().includes('not authenticated') || error.message?.toLowerCase().includes('session')) {
+        passwordError.value = 'Сессия истекла. Запросите новый код восстановления.'
+        setTimeout(() => resetForgotForm(), 2000)
+      } else {
+        passwordError.value = 'Ошибка обновления пароля. Попробуйте снова.'
+      }
       return
     }
 
-    if (!data?.success) {
-      passwordError.value = data?.error || 'Ошибка обновления пароля'
-      return
-    }
-
-    // Show success
     passwordUpdateSuccess.value = true
-
-    // Clear all auth state via store (sign out + clear storage + reactive state)
     await authStore.logout()
 
-    // After 2 seconds, reset form and show login
     setTimeout(() => {
       resetForgotForm()
     }, 2000)

@@ -29,6 +29,11 @@ FROM nginx:alpine
 # Install Node.js runtime in nginx image
 RUN apk add --no-cache nodejs npm
 
+# Propagate build-time Supabase URL so the proxy knows where to forward requests.
+# Can be overridden at container runtime with: docker run -e SUPABASE_URL=https://...
+ARG VITE_SUPABASE_URL
+ENV SUPABASE_URL=${VITE_SUPABASE_URL}
+
 # Copy built frontend
 COPY --from=build /app/dist /usr/share/nginx/html
 

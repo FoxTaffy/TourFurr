@@ -16,7 +16,7 @@ export async function debugPasswordResetCall(email: string): Promise<void> {
   
   // 2. Check Supabase session
   logger.log('2️⃣ Supabase Session Check:')
-  const session = supabase.auth.session
+  const { data: { session } } = await supabase.auth.getSession()
   logger.log('   Session exists:', !!session)
   logger.log('   Session user ID:', session?.user?.id || 'NO USER ID')
   logger.log('   Access token exists:', !!session?.access_token)
