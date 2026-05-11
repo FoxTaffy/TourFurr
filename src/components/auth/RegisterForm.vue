@@ -899,15 +899,15 @@ const errors = reactive({
   agreePrivacy: ''
 })
 
-// Password strength calculation
+// Password strength calculation (required: 8+, uppercase, digit; special chars = bonus)
 const passwordStrength = computed(() => {
   const pwd = form.password
   if (!pwd) return 0
   let strength = 0
   if (pwd.length >= 8) strength++
-  if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength++
+  if (/[A-Z]/.test(pwd)) strength++
   if (/\d/.test(pwd)) strength++
-  if (/[^a-zA-Z0-9]/.test(pwd)) strength++
+  if (/[^a-zA-Z0-9]/.test(pwd)) strength++ // bonus
   return strength
 })
 

@@ -22,7 +22,7 @@ RUN npm run build
 FROM node:22-alpine AS proxy-builder
 WORKDIR /proxy
 COPY proxy-package.json package.json
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 # Stage 3: Serve
 FROM nginx:alpine

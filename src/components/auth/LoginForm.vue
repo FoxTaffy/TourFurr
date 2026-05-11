@@ -68,6 +68,7 @@
       <!-- Yandex SmartCaptcha -->
       <div class="captcha-wrapper">
         <YandexSmartCaptcha
+          ref="captchaRef"
           :siteKey="captchaSiteKey"
           @verify="handleCaptchaVerify"
           @error="handleCaptchaError"
@@ -347,6 +348,7 @@ const serverError = ref('')
 const captchaSiteKey = import.meta.env.VITE_SMARTCAPTCHA_SITE_KEY || ''
 const captchaToken = ref<string | null>(null)
 const captchaError = ref('')
+const captchaRef = ref<InstanceType<typeof YandexSmartCaptcha>>()
 const loginAttempts = ref(0)
 // Captcha is always shown on the login form to block bots
 const showCaptcha = true
@@ -427,6 +429,7 @@ async function handleSubmit() {
     if (!isCaptchaValid) {
       captchaError.value = 'Проверка CAPTCHA не пройдена. Попробуйте снова.'
       captchaToken.value = null
+      captchaRef.value?.reset()
       return
     }
   }
@@ -473,9 +476,19 @@ async function handleSubmit() {
       return
     }
 
-    // Increment failure counter, reset captcha token
+    // Legacy bcrypt account — open forgot-password form with email pre-filled
+    if (result.isLegacyAccount) {
+      resetEmail.value = form.email
+      captchaToken.value = null
+      captchaRef.value?.reset()
+      showForgotPassword.value = true
+      return
+    }
+
+    // Increment failure counter, reset captcha widget
     loginAttempts.value++
     captchaToken.value = null
+    captchaRef.value?.reset()
     const msg = result.error || 'Ошибка входа'
     serverError.value = msg
     toast.error(msg)
@@ -739,14 +752,11 @@ function validatePassword(): boolean {
   } else if (newPassword.value.length < 8) {
     passwordError.value = 'Минимум 8 символов'
     isValid = false
-  } else if (!/[a-zA-Z]/.test(newPassword.value)) {
-    passwordError.value = 'Должен содержать буквы'
+  } else if (!/[A-Z]/.test(newPassword.value)) {
+    passwordError.value = 'Должен содержать хотя бы одну заглавную букву'
     isValid = false
   } else if (!/\d/.test(newPassword.value)) {
-    passwordError.value = 'Должен содержать цифры'
-    isValid = false
-  } else if (!/[^a-zA-Z0-9]/.test(newPassword.value)) {
-    passwordError.value = 'Должен содержать специальный символ'
+    passwordError.value = 'Должен содержать хотя бы одну цифру'
     isValid = false
   }
 

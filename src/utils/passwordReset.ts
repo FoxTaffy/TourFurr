@@ -25,12 +25,13 @@ export async function createPasswordResetCode(email: string): Promise<{
     const url = getEdgeFunctionUrl('send-password-reset-email')
     logger.log('🔐 Password reset: calling Edge Function at:', url)
 
-    // Prepare headers - only add Authorization if we have a token
+    // Prepare headers - only add Authorization if we have an active session
     const headers: Record<string, string> = {
       'Content-Type': 'application/json'
     }
-    
-    const accessToken = supabase.auth.session?.access_token
+
+    const { data: { session } } = await supabase.auth.getSession()
+    const accessToken = session?.access_token
     if (accessToken) {
       logger.log('🔐 Password reset: using access token')
       headers['Authorization'] = `Bearer ${accessToken}`

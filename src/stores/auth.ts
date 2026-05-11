@@ -125,6 +125,7 @@ export interface AuthActionResult {
   success: boolean
   error?: string
   needsVerification?: boolean
+  isLegacyAccount?: boolean
   email?: string
   emailSent?: boolean
   emailError?: string
@@ -241,7 +242,7 @@ export const useAuthStore = defineStore('auth', () => {
         securityLogger.log({
           type: 'rate_limit',
           identifier: cleanEmail,
-          details: { action: 'login', fingerprint }
+          details: { action: 'login' }
         })
         error.value = `Слишком много попыток входа. Попробуйте через ${Math.ceil(blockedTime / 60)} минут`
         return { success: false, error: error.value }
@@ -258,7 +259,7 @@ export const useAuthStore = defineStore('auth', () => {
         securityLogger.log({
           type: 'suspicious_activity',
           identifier: cleanEmail,
-          details: { action: 'login', fingerprint }
+          details: { action: 'login' }
         })
         error.value = 'Обнаружена подозрительная активность'
         return { success: false, error: error.value }
@@ -268,7 +269,7 @@ export const useAuthStore = defineStore('auth', () => {
       securityLogger.log({
         type: 'login_attempt',
         identifier: cleanEmail,
-        details: { fingerprint }
+        details: {}
       })
 
       logger.log('Attempting login with email:', cleanEmail)
@@ -295,13 +296,13 @@ export const useAuthStore = defineStore('auth', () => {
         // Check if it's an old user with bcrypt password
         if (loginStatus?.user_found && loginStatus.has_password) {
           logger.log('Found legacy bcrypt user.')
-          error.value = 'Ваш аккаунт использует устаревший формат пароля. Воспользуйтесь функцией «Забыл пароль».'
+          error.value = 'Ваш аккаунт использует устаревший формат пароля. Сейчас откроем форму сброса пароля.'
           securityLogger.log({
             type: 'login_failure',
             identifier: cleanEmail,
-            details: { reason: 'legacy_bcrypt_account', fingerprint }
+            details: { reason: 'legacy_bcrypt_account' }
           })
-          return { success: false, error: error.value }
+          return { success: false, error: error.value, isLegacyAccount: true, email: cleanEmail }
         }
       }
 
@@ -328,7 +329,7 @@ export const useAuthStore = defineStore('auth', () => {
         securityLogger.log({
           type: 'login_failure',
           identifier: cleanEmail,
-          details: { reason: 'auth_error', fingerprint }
+          details: { reason: 'auth_error' }
         })
         error.value = 'Неверный email или пароль'
         return { success: false, error: error.value }
@@ -339,7 +340,7 @@ export const useAuthStore = defineStore('auth', () => {
         securityLogger.log({
           type: 'login_failure',
           identifier: cleanEmail,
-          details: { reason: 'user_not_found', fingerprint }
+          details: { reason: 'user_not_found' }
         })
         error.value = 'Неверный email или пароль'
         return { success: false, error: error.value }
@@ -359,7 +360,7 @@ export const useAuthStore = defineStore('auth', () => {
         securityLogger.log({
           type: 'login_failure',
           identifier: cleanEmail,
-          details: { reason: 'database_error', fingerprint }
+          details: { reason: 'database_error' }
         })
         error.value = 'Ошибка получения данных пользователя'
         return { success: false, error: error.value }
@@ -458,7 +459,7 @@ export const useAuthStore = defineStore('auth', () => {
         securityLogger.log({
           type: 'suspicious_activity',
           identifier: cleanEmail,
-          details: { action: 'register', fingerprint }
+          details: { action: 'register' }
         })
         error.value = 'Обнаружена подозрительная активность в данных'
         return { success: false, error: error.value }
