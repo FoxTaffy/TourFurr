@@ -271,6 +271,7 @@
         @expired="handleCaptchaExpired"
       />
       <p v-if="captchaError" class="error-text">{{ captchaError }}</p>
+      <p class="vpn-hint">Если капча не загружается, рекомендуем отключить VPN</p>
     </div>
 
     <!-- Server Error -->
@@ -2622,6 +2623,13 @@ function redirectToLogin() {
   gap: 0.5rem;
   align-items: center;
   padding: 1rem 0;
+}
+
+.vpn-hint {
+  font-size: 0.78rem;
+  color: var(--sage);
+  opacity: 0.75;
+  text-align: center;
 }
 
 .captcha-wrapper > div {

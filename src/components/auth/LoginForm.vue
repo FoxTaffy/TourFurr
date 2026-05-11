@@ -75,6 +75,7 @@
           @expired="handleCaptchaExpired"
         />
         <p v-if="captchaError" class="error-text">{{ captchaError }}</p>
+        <p class="vpn-hint">Если капча не загружается, рекомендуем отключить VPN</p>
       </div>
 
       <!-- Submit Button -->
@@ -1084,6 +1085,13 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 0.5rem;
   align-items: center;
+}
+
+.vpn-hint {
+  font-size: 0.78rem;
+  color: var(--sage);
+  opacity: 0.75;
+  text-align: center;
 }
 
 .captcha-wrapper > div {

@@ -25,40 +25,40 @@
               <div class="equipment-card" @click="openModal('/images/rental-1.jpg?v=2', 'Люкс палатка')">
                 <div class="equipment-image">
                   <img src="/images/rental-1.jpg?v=2" alt="Люкс палатка" />
-                  <div class="equipment-overlay">
-                    <h3 class="equipment-name">Люкс палатка</h3>
-                    <p class="equipment-price">25 000 ₽</p>
-                  </div>
+                </div>
+                <div class="equipment-info">
+                  <h3 class="equipment-name">Люкс палатка</h3>
+                  <p class="equipment-price">25 000 ₽</p>
                 </div>
               </div>
 
               <div class="equipment-card" @click="openModal('/images/rental-2.jpg?v=2', 'Комфорт+')">
                 <div class="equipment-image">
                   <img src="/images/rental-2.jpg?v=2" alt="Комфорт+" />
-                  <div class="equipment-overlay">
-                    <h3 class="equipment-name">Комфорт+</h3>
-                    <p class="equipment-price">10 000 ₽</p>
-                  </div>
+                </div>
+                <div class="equipment-info">
+                  <h3 class="equipment-name">Комфорт+</h3>
+                  <p class="equipment-price">10 000 ₽</p>
                 </div>
               </div>
 
               <div class="equipment-card" @click="openModal('/images/rental-3.jpg?v=2', 'Базовый комплект')">
                 <div class="equipment-image">
                   <img src="/images/rental-3.jpg?v=2" alt="Базовый комплект" />
-                  <div class="equipment-overlay">
-                    <h3 class="equipment-name">Базовый комплект</h3>
-                    <p class="equipment-price">5 000 ₽</p>
-                  </div>
+                </div>
+                <div class="equipment-info">
+                  <h3 class="equipment-name">Базовый комплект</h3>
+                  <p class="equipment-price">5 000 ₽</p>
                 </div>
               </div>
 
               <div class="equipment-card" @click="openModal('/images/rental-4.jpg?v=2', 'Минимальный комплект')">
                 <div class="equipment-image">
                   <img src="/images/rental-4.jpg?v=2" alt="Минимальный комплект" />
-                  <div class="equipment-overlay">
-                    <h3 class="equipment-name">Минимальный комплект</h3>
-                    <p class="equipment-price">2 500 ₽</p>
-                  </div>
+                </div>
+                <div class="equipment-info">
+                  <h3 class="equipment-name">Минимальный комплект</h3>
+                  <p class="equipment-price">2 500 ₽</p>
                 </div>
               </div>
             </div>
@@ -110,19 +110,20 @@
       </section>
       </div>
 
-      <!-- Modal for image viewing -->
-      <div v-if="showModal" class="modal" @click="closeModal">
-        <div class="modal-content" @click.stop>
-          <button class="close-btn" @click="closeModal">&times;</button>
-          <img :src="selectedImage" :alt="selectedName" class="modal-image" />
-          <h3 class="modal-title">{{ selectedName }}</h3>
-        </div>
-      </div>
-
     </main>
 
     <Footer />
   </div>
+
+  <Teleport to="body">
+    <div v-if="showModal" class="modal" @click="closeModal">
+      <div class="modal-content" @click.stop>
+        <button class="close-btn" @click="closeModal">&times;</button>
+        <img :src="selectedImage" :alt="selectedName" class="modal-image" />
+        <h3 class="modal-title">{{ selectedName }}</h3>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -229,28 +230,28 @@ const closeModal = () => {
 }
 
 .equipment-card {
-  border-radius: 18px;
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  position: relative;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(139, 111, 71, 0.3);
+  background: rgba(20, 13, 10, 0.6);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
 }
 
 .equipment-card:hover {
-  transform: translateY(-6px) scale(1.01);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-}
-
-.equipment-card:hover .equipment-overlay {
-  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+  transform: translateY(-5px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 179, 71, 0.5);
 }
 
 .equipment-image {
   width: 100%;
-  aspect-ratio: 3 / 4;
-  position: relative;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .equipment-image img {
@@ -258,37 +259,35 @@ const closeModal = () => {
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.5s ease;
+  transition: transform 0.4s ease;
 }
 
 .equipment-card:hover .equipment-image img {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
-.equipment-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 2rem 1.25rem 1.25rem;
-  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
-  transition: background 0.3s ease;
+.equipment-info {
+  padding: 0.9rem 1.1rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-top: 1px solid rgba(139, 111, 71, 0.2);
 }
 
 .equipment-name {
   font-family: 'Merriweather', serif;
-  font-size: 1.15rem;
-  color: #fff;
-  margin: 0 0 0.35rem 0;
-  text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+  font-size: 1rem;
+  color: var(--fire-glow);
+  margin: 0;
 }
 
 .equipment-price {
-  font-size: 1.35rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: var(--fire-glow);
+  color: #fff;
   margin: 0;
-  text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+  white-space: nowrap;
 }
 
 .info-card {
@@ -396,10 +395,6 @@ const closeModal = () => {
   .equipment-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
-  }
-
-  .equipment-image {
-    aspect-ratio: 4 / 3;
   }
 
   .info-item {
