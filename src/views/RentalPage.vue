@@ -22,41 +22,44 @@
             <h2 class="section-title">Наши предложения</h2>
             
             <div class="equipment-grid">
-              <!-- Equipment cards from images -->
-              <div class="equipment-card" @click="openModal('/images/rental-1.jpg', 'Люкс палатка')">
+              <div class="equipment-card" @click="openModal('/images/rental-1.jpg?v=2', 'Люкс палатка')">
                 <div class="equipment-image">
-                  <img src="/images/rental-1.jpg" alt="Люкс палатка" />
+                  <img src="/images/rental-1.jpg?v=2" alt="Люкс палатка" />
+                  <div class="equipment-overlay">
+                    <h3 class="equipment-name">Люкс палатка</h3>
+                    <p class="equipment-price">25 000 ₽</p>
+                  </div>
                 </div>
-                <h3 class="equipment-name">Люкс палатка</h3>
-                <p class="equipment-price">25 000 ₽</p>
-                <p class="equipment-desc">Полный комплект: палатка 2.5м, матрас, спальник, подушки, полотенца, фонари</p>
               </div>
 
-              <div class="equipment-card" @click="openModal('/images/rental-2.jpg', 'Комфорт+')">
+              <div class="equipment-card" @click="openModal('/images/rental-2.jpg?v=2', 'Комфорт+')">
                 <div class="equipment-image">
-                  <img src="/images/rental-2.jpg" alt="Комфорт палатка" />
+                  <img src="/images/rental-2.jpg?v=2" alt="Комфорт+" />
+                  <div class="equipment-overlay">
+                    <h3 class="equipment-name">Комфорт+</h3>
+                    <p class="equipment-price">10 000 ₽</p>
+                  </div>
                 </div>
-                <h3 class="equipment-name">Комфорт+</h3>
-                <p class="equipment-price">10 000 ₽</p>
-                <p class="equipment-desc">Удобный вариант: палатка, большой матрас, тёплые пледы, подушки, столик, фонарь</p>
               </div>
 
-              <div class="equipment-card" @click="openModal('/images/rental-3.jpg', 'Базовый комплект')">
+              <div class="equipment-card" @click="openModal('/images/rental-3.jpg?v=2', 'Базовый комплект')">
                 <div class="equipment-image">
-                  <img src="/images/rental-3.jpg" alt="Базовый комплект" />
+                  <img src="/images/rental-3.jpg?v=2" alt="Базовый комплект" />
+                  <div class="equipment-overlay">
+                    <h3 class="equipment-name">Базовый комплект</h3>
+                    <p class="equipment-price">5 000 ₽</p>
+                  </div>
                 </div>
-                <h3 class="equipment-name">Базовый комплект</h3>
-                <p class="equipment-price">5 000 ₽</p>
-                <p class="equipment-desc">Оптимальный вариант: палатка на двоих, матрас, полотенца, спальник</p>
               </div>
 
-              <div class="equipment-card" @click="openModal('/images/rental-4.jpg', 'Минимальный комплект')">
+              <div class="equipment-card" @click="openModal('/images/rental-4.jpg?v=2', 'Минимальный комплект')">
                 <div class="equipment-image">
-                  <img src="/images/rental-4.jpg" alt="Минимальный комплект" />
+                  <img src="/images/rental-4.jpg?v=2" alt="Минимальный комплект" />
+                  <div class="equipment-overlay">
+                    <h3 class="equipment-name">Минимальный комплект</h3>
+                    <p class="equipment-price">2 500 ₽</p>
+                  </div>
                 </div>
-                <h3 class="equipment-name">Минимальный комплект</h3>
-                <p class="equipment-price">2 500 ₽</p>
-                <p class="equipment-desc">Экономный вариант: палатка, матрас, спальный мешок</p>
               </div>
             </div>
           </div>
@@ -220,75 +223,72 @@ const closeModal = () => {
 
 .equipment-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(280px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
   margin: 0 auto 2rem;
-  max-width: 1040px;
-  align-items: stretch;
 }
 
 .equipment-card {
-  background: rgba(42, 31, 26, 0.5);
-  border: 1px solid rgba(139, 111, 71, 0.3);
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
-  transition: all 0.3s ease;
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  min-height: 100%;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .equipment-card:hover {
-  border-color: rgba(255, 179, 71, 0.5);
-  transform: translateY(-4px);
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+.equipment-card:hover .equipment-overlay {
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
 }
 
 .equipment-image {
   width: 100%;
-  height: 200px;
-  background: rgba(139, 111, 71, 0.1);
+  aspect-ratio: 3 / 4;
+  position: relative;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .equipment-image img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
 }
 
-.equipment-card > * {
-  padding: 0 1rem;
+.equipment-card:hover .equipment-image img {
+  transform: scale(1.05);
 }
 
-.equipment-card > :first-child {
-  margin: 0;
+.equipment-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem 1.25rem 1.25rem;
+  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+  transition: background 0.3s ease;
 }
 
 .equipment-name {
   font-family: 'Merriweather', serif;
-  font-size: 1.2rem;
-  color: var(--fire-glow);
-  margin: 1.25rem 0 0.5rem 0;
+  font-size: 1.15rem;
+  color: #fff;
+  margin: 0 0 0.35rem 0;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.8);
 }
 
 .equipment-price {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 700;
-  color: var(--moss);
-  margin: 0.5rem 0;
-}
-
-.equipment-desc {
-  font-size: 0.9rem;
-  color: var(--sage);
-  line-height: 1.5;
-  margin: 1rem 0 1.5rem 0;
+  color: var(--fire-glow);
+  margin: 0;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.8);
 }
 
 .info-card {
@@ -395,7 +395,11 @@ const closeModal = () => {
 
   .equipment-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
+  }
+
+  .equipment-image {
+    aspect-ratio: 4 / 3;
   }
 
   .info-item {

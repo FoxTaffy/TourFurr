@@ -80,21 +80,19 @@ onMounted(async () => {
       teamsMap[t.id] = t
     }
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, nickname, avatar_url, team_id')
-      .in('status', ['approved', 'paid'])
-      .order('nickname')
+    const { data, error } = await supabase.rpc('get_approved_participants')
 
     if (error) {
       console.error('Ошибка при загрузке участников:', error)
       return
     }
 
-    participants.value = (data || []).map((u: any) => ({
-      ...u,
-      team: u.team_id ? (teamsMap[u.team_id] || null) : null
-    }))
+    participants.value = (data || [])
+      .sort((a: any, b: any) => (a.nickname || '').localeCompare(b.nickname || '', 'ru'))
+      .map((u: any) => ({
+        ...u,
+        team: u.team_id ? (teamsMap[u.team_id] || null) : null
+      }))
   } catch (err) {
     console.error('Ошибка подключения к базе данных:', err)
   } finally {
