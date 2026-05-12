@@ -296,13 +296,13 @@ export const useAuthStore = defineStore('auth', () => {
         // Check if it's an old user with bcrypt password
         if (loginStatus?.user_found && loginStatus.has_password) {
           logger.log('Found legacy bcrypt user.')
-          error.value = 'Ваш аккаунт использует устаревший формат пароля. Сейчас откроем форму сброса пароля.'
+          error.value = 'Неверный email или пароль.'
           securityLogger.log({
             type: 'login_failure',
             identifier: cleanEmail,
             details: { reason: 'legacy_bcrypt_account' }
           })
-          return { success: false, error: error.value, isLegacyAccount: true, email: cleanEmail }
+          return { success: false, error: error.value, email: cleanEmail }
         }
       }
 
