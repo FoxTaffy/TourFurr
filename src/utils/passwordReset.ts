@@ -1,6 +1,6 @@
 import { supabase } from '../services/supabase'
 import { logger } from './logger'
-import { DISABLE_EMAIL, getEdgeFunctionUrl } from './env'
+import { DISABLE_EMAIL, SUPABASE_ANON_KEY, getEdgeFunctionUrl } from './env'
 
 export type PasswordResetCode = {
   id: string; email: string; used: boolean; expires_at: string
@@ -25,19 +25,16 @@ export async function createPasswordResetCode(email: string): Promise<{
     const url = getEdgeFunctionUrl('send-password-reset-email')
     logger.log('🔐 Password reset: calling Edge Function at:', url)
 
-    // Prepare headers - only add Authorization if we have an active session
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
     }
 
     const { data: { session } } = await supabase.auth.getSession()
     const accessToken = session?.access_token
-    if (accessToken) {
-      logger.log('🔐 Password reset: using access token')
-      headers['Authorization'] = `Bearer ${accessToken}`
-    } else {
-      logger.log('🔐 Password reset: no access token (user not logged in)')
-    }
+    headers['Authorization'] = accessToken
+      ? `Bearer ${accessToken}`
+      : `Bearer ${SUPABASE_ANON_KEY}`
 
     // Call the Edge Function to send password reset email
     const response = await fetch(url, {
