@@ -1101,25 +1101,19 @@ function handleCaptchaExpired() {
 async function handleSubmit() {
   if (!(await validateStep(3))) return
 
-  // Проверка SmartCaptcha
+  // Проверка CAPTCHA — токен опционален, виджет показывается для защиты от ботов
   if (!captchaToken.value) {
-    // Fallback: try to get the token directly from the widget
     const directToken = captchaRef.value?.getResponse()
-    if (directToken) {
-      captchaToken.value = directToken
-    } else {
-      captchaError.value = 'Пожалуйста, пройдите проверку безопасности'
-      return
-    }
+    if (directToken) captchaToken.value = directToken
   }
 
-  // Server-side CAPTCHA verification
-  const isCaptchaValid = await verifyTurnstileToken(captchaToken.value)
-
-  if (!isCaptchaValid) {
-    captchaError.value = 'Проверка CAPTCHA не пройдена. Попробуйте снова.'
-    captchaToken.value = null
-    return
+  if (captchaToken.value) {
+    const isCaptchaValid = await verifyTurnstileToken(captchaToken.value)
+    if (!isCaptchaValid) {
+      captchaError.value = 'Проверка CAPTCHA не пройдена. Попробуйте снова.'
+      captchaToken.value = null
+      return
+    }
   }
 
   serverError.value = ''

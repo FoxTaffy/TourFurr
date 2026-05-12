@@ -417,16 +417,9 @@ async function handleSubmit() {
   serverError.value = ''
   captchaError.value = ''
 
-  // Проверка CAPTCHA
-  if (!captchaToken.value) {
-    captchaError.value = 'Пожалуйста, пройдите проверку CAPTCHA'
-    return
-  }
-
-  // Server-side CAPTCHA verification
+  // Проверка CAPTCHA — токен опционален, виджет показывается для защиты от ботов
   if (captchaToken.value) {
     const isCaptchaValid = await verifyTurnstileToken(captchaToken.value)
-
     if (!isCaptchaValid) {
       captchaError.value = 'Проверка CAPTCHA не пройдена. Попробуйте снова.'
       captchaToken.value = null

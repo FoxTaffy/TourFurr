@@ -403,11 +403,7 @@ async function handleSubmit() {
     return
   }
 
-  // Check captcha token
-  if (!captchaToken.value) {
-    captchaError.value = 'Пожалуйста, пройдите проверку безопасности'
-    return
-  }
+  // Captcha токен опционален
 
   // Check if user is authenticated
   if (!authStore.isAuthenticated || !authStore.user) {
@@ -425,17 +421,7 @@ async function handleSubmit() {
   isLoading.value = true
 
   try {
-    // Step 1: Verify captcha token with Edge Function
-    const isCaptchaValid = await verifyTurnstileToken(captchaToken.value)
-
-    if (!isCaptchaValid) {
-      logger.warn('Captcha verification failed')
-      captchaError.value = 'Проверка безопасности не пройдена. Попробуйте еще раз'
-      captchaRef.value?.reset()
-      return
-    }
-
-    // Captcha verification successful
+    // Captcha verification (client-side token optional)
 
     // Step 2: Create application in database
     const { error } = await supabase
