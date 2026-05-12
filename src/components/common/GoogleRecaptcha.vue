@@ -73,6 +73,11 @@ function loadScript(): Promise<void> {
 
 function renderWidget() {
   if (!captchaContainer.value) return
+  if (!props.siteKey) {
+    console.error('[reCAPTCHA] VITE_RECAPTCHA_SITE_KEY is empty — rebuild Docker with the env var set')
+    emit('error', 'reCAPTCHA: не задан ключ сайта')
+    return
+  }
   if (!window.grecaptcha || typeof window.grecaptcha.render !== 'function') {
     emit('error', 'reCAPTCHA не загрузилась. Проверьте интернет-соединение')
     return
