@@ -427,44 +427,58 @@ const closeModal = () => {
   backdrop-filter: blur(20px);
   border: 1px solid rgba(139, 111, 71, 0.5);
   border-radius: 20px;
-  padding: 2rem;
-  width: min(100%, 960px);
-  max-width: 90vw;
-  max-height: 90vh;
-  overflow: auto;
+  padding: 0;
+  max-width: min(92vw, 680px);
+  max-height: 96vh;
+  overflow: hidden;
   position: relative;
-  text-align: center;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .close-btn {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 179, 71, 0.4);
   color: var(--fire-glow);
-  font-size: 2rem;
+  font-size: 1.5rem;
   cursor: pointer;
-  padding: 0.5rem;
+  width: 2.2rem;
+  height: 2.2rem;
   border-radius: 50%;
-  transition: background 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  z-index: 10;
+  transition: background 0.2s ease;
 }
 
 .close-btn:hover {
-  background: rgba(255, 179, 71, 0.2);
+  background: rgba(255, 179, 71, 0.25);
 }
 
 .modal-image {
-  max-width: 100%;
-  max-height: 70vh;
+  width: 100%;
+  height: auto;
+  max-height: calc(96vh - 3.5rem);
   object-fit: contain;
-  border-radius: 10px;
+  display: block;
+  border-radius: 20px 20px 0 0;
 }
 
 .modal-title {
   color: var(--fire-glow);
-  margin-top: 1rem;
   font-family: 'Merriweather', serif;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
+  text-align: center;
+  padding: 0.75rem 1.5rem;
+  margin: 0;
+  border-top: 1px solid rgba(139, 111, 71, 0.3);
+  background: rgba(26, 17, 14, 0.98);
+  border-radius: 0 0 20px 20px;
 }
 </style>

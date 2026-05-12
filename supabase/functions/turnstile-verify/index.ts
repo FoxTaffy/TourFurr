@@ -1,8 +1,8 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
-const SMARTCAPTCHA_SECRET_KEY = Deno.env.get('SMARTCAPTCHA_SECRET_KEY')
-const SMARTCAPTCHA_VERIFY_URL = 'https://smartcaptcha.yandexcloud.net/validate'
+const RECAPTCHA_SECRET_KEY = Deno.env.get('RECAPTCHA_SECRET_KEY')
+const RECAPTCHA_VERIFY_URL = 'https://www.google.com/recaptcha/api/siteverify'
 
 const defaultAllowedHeaders = 'authorization, x-client-info, apikey, content-type'
 
@@ -18,15 +18,14 @@ function resolveRequestedHeaders(requestedHeaders: string | null): string {
   if (!requestedHeaders || !requestedHeaders.trim()) {
     return defaultAllowedHeaders
   }
-
-  // Reflect requested headers to keep compatibility with browser/Supabase preflight variants.
   return requestedHeaders
 }
 
-interface SmartCaptchaResponse {
-  status: 'ok' | 'failed'
-  message?: string
-  host?: string
+interface RecaptchaResponse {
+  success: boolean
+  challenge_ts?: string
+  hostname?: string
+  'error-codes'?: string[]
 }
 
 interface RequestBody {
@@ -54,8 +53,8 @@ serve(async (req) => {
       )
     }
 
-    if (!SMARTCAPTCHA_SECRET_KEY) {
-      console.error('SMARTCAPTCHA_SECRET_KEY not configured')
+    if (!RECAPTCHA_SECRET_KEY) {
+      console.error('RECAPTCHA_SECRET_KEY not configured')
       return new Response(
         JSON.stringify({ success: false, error: 'Server configuration error' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -73,26 +72,28 @@ serve(async (req) => {
 
     const clientIp = remoteip || req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip')
 
-    // Verify token with Yandex SmartCaptcha API
+    // Verify token with Google reCAPTCHA API
     const params = new URLSearchParams({
-      secret: SMARTCAPTCHA_SECRET_KEY,
-      token: token,
+      secret: RECAPTCHA_SECRET_KEY,
+      response: token,
     })
     if (clientIp) {
-      params.append('ip', clientIp)
+      params.append('remoteip', clientIp)
     }
 
-    const captchaResponse = await fetch(`${SMARTCAPTCHA_VERIFY_URL}?${params.toString()}`, {
-      method: 'GET',
+    const captchaResponse = await fetch(RECAPTCHA_VERIFY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
     })
 
-    const result: SmartCaptchaResponse = await captchaResponse.json()
+    const result: RecaptchaResponse = await captchaResponse.json()
 
-    const isSuccess = result.status === 'ok'
+    const isSuccess = result.success === true
 
     if (!isSuccess) {
-      console.warn('SmartCaptcha verification failed:', {
-        message: result.message,
+      console.warn('reCAPTCHA verification failed:', {
+        errorCodes: result['error-codes'],
         ip: clientIp,
       })
     }
@@ -100,8 +101,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: isSuccess,
-        host: result.host,
-        message: result.message,
+        hostname: result.hostname,
+        challenge_ts: result.challenge_ts,
       }),
       {
         status: isSuccess ? 200 : 400,
@@ -109,7 +110,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error verifying SmartCaptcha:', error)
+    console.error('Error verifying reCAPTCHA:', error)
     return new Response(
       JSON.stringify({
         success: false,

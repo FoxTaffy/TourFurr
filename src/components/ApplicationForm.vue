@@ -172,9 +172,9 @@
           <p>{{ serverError }}</p>
         </div>
 
-        <!-- Yandex SmartCaptcha -->
+        <!-- Google reCAPTCHA -->
         <div class="captcha-wrapper">
-          <YandexSmartCaptcha
+          <GoogleRecaptcha
             ref="captchaRef"
             :siteKey="captchaSiteKey"
             @verify="handleCaptchaVerify"
@@ -221,7 +221,7 @@ import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
 import { verifyTurnstileToken } from '../utils/turnstile'
 import logger from '../utils/logger'
-import YandexSmartCaptcha from './common/YandexSmartCaptcha.vue'
+import GoogleRecaptcha from './common/GoogleRecaptcha.vue'
 import * as yup from 'yup'
 
 const router = useRouter()
@@ -258,11 +258,11 @@ const approvedCount = ref(0)
 const isLoadingConfig = ref(true)
 const registrationStatus = ref<'not_open' | 'open' | 'closed' | 'full'>('not_open')
 
-// Yandex SmartCaptcha state
-const captchaSiteKey = import.meta.env.VITE_SMARTCAPTCHA_SITE_KEY || ''
+// Google reCAPTCHA state
+const captchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
 const captchaToken = ref<string | null>(null)
 const captchaError = ref('')
-const captchaRef = ref<InstanceType<typeof YandexSmartCaptcha> | null>(null)
+const captchaRef = ref<InstanceType<typeof GoogleRecaptcha> | null>(null)
 
 // Validation schema
 const schema = yup.object({
@@ -277,7 +277,7 @@ const schema = yup.object({
     .oneOf(['very_active', 'somewhat', 'not_interested'], 'Неверный вариант')
 })
 
-// SmartCaptcha handlers
+// reCAPTCHA handlers
 function handleCaptchaVerify(token: string) {
   captchaToken.value = token
   captchaError.value = ''

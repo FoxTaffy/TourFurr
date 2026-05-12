@@ -261,9 +261,9 @@
       </div>
     </div>
 
-    <!-- Yandex SmartCaptcha (показывается на шаге 3) -->
+    <!-- Google reCAPTCHA (показывается на шаге 3) -->
     <div v-if="currentStep === 3" class="captcha-wrapper">
-      <YandexSmartCaptcha
+      <GoogleRecaptcha
         ref="captchaRef"
         :siteKey="captchaSiteKey"
         @verify="handleCaptchaVerify"
@@ -833,7 +833,7 @@ import { vMaska } from 'maska/vue'
 import { useAuthStore } from '../../stores/auth'
 import { verifyTurnstileToken } from '../../utils/turnstile'
 import TelegramInput from './TelegramInput.vue'
-import YandexSmartCaptcha from '../common/YandexSmartCaptcha.vue'
+import GoogleRecaptcha from '../common/GoogleRecaptcha.vue'
 import * as yup from 'yup'
 import { useToast } from '../../composables/useToast'
 
@@ -861,11 +861,11 @@ watch(currentStep, () => {
   setTimeout(() => { stepAnimating.value = false }, 320)
 })
 
-// Yandex SmartCaptcha state
-const captchaSiteKey = import.meta.env.VITE_SMARTCAPTCHA_SITE_KEY || ''
+// Google reCAPTCHA state
+const captchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
 const captchaToken = ref<string | null>(null)
 const captchaError = ref('')
-const captchaRef = ref<InstanceType<typeof YandexSmartCaptcha> | null>(null)
+const captchaRef = ref<InstanceType<typeof GoogleRecaptcha> | null>(null)
 const EMAIL_VERIFY_CODE_STORAGE_PREFIX = 'verify_code_'
 
 const stepTitles = ['Основное', 'Профиль', 'Дополнительно']
@@ -1082,7 +1082,7 @@ function processFile(file: File) {
   reader.readAsDataURL(file)
 }
 
-// SmartCaptcha handlers
+// reCAPTCHA handlers
 function handleCaptchaVerify(token: string) {
   captchaToken.value = token
   captchaError.value = ''

@@ -1,7 +1,7 @@
 // Extract environment variables
 const viteSupabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const viteSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-const viteSmartCaptchaSiteKey = import.meta.env.VITE_SMARTCAPTCHA_SITE_KEY
+const viteRecaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY
 const viteYandexMapsApiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY
 const viteDisableEmail = import.meta.env.VITE_DISABLE_EMAIL
 const viteGracePeriodMinutes = import.meta.env.VITE_GRACE_PERIOD_MINUTES
@@ -13,8 +13,8 @@ const viteDev = import.meta.env.DEV
 export const SUPABASE_URL: string = viteSupabaseUrl || ''
 export const SUPABASE_ANON_KEY: string = viteSupabaseAnonKey || ''
 
-// Yandex SmartCaptcha
-export const SMARTCAPTCHA_SITE_KEY: string = viteSmartCaptchaSiteKey || ''
+// Google reCAPTCHA
+export const RECAPTCHA_SITE_KEY: string = viteRecaptchaSiteKey || ''
 
 // Yandex Maps Static API
 export const YANDEX_MAPS_API_KEY: string = viteYandexMapsApiKey || ''
@@ -68,7 +68,7 @@ export function validateEnvironment(): void {
 export function getEnvironmentInfo(): Record<string, string> {
   const nodeEnv = IS_PRODUCTION ? 'production' : 'development'
   const hasSupabaseKey = SUPABASE_ANON_KEY ? 'Yes' : 'No'
-  const hasCaptchaKey = SMARTCAPTCHA_SITE_KEY ? 'Yes' : 'No'
+  const hasCaptchaKey = RECAPTCHA_SITE_KEY ? 'Yes' : 'No'
   const disableEmailStr = DISABLE_EMAIL ? 'true' : 'false'
   const gracePeriodStr2 = GRACE_PERIOD_MINUTES.toString()
 

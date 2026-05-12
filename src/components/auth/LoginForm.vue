@@ -65,9 +65,9 @@
         <p>{{ serverError }}</p>
       </div>
 
-      <!-- Yandex SmartCaptcha -->
+      <!-- Google reCAPTCHA -->
       <div class="captcha-wrapper">
-        <YandexSmartCaptcha
+        <GoogleRecaptcha
           ref="captchaRef"
           :siteKey="captchaSiteKey"
           @verify="handleCaptchaVerify"
@@ -322,7 +322,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { supabase } from '../../services/supabase'
 import { verifyTurnstileToken } from '../../utils/turnstile'
-import YandexSmartCaptcha from '../common/YandexSmartCaptcha.vue'
+import GoogleRecaptcha from '../common/GoogleRecaptcha.vue'
 import * as yup from 'yup'
 import { createPasswordResetCode, invalidateOldResetCodes } from '../../utils/passwordReset'
 import { logger } from '../../utils/logger'
@@ -345,11 +345,11 @@ const showPassword = ref(false)
 const isLoading = ref(false)
 const serverError = ref('')
 
-// Yandex SmartCaptcha state
-const captchaSiteKey = import.meta.env.VITE_SMARTCAPTCHA_SITE_KEY || ''
+// Google reCAPTCHA state
+const captchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
 const captchaToken = ref<string | null>(null)
 const captchaError = ref('')
-const captchaRef = ref<InstanceType<typeof YandexSmartCaptcha>>()
+const captchaRef = ref<InstanceType<typeof GoogleRecaptcha>>()
 const loginAttempts = ref(0)
 // Captcha is always shown on the login form to block bots
 const showCaptcha = true
@@ -395,7 +395,7 @@ const resetSchema = yup.object({
   email: yup.string().required('Email обязателен').email('Неверный формат email')
 })
 
-// SmartCaptcha handlers
+// reCAPTCHA handlers
 function handleCaptchaVerify(token: string) {
   captchaToken.value = token
   captchaError.value = ''
