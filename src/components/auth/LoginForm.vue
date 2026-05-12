@@ -301,12 +301,6 @@ async function handleSubmit() {
     return
   }
 
-  if (result.isLegacyAccount) {
-    resetEmail.value = form.email
-    showForgotPassword.value = true
-    return
-  }
-
   const msg = result.error || 'Ошибка входа'
   serverError.value = msg
   toast.error(msg)
