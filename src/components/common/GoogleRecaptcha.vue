@@ -26,37 +26,58 @@ const emit = defineEmits<{
 
 const captchaContainer = ref<HTMLElement | null>(null)
 const widgetId = ref<number | null>(null)
-const isScriptLoaded = ref(false)
+
+const ONLOAD_CB = '__grecaptchaOnload'
 
 function loadScript(): Promise<void> {
   return new Promise((resolve, reject) => {
-    const existingScript = document.querySelector('script[src*="recaptcha/api.js"]')
+    // Already fully loaded
+    if (window.grecaptcha && typeof window.grecaptcha.render === 'function') {
+      resolve()
+      return
+    }
 
-    if (!existingScript) {
+    // Script tag not yet added — inject it
+    if (!document.querySelector('script[src*="recaptcha/api.js"]')) {
+      ;(window as any)[ONLOAD_CB] = () => {
+        resolve()
+        delete (window as any)[ONLOAD_CB]
+      }
+
       const script = document.createElement('script')
-      script.src = `https://www.google.com/recaptcha/api.js?render=explicit&hl=${props.language}`
+      script.src = `https://www.google.com/recaptcha/api.js?render=explicit&hl=${props.language}&onload=${ONLOAD_CB}`
       script.async = true
       script.defer = true
-      script.onerror = () => reject(new Error('Failed to load Google reCAPTCHA script'))
+      script.onerror = () => {
+        delete (window as any)[ONLOAD_CB]
+        reject(new Error('Failed to load reCAPTCHA script'))
+      }
       document.head.appendChild(script)
+      return
     }
 
-    const waitForReady = () => {
-      if (window.grecaptcha && window.grecaptcha.ready) {
-        window.grecaptcha.ready(() => {
-          isScriptLoaded.value = true
-          resolve()
-        })
+    // Script tag exists but not ready yet — poll for render
+    let attempts = 0
+    const poll = () => {
+      if (window.grecaptcha && typeof window.grecaptcha.render === 'function') {
+        resolve()
+      } else if (attempts++ < 100) {
+        setTimeout(poll, 100)
       } else {
-        setTimeout(waitForReady, 100)
+        reject(new Error('reCAPTCHA load timeout'))
       }
     }
-    waitForReady()
+    poll()
   })
 }
 
 function renderWidget() {
-  if (!captchaContainer.value || !window.grecaptcha) return
+  if (!captchaContainer.value) return
+  if (!window.grecaptcha || typeof window.grecaptcha.render !== 'function') {
+    emit('error', 'reCAPTCHA не загрузилась. Проверьте интернет-соединение')
+    return
+  }
+  if (widgetId.value !== null) return
 
   try {
     widgetId.value = window.grecaptcha.render(captchaContainer.value, {
@@ -70,10 +91,11 @@ function renderWidget() {
         emit('expired')
       },
       'error-callback': () => {
-        emit('error', 'reCAPTCHA error')
+        emit('error', 'Ошибка соединения с reCAPTCHA')
       }
     })
-  } catch (error) {
+  } catch (err) {
+    console.error('[reCAPTCHA] render error:', err)
     emit('error', 'Failed to render reCAPTCHA widget')
   }
 }
@@ -103,14 +125,16 @@ onMounted(async () => {
   try {
     await loadScript()
     renderWidget()
-  } catch (error) {
-    emit('error', 'Failed to load reCAPTCHA')
+  } catch (err) {
+    console.error('[reCAPTCHA] load error:', err)
+    emit('error', 'Не удалось загрузить reCAPTCHA')
   }
 })
 
 onBeforeUnmount(() => {
   if (widgetId.value !== null && window.grecaptcha) {
     window.grecaptcha.reset(widgetId.value)
+    widgetId.value = null
   }
 })
 

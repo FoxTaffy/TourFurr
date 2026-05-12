@@ -249,7 +249,7 @@ const closeModal = () => {
 
 .equipment-image {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
   flex-shrink: 0;
 }
