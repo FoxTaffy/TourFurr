@@ -172,20 +172,8 @@
           <p>{{ serverError }}</p>
         </div>
 
-        <!-- Google reCAPTCHA -->
-        <div class="captcha-wrapper">
-          <GoogleRecaptcha
-            ref="captchaRef"
-            :siteKey="captchaSiteKey"
-            @verify="handleCaptchaVerify"
-            @error="handleCaptchaError"
-            @expired="handleCaptchaExpired"
-          />
-          <p v-if="captchaError" class="error-text">{{ captchaError }}</p>
-        </div>
-
         <!-- Submit Button -->
-        <button type="submit" :disabled="isLoading || !captchaToken" class="submit-btn">
+        <button type="submit" :disabled="isLoading" class="submit-btn">
           <span class="btn-glow"></span>
           <span class="btn-content">
             <svg v-if="isLoading" class="spinner" fill="none" viewBox="0 0 24 24">
@@ -219,9 +207,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../services/supabase'
-import { verifyTurnstileToken } from '../utils/turnstile'
 import logger from '../utils/logger'
-import GoogleRecaptcha from './common/GoogleRecaptcha.vue'
 import * as yup from 'yup'
 
 const router = useRouter()
@@ -258,12 +244,6 @@ const approvedCount = ref(0)
 const isLoadingConfig = ref(true)
 const registrationStatus = ref<'not_open' | 'open' | 'closed' | 'full'>('not_open')
 
-// Google reCAPTCHA state
-const captchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
-const captchaToken = ref<string | null>(null)
-const captchaError = ref('')
-const captchaRef = ref<InstanceType<typeof GoogleRecaptcha> | null>(null)
-
 // Validation schema
 const schema = yup.object({
   motivation: yup.string()
@@ -276,22 +256,6 @@ const schema = yup.object({
     .required('Пожалуйста, укажите ваш вариант')
     .oneOf(['very_active', 'somewhat', 'not_interested'], 'Неверный вариант')
 })
-
-// reCAPTCHA handlers
-function handleCaptchaVerify(token: string) {
-  captchaToken.value = token
-  captchaError.value = ''
-}
-
-function handleCaptchaError(error: string) {
-  captchaToken.value = null
-  captchaError.value = error || 'Ошибка проверки безопасности. Попробуйте еще раз'
-}
-
-function handleCaptchaExpired() {
-  captchaToken.value = null
-  captchaError.value = 'Проверка истекла. Пожалуйста, пройдите проверку снова'
-}
 
 // Load event configuration and check registration status
 async function loadEventConfig() {
@@ -367,7 +331,6 @@ async function handleSubmit() {
   errors.motivation = ''
   errors.experience = ''
   serverError.value = ''
-  captchaError.value = ''
 
   // Check registration status
   if (registrationStatus.value === 'not_open') {
@@ -403,8 +366,6 @@ async function handleSubmit() {
     return
   }
 
-  // Captcha токен опционален
-
   // Check if user is authenticated
   if (!authStore.isAuthenticated || !authStore.user) {
     serverError.value = 'Пожалуйста, войдите в систему для подачи заявки'
@@ -421,9 +382,7 @@ async function handleSubmit() {
   isLoading.value = true
 
   try {
-    // Captcha verification (client-side token optional)
-
-    // Step 2: Create application in database
+    // Create application in database
     const { error } = await supabase
       .from('applications')
       .insert({
@@ -460,8 +419,6 @@ async function handleSubmit() {
     form.rpgInterest = ''
     form.skills = ''
     form.additionalInfo = ''
-    captchaToken.value = null
-
   } catch (err) {
     logger.error('Submission error:', err)
     serverError.value = err instanceof Error ? err.message : 'Произошла ошибка при отправке заявки'

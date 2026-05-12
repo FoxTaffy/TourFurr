@@ -261,19 +261,6 @@
       </div>
     </div>
 
-    <!-- Google reCAPTCHA (показывается на шаге 3) -->
-    <div v-if="currentStep === 3" class="captcha-wrapper">
-      <GoogleRecaptcha
-        ref="captchaRef"
-        :siteKey="captchaSiteKey"
-        @verify="handleCaptchaVerify"
-        @error="handleCaptchaError"
-        @expired="handleCaptchaExpired"
-      />
-      <p v-if="captchaError" class="error-text">{{ captchaError }}</p>
-      <p class="vpn-hint">Если капча не загружается, рекомендуем отключить VPN</p>
-    </div>
-
     <!-- Server Error -->
     <div v-if="serverError" class="server-error">
       <p>{{ serverError }}</p>
@@ -831,9 +818,7 @@ import { ref, reactive, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { vMaska } from 'maska/vue'
 import { useAuthStore } from '../../stores/auth'
-import { verifyTurnstileToken } from '../../utils/turnstile'
 import TelegramInput from './TelegramInput.vue'
-import GoogleRecaptcha from '../common/GoogleRecaptcha.vue'
 import * as yup from 'yup'
 import { useToast } from '../../composables/useToast'
 
@@ -861,11 +846,6 @@ watch(currentStep, () => {
   setTimeout(() => { stepAnimating.value = false }, 320)
 })
 
-// Google reCAPTCHA state
-const captchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
-const captchaToken = ref<string | null>(null)
-const captchaError = ref('')
-const captchaRef = ref<InstanceType<typeof GoogleRecaptcha> | null>(null)
 const EMAIL_VERIFY_CODE_STORAGE_PREFIX = 'verify_code_'
 
 const stepTitles = ['Основное', 'Профиль', 'Дополнительно']
@@ -1082,42 +1062,10 @@ function processFile(file: File) {
   reader.readAsDataURL(file)
 }
 
-// reCAPTCHA handlers
-function handleCaptchaVerify(token: string) {
-  captchaToken.value = token
-  captchaError.value = ''
-}
-
-function handleCaptchaError(error: string) {
-  captchaToken.value = null
-  captchaError.value = error || 'Ошибка проверки. Попробуйте еще раз'
-}
-
-function handleCaptchaExpired() {
-  captchaToken.value = null
-  captchaError.value = 'Проверка истекла. Пожалуйста, пройдите проверку снова'
-}
-
 async function handleSubmit() {
   if (!(await validateStep(3))) return
 
-  // Проверка CAPTCHA — токен опционален, виджет показывается для защиты от ботов
-  if (!captchaToken.value) {
-    const directToken = captchaRef.value?.getResponse()
-    if (directToken) captchaToken.value = directToken
-  }
-
-  if (captchaToken.value) {
-    const isCaptchaValid = await verifyTurnstileToken(captchaToken.value)
-    if (!isCaptchaValid) {
-      captchaError.value = 'Проверка CAPTCHA не пройдена. Попробуйте снова.'
-      captchaToken.value = null
-      return
-    }
-  }
-
   serverError.value = ''
-  captchaError.value = ''
   isLoading.value = true
 
   const result = await authStore.register({
@@ -1137,9 +1085,6 @@ async function handleSubmit() {
   isLoading.value = false
 
   if (result.success) {
-    captchaToken.value = null
-    captchaRef.value?.reset()
-
     if (result.emailSent) {
       toast.success('Код подтверждения отправлен на ваш email!')
     } else {
@@ -2610,32 +2555,6 @@ function redirectToLogin() {
   }
 }
 
-/* SmartCaptcha Styles */
-.captcha-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: center;
-  padding: 1rem 0;
-}
-
-.vpn-hint {
-  font-size: 0.78rem;
-  color: var(--sage);
-  opacity: 0.75;
-  text-align: center;
-}
-
-.captcha-wrapper > div {
-  transform: scale(0.95);
-  transform-origin: center;
-}
-
-@media (max-width: 640px) {
-  .captcha-wrapper > div {
-    transform: scale(0.85);
-  }
-}
 
 /* Rules Modal Responsive Styles */
 @media (max-width: 768px) {

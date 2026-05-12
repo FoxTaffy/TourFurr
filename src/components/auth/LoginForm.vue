@@ -1,63 +1,49 @@
 <template>
   <div class="form-container">
     <!-- Login Form -->
-    <form v-if="!showForgotPassword" @submit.prevent="handleSubmit" class="login-form">
-      <!-- Email -->
+    <form v-if="!showForgotPassword" @submit.prevent="handleSubmit" class="auth-form">
       <div class="form-group">
-        <label for="email" class="form-label">
-          Email <span class="required">*</span>
-        </label>
+        <label class="form-label">Email <span class="required">*</span></label>
         <div class="input-wrapper">
           <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
           </svg>
           <input
-            id="email"
             v-model="form.email"
             type="email"
             placeholder="email@example.com"
             class="form-input"
             :class="{ error: errors.email }"
+            autocomplete="email"
           />
         </div>
         <p v-if="errors.email" class="error-text">{{ errors.email }}</p>
       </div>
 
-      <!-- Password -->
       <div class="form-group">
-        <label for="password" class="form-label">
-          Пароль <span class="required">*</span>
-        </label>
+        <label class="form-label">Пароль <span class="required">*</span></label>
         <div class="input-wrapper">
           <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
           </svg>
           <input
-            id="password"
             v-model="form.password"
             :type="showPassword ? 'text' : 'password'"
             placeholder="Введите пароль"
             class="form-input"
             :class="{ error: errors.password }"
+            autocomplete="current-password"
           />
-          <button
-            type="button"
-            @click="showPassword = !showPassword"
-            class="toggle-password"
-          >
-            <svg v-if="showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
-            </svg>
-            <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          <button type="button" @click="showPassword = !showPassword" class="toggle-password">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path v-if="showPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+              <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
             </svg>
           </button>
         </div>
         <p v-if="errors.password" class="error-text">{{ errors.password }}</p>
       </div>
 
-      <!-- Server Error -->
       <div v-if="serverError" class="server-error">
         <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -65,20 +51,6 @@
         <p>{{ serverError }}</p>
       </div>
 
-      <!-- Google reCAPTCHA -->
-      <div class="captcha-wrapper">
-        <GoogleRecaptcha
-          ref="captchaRef"
-          :siteKey="captchaSiteKey"
-          @verify="handleCaptchaVerify"
-          @error="handleCaptchaError"
-          @expired="handleCaptchaExpired"
-        />
-        <p v-if="captchaError" class="error-text">{{ captchaError }}</p>
-        <p class="vpn-hint">Если капча не загружается, рекомендуем отключить VPN</p>
-      </div>
-
-      <!-- Submit Button -->
       <button type="submit" :disabled="isLoading" class="submit-btn">
         <span class="btn-glow"></span>
         <span class="btn-content">
@@ -86,14 +58,10 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
           </svg>
-          <svg v-else class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-          </svg>
           {{ isLoading ? 'Вход...' : 'Войти' }}
         </span>
       </button>
 
-      <!-- Forgot Password -->
       <div class="forgot-link">
         <button type="button" @click="showForgotPassword = true" class="forgot-btn">
           Забыли пароль?
@@ -102,30 +70,25 @@
     </form>
 
     <!-- Password Reset Form -->
-    <form v-else class="login-form reset-form">
+    <form v-else class="auth-form reset-form">
       <div class="reset-header">
         <h3>Восстановление пароля</h3>
         <p class="reset-desc">
-          {{
-            resetStep === 'email' ? 'Введите ваш email для восстановления пароля' :
-            resetStep === 'code' ? 'Введите 6-цифровой код из письма' :
-            'Установите новый пароль для вашего аккаунта'
-          }}
+          {{ resetStep === 'email' ? 'Введите ваш email для восстановления пароля'
+           : resetStep === 'code' ? 'Введите 6-значный код из письма'
+           : 'Установите новый пароль' }}
         </p>
       </div>
 
-      <!-- Step 1: Email Input -->
+      <!-- Step 1: Email -->
       <div v-if="resetStep === 'email'">
         <div class="form-group">
-          <label for="reset-email" class="form-label">
-            Email <span class="required">*</span>
-          </label>
+          <label class="form-label">Email <span class="required">*</span></label>
           <div class="input-wrapper">
             <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
             </svg>
             <input
-              id="reset-email"
               v-model="resetEmail"
               type="email"
               placeholder="email@example.com"
@@ -136,40 +99,32 @@
           <p v-if="resetError" class="error-text">{{ resetError }}</p>
         </div>
 
-        <!-- Success Message -->
         <div v-if="resetSubmitted" class="success-message">
           <svg class="success-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          <p>Если аккаунт с этим email существует — код подтверждения отправлен. Проверьте почту (в том числе папку «Спам»).</p>
+          <p>Если аккаунт с этим email существует — код отправлен. Проверьте почту (в том числе «Спам»).</p>
         </div>
 
-        <!-- Submit Button -->
-        <button type="button" @click="handleResetSubmit" :disabled="isResetLoading || resetSubmitted" class="submit-btn">
+        <button type="button" @click="handleResetSubmit" :disabled="isResetLoading || resetSubmitted" class="submit-btn" style="margin-top: 1rem;">
           <span class="btn-glow"></span>
           <span class="btn-content">
             <svg v-if="isResetLoading" class="spinner" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
             </svg>
-            <svg v-else class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-            </svg>
             {{ isResetLoading ? 'Отправка...' : 'Отправить код' }}
           </span>
         </button>
       </div>
 
-      <!-- Step 2: Code Input -->
+      <!-- Step 2: Code -->
       <div v-else-if="resetStep === 'code'" class="code-step">
-        <p class="code-sent-info">
-          Код отправлен на <strong>{{ resetEmail }}</strong>
-        </p>
+        <p class="code-sent-info">Код отправлен на <strong>{{ resetEmail }}</strong></p>
 
-        <!-- Code Inputs -->
         <div class="code-inputs">
           <input
-            v-for="(digit, index) in resetCode"
+            v-for="(_, index) in resetCode"
             :key="index"
             :ref="(el) => (codeInputRefs[index] = el as HTMLInputElement)"
             v-model="resetCode[index]"
@@ -184,9 +139,8 @@
           />
         </div>
 
-        <p v-if="codeError" class="error-text">{{ codeError }}</p>
+        <p v-if="codeError" class="error-text" style="text-align:center;">{{ codeError }}</p>
 
-        <!-- Resend Code -->
         <div class="resend-section">
           <p v-if="canResend" class="resend-text">
             Не получили код?
@@ -194,12 +148,9 @@
               {{ isResending ? 'Отправка...' : 'Отправить снова' }}
             </button>
           </p>
-          <p v-else class="timer-text">
-            Повторная отправка через {{ resendTimeLeft }}с
-          </p>
+          <p v-else class="timer-text">Повторная отправка через {{ resendTimeLeft }}с</p>
         </div>
 
-        <!-- Verify Button -->
         <button type="button" @click="handleCodeVerify" :disabled="!isCodeComplete || isVerifying" class="submit-btn">
           <span class="btn-glow"></span>
           <span class="btn-content">
@@ -207,78 +158,56 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
             </svg>
-            <svg v-else class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
             {{ isVerifying ? 'Проверка...' : 'Подтвердить' }}
           </span>
         </button>
       </div>
 
-      <!-- Step 3: New Password Input -->
+      <!-- Step 3: New Password -->
       <div v-else-if="resetStep === 'password'" class="password-step">
-        <!-- Success Message (if password updated) -->
         <div v-if="passwordUpdateSuccess" class="success-message">
           <svg class="success-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
           <div>
-            <p class="success-title">Пароль обновлен!</p>
+            <p class="success-title">Пароль обновлён!</p>
             <p>Теперь вы можете войти с новым паролем.</p>
           </div>
         </div>
 
-        <!-- Password Inputs (if not success yet) -->
         <template v-else>
-          <p class="code-sent-info">
-            Установите новый пароль для <strong>{{ resetEmail }}</strong>
-          </p>
+          <p class="code-sent-info">Новый пароль для <strong>{{ resetEmail }}</strong></p>
 
-          <!-- New Password -->
           <div class="form-group">
-            <label for="new-password" class="form-label">
-              Новый пароль <span class="required">*</span>
-            </label>
+            <label class="form-label">Новый пароль <span class="required">*</span></label>
             <div class="input-wrapper">
               <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
               </svg>
               <input
-                id="new-password"
                 v-model="newPassword"
                 :type="showNewPassword ? 'text' : 'password'"
                 placeholder="Минимум 8 символов"
                 class="form-input"
                 :class="{ error: passwordError }"
               />
-              <button
-                type="button"
-                @click="showNewPassword = !showNewPassword"
-                class="toggle-password"
-              >
-                <svg v-if="showNewPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
-                </svg>
-                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              <button type="button" @click="showNewPassword = !showNewPassword" class="toggle-password">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path v-if="showNewPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                  <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 </svg>
               </button>
             </div>
             <p v-if="passwordError" class="error-text">{{ passwordError }}</p>
           </div>
 
-          <!-- Confirm Password -->
           <div class="form-group">
-            <label for="confirm-password" class="form-label">
-              Подтверждение пароля <span class="required">*</span>
-            </label>
+            <label class="form-label">Подтверждение пароля <span class="required">*</span></label>
             <div class="input-wrapper">
               <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
               </svg>
               <input
-                id="confirm-password"
                 v-model="confirmPassword"
                 :type="showNewPassword ? 'text' : 'password'"
                 placeholder="Повторите пароль"
@@ -289,7 +218,6 @@
             <p v-if="confirmPasswordError" class="error-text">{{ confirmPasswordError }}</p>
           </div>
 
-          <!-- Submit Button -->
           <button type="button" @click="handlePasswordUpdate" :disabled="isUpdatingPassword" class="submit-btn">
             <span class="btn-glow"></span>
             <span class="btn-content">
@@ -297,17 +225,13 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
               </svg>
-              <svg v-else class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-              </svg>
               {{ isUpdatingPassword ? 'Сохранение...' : 'Сохранить пароль' }}
             </span>
           </button>
         </template>
       </div>
 
-      <!-- Back to Login -->
-      <div class="forgot-link">
+      <div class="forgot-link" style="margin-top: 0.5rem;">
         <button type="button" @click="resetForgotForm" class="forgot-btn">
           ← Вернуться ко входу
         </button>
@@ -321,8 +245,6 @@ import { ref, reactive, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { supabase } from '../../services/supabase'
-import { verifyTurnstileToken } from '../../utils/turnstile'
-import GoogleRecaptcha from '../common/GoogleRecaptcha.vue'
 import * as yup from 'yup'
 import { createPasswordResetCode, invalidateOldResetCodes } from '../../utils/passwordReset'
 import { logger } from '../../utils/logger'
@@ -330,111 +252,31 @@ import { useToast } from '../../composables/useToast'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const toast = useToast()
 
-const form = reactive({
-  email: '',
-  password: ''
-})
-
-const errors = reactive({
-  email: '',
-  password: ''
-})
-
+const form = reactive({ email: '', password: '' })
+const errors = reactive({ email: '', password: '' })
 const showPassword = ref(false)
 const isLoading = ref(false)
 const serverError = ref('')
 
-// Google reCAPTCHA state
-const captchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
-const captchaToken = ref<string | null>(null)
-const captchaError = ref('')
-const captchaRef = ref<InstanceType<typeof GoogleRecaptcha>>()
-const loginAttempts = ref(0)
-// Captcha is always shown on the login form to block bots
-const showCaptcha = true
 const EMAIL_VERIFY_CODE_STORAGE_PREFIX = 'verify_code_'
-
-const toast = useToast()
-
-// Password reset state
-const showForgotPassword = ref(false)
-const resetEmail = ref('')
-const resetError = ref('')
-const isResetLoading = ref(false)
-const resetSubmitted = ref(false)
-const resetStep = ref<'email' | 'code' | 'password'>('email')
-
-// Code verification state
-const resetCode = ref<string[]>(['', '', '', '', '', ''])
-const codeInputRefs = ref<HTMLInputElement[]>([])
-const codeError = ref('')
-const isVerifying = ref(false)
-const isResending = ref(false)
-const resendTimeLeft = ref(60)
-const canResend = ref(false)
-let resendTimer: number | null = null
-
-const isCodeComplete = computed(() => resetCode.value.every(digit => digit !== ''))
-
-// New password state
-const newPassword = ref('')
-const confirmPassword = ref('')
-const showNewPassword = ref(false)
-const passwordError = ref('')
-const confirmPasswordError = ref('')
-const isUpdatingPassword = ref(false)
-const passwordUpdateSuccess = ref(false)
 
 const schema = yup.object({
   email: yup.string().required('Email обязателен').email('Неверный формат email'),
   password: yup.string().required('Пароль обязателен')
 })
 
-const resetSchema = yup.object({
-  email: yup.string().required('Email обязателен').email('Неверный формат email')
-})
-
-// reCAPTCHA handlers
-function handleCaptchaVerify(token: string) {
-  captchaToken.value = token
-  captchaError.value = ''
-}
-
-function handleCaptchaError(error: string) {
-  captchaToken.value = null
-  captchaError.value = error || 'Ошибка проверки. Попробуйте еще раз'
-}
-
-function handleCaptchaExpired() {
-  captchaToken.value = null
-  captchaError.value = 'Проверка истекла. Пожалуйста, пройдите проверку снова'
-}
-
 async function handleSubmit() {
   errors.email = ''
   errors.password = ''
   serverError.value = ''
-  captchaError.value = ''
-
-  // Проверка CAPTCHA — токен опционален, виджет показывается для защиты от ботов
-  if (captchaToken.value) {
-    const isCaptchaValid = await verifyTurnstileToken(captchaToken.value)
-    if (!isCaptchaValid) {
-      captchaError.value = 'Проверка CAPTCHA не пройдена. Попробуйте снова.'
-      captchaToken.value = null
-      captchaRef.value?.reset()
-      return
-    }
-  }
 
   try {
     await schema.validate(form, { abortEarly: false })
   } catch (err: any) {
     err.inner.forEach((e: any) => {
-      if (e.path in errors) {
-        (errors as any)[e.path] = e.message
-      }
+      if (e.path in errors) (errors as any)[e.path] = e.message
     })
     return
   }
@@ -444,54 +286,66 @@ async function handleSubmit() {
   isLoading.value = false
 
   if (result.success) {
-    loginAttempts.value = 0
-    captchaToken.value = null
     toast.success('Вход выполнен успешно!')
     router.push('/dashboard')
-  } else {
-    // Check if user needs email verification
-    if (result.needsVerification) {
-      const email = result.email || form.email
-      const emailSent = result.emailSent
-      const verificationCode = result.verificationCode || ''
-
-      if (verificationCode) {
-        sessionStorage.setItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.toLowerCase()}`, verificationCode)
-      }
-
-      toast.info('Подтвердите email — мы повторно отправили код.')
-      router.push({
-        path: '/auth/verify-email',
-        query: {
-          email,
-          emailSent: emailSent ? 'true' : 'false'
-        }
-      })
-      return
-    }
-
-    // Legacy bcrypt account — open forgot-password form with email pre-filled
-    if (result.isLegacyAccount) {
-      resetEmail.value = form.email
-      captchaToken.value = null
-      captchaRef.value?.reset()
-      showForgotPassword.value = true
-      return
-    }
-
-    // Increment failure counter, reset captcha widget
-    loginAttempts.value++
-    captchaToken.value = null
-    captchaRef.value?.reset()
-    const msg = result.error || 'Ошибка входа'
-    serverError.value = msg
-    toast.error(msg)
+    return
   }
+
+  if (result.needsVerification) {
+    const email = result.email || form.email
+    if (result.verificationCode) {
+      sessionStorage.setItem(`${EMAIL_VERIFY_CODE_STORAGE_PREFIX}${email.toLowerCase()}`, result.verificationCode)
+    }
+    toast.info('Подтвердите email — мы повторно отправили код.')
+    router.push({ path: '/auth/verify-email', query: { email, emailSent: result.emailSent ? 'true' : 'false' } })
+    return
+  }
+
+  if (result.isLegacyAccount) {
+    resetEmail.value = form.email
+    showForgotPassword.value = true
+    return
+  }
+
+  const msg = result.error || 'Ошибка входа'
+  serverError.value = msg
+  toast.error(msg)
 }
+
+// ─── Password Reset ───────────────────────────────────────────────────────────
+
+const showForgotPassword = ref(false)
+const resetEmail = ref('')
+const resetError = ref('')
+const isResetLoading = ref(false)
+const resetSubmitted = ref(false)
+const resetStep = ref<'email' | 'code' | 'password'>('email')
+
+const resetCode = ref<string[]>(['', '', '', '', '', ''])
+const codeInputRefs = ref<HTMLInputElement[]>([])
+const codeError = ref('')
+const isVerifying = ref(false)
+const isResending = ref(false)
+const resendTimeLeft = ref(60)
+const canResend = ref(false)
+let resendTimer: number | null = null
+
+const isCodeComplete = computed(() => resetCode.value.every(d => d !== ''))
+
+const newPassword = ref('')
+const confirmPassword = ref('')
+const showNewPassword = ref(false)
+const passwordError = ref('')
+const confirmPasswordError = ref('')
+const isUpdatingPassword = ref(false)
+const passwordUpdateSuccess = ref(false)
+
+const resetSchema = yup.object({
+  email: yup.string().required('Email обязателен').email('Неверный формат email')
+})
 
 async function handleResetSubmit() {
   resetError.value = ''
-
   try {
     await resetSchema.validate({ email: resetEmail.value })
   } catch (err: any) {
@@ -500,48 +354,29 @@ async function handleResetSubmit() {
   }
 
   isResetLoading.value = true
-
-  // Always show the same initial UI immediately — prevents user enumeration via response timing
   resetSubmitted.value = true
 
   try {
     const cleanEmail = resetEmail.value.trim().toLowerCase()
-
     let userExists = false
 
-    // Check if user exists via SECURITY DEFINER RPC (works for unauthenticated users)
-    const { data: emailExistsData, error: emailExistsError } = await supabase
-      .rpc('check_email_exists', { p_email: cleanEmail })
-
-    if (emailExistsError) {
-      logger.warn('check_email_exists RPC failed in reset flow, fallback to direct query:', emailExistsError)
-
-      // Fallback for environments where RPC is not deployed
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', cleanEmail)
-        .maybeSingle()
-
-      userExists = !!existingUser
+    const { data, error: rpcError } = await supabase.rpc('check_email_exists', { p_email: cleanEmail })
+    if (rpcError) {
+      const { data: fallback } = await supabase.from('users').select('id').eq('email', cleanEmail).maybeSingle()
+      userExists = !!fallback
     } else {
-      userExists = !!emailExistsData
+      userExists = !!data
     }
 
     if (userExists) {
-      // Invalidate old codes first
       await invalidateOldResetCodes(cleanEmail)
-
-      // Create password reset code
       const result = await createPasswordResetCode(cleanEmail)
-
       if (result.success) {
-        // Success — switch to code input
         setTimeout(() => {
           resetSubmitted.value = false
           resetStep.value = 'code'
           startResendTimer()
-          setTimeout(() => { codeInputRefs.value[0]?.focus() }, 100)
+          setTimeout(() => codeInputRefs.value[0]?.focus(), 100)
         }, 1500)
       } else {
         setTimeout(() => {
@@ -550,10 +385,7 @@ async function handleResetSubmit() {
         }, 1500)
       }
     } else {
-      // User not found — wait same delay, then reset (same UX, no info leak)
-      setTimeout(() => {
-        resetSubmitted.value = false
-      }, 1500)
+      setTimeout(() => { resetSubmitted.value = false }, 1500)
     }
   } catch (err) {
     logger.error('Reset error:', err)
@@ -563,6 +395,125 @@ async function handleResetSubmit() {
     }, 1500)
   } finally {
     isResetLoading.value = false
+  }
+}
+
+function startResendTimer() {
+  resendTimeLeft.value = 60
+  canResend.value = false
+  if (resendTimer) clearInterval(resendTimer)
+  resendTimer = window.setInterval(() => {
+    resendTimeLeft.value--
+    if (resendTimeLeft.value <= 0) {
+      canResend.value = true
+      if (resendTimer) { clearInterval(resendTimer); resendTimer = null }
+    }
+  }, 1000)
+}
+
+function handleCodeInput(index: number, event: Event) {
+  const input = event.target as HTMLInputElement
+  const value = input.value
+  if (value && !/^\d$/.test(value)) { resetCode.value[index] = ''; return }
+  resetCode.value[index] = value
+  if (value && index < 5) codeInputRefs.value[index + 1]?.focus()
+  if (codeError.value) codeError.value = ''
+  if (isCodeComplete.value) setTimeout(() => handleCodeVerify(), 300)
+}
+
+function handleCodeKeyDown(index: number, event: KeyboardEvent) {
+  if (event.key === 'Backspace' && !resetCode.value[index] && index > 0) codeInputRefs.value[index - 1]?.focus()
+  if (event.key === 'ArrowLeft' && index > 0) codeInputRefs.value[index - 1]?.focus()
+  if (event.key === 'ArrowRight' && index < 5) codeInputRefs.value[index + 1]?.focus()
+  if (event.key === 'Enter' && isCodeComplete.value) handleCodeVerify()
+}
+
+function handleCodePaste(event: ClipboardEvent) {
+  event.preventDefault()
+  const digits = (event.clipboardData?.getData('text') || '').replace(/\D/g, '').slice(0, 6)
+  for (let i = 0; i < digits.length; i++) resetCode.value[i] = digits[i]
+  codeInputRefs.value[Math.min(digits.length, 5)]?.focus()
+  if (digits.length === 6) setTimeout(() => handleCodeVerify(), 300)
+}
+
+async function handleCodeVerify() {
+  if (!isCodeComplete.value || isVerifying.value) return
+  isVerifying.value = true
+  codeError.value = ''
+  try {
+    const { verifyResetCode } = await import('@/utils/passwordReset')
+    const result = await verifyResetCode(resetEmail.value, resetCode.value.join(''))
+    if (result.success) {
+      resetStep.value = 'password'
+    } else {
+      codeError.value = result.error || 'Неверный код'
+      resetCode.value = ['', '', '', '', '', '']
+      codeInputRefs.value[0]?.focus()
+    }
+  } catch (err: any) {
+    codeError.value = err.message || 'Ошибка проверки кода'
+  } finally {
+    isVerifying.value = false
+  }
+}
+
+async function handleResendCode() {
+  if (!canResend.value || isResending.value) return
+  isResending.value = true
+  codeError.value = ''
+  try {
+    await invalidateOldResetCodes(resetEmail.value)
+    const result = await createPasswordResetCode(resetEmail.value)
+    if (result.success) {
+      resetCode.value = ['', '', '', '', '', '']
+      codeInputRefs.value[0]?.focus()
+      startResendTimer()
+    } else {
+      codeError.value = result.error || 'Ошибка создания кода'
+    }
+  } catch (err: any) {
+    codeError.value = err.message || 'Ошибка отправки кода'
+  } finally {
+    isResending.value = false
+  }
+}
+
+function validatePassword(): boolean {
+  passwordError.value = ''
+  confirmPasswordError.value = ''
+  let valid = true
+  if (!newPassword.value) { passwordError.value = 'Введите пароль'; valid = false }
+  else if (newPassword.value.length < 8) { passwordError.value = 'Минимум 8 символов'; valid = false }
+  else if (!/[A-Z]/.test(newPassword.value)) { passwordError.value = 'Нужна хотя бы одна заглавная буква'; valid = false }
+  else if (!/\d/.test(newPassword.value)) { passwordError.value = 'Нужна хотя бы одна цифра'; valid = false }
+  if (!confirmPassword.value) { confirmPasswordError.value = 'Подтвердите пароль'; valid = false }
+  else if (newPassword.value !== confirmPassword.value) { confirmPasswordError.value = 'Пароли не совпадают'; valid = false }
+  return valid
+}
+
+async function handlePasswordUpdate() {
+  if (!validatePassword()) return
+  isUpdatingPassword.value = true
+  try {
+    const { error } = await supabase.auth.updateUser({ password: newPassword.value })
+    if (error) {
+      if (error.message?.toLowerCase().includes('same')) {
+        passwordError.value = 'Новый пароль должен отличаться от текущего.'
+      } else if (error.message?.toLowerCase().includes('not authenticated') || error.message?.toLowerCase().includes('session')) {
+        passwordError.value = 'Сессия истекла. Запросите новый код.'
+        setTimeout(() => resetForgotForm(), 2000)
+      } else {
+        passwordError.value = 'Ошибка обновления пароля.'
+      }
+      return
+    }
+    passwordUpdateSuccess.value = true
+    await authStore.logout()
+    setTimeout(() => resetForgotForm(), 2000)
+  } catch (err: any) {
+    passwordError.value = 'Произошла ошибка. Попробуйте позже.'
+  } finally {
+    isUpdatingPassword.value = false
   }
 }
 
@@ -584,235 +535,18 @@ function resetForgotForm() {
   confirmPasswordError.value = ''
   isUpdatingPassword.value = false
   passwordUpdateSuccess.value = false
-  if (resendTimer) {
-    clearInterval(resendTimer)
-    resendTimer = null
-  }
-}
-
-function startResendTimer() {
-  resendTimeLeft.value = 60
-  canResend.value = false
-
-  if (resendTimer) clearInterval(resendTimer)
-
-  resendTimer = window.setInterval(() => {
-    resendTimeLeft.value--
-    if (resendTimeLeft.value <= 0) {
-      canResend.value = true
-      if (resendTimer) {
-        clearInterval(resendTimer)
-        resendTimer = null
-      }
-    }
-  }, 1000)
-}
-
-function handleCodeInput(index: number, event: Event) {
-  const input = event.target as HTMLInputElement
-  const value = input.value
-
-  // Only allow digits
-  if (value && !/^\d$/.test(value)) {
-    resetCode.value[index] = ''
-    return
-  }
-
-  resetCode.value[index] = value
-
-  // Auto-focus next input
-  if (value && index < 5) {
-    codeInputRefs.value[index + 1]?.focus()
-  }
-
-  // Clear error on input
-  if (codeError.value) {
-    codeError.value = ''
-  }
-
-  // Auto-submit when all 6 digits are entered
-  if (isCodeComplete.value) {
-    setTimeout(() => handleCodeVerify(), 300)
-  }
-}
-
-function handleCodeKeyDown(index: number, event: KeyboardEvent) {
-  // Handle backspace
-  if (event.key === 'Backspace' && !resetCode.value[index] && index > 0) {
-    codeInputRefs.value[index - 1]?.focus()
-  }
-
-  // Handle arrow keys
-  if (event.key === 'ArrowLeft' && index > 0) {
-    codeInputRefs.value[index - 1]?.focus()
-  }
-  if (event.key === 'ArrowRight' && index < 5) {
-    codeInputRefs.value[index + 1]?.focus()
-  }
-
-  // Handle Enter key
-  if (event.key === 'Enter' && isCodeComplete.value) {
-    handleCodeVerify()
-  }
-}
-
-function handleCodePaste(event: ClipboardEvent) {
-  event.preventDefault()
-  const pastedData = event.clipboardData?.getData('text')
-
-  if (!pastedData) return
-
-  const digits = pastedData.replace(/\D/g, '').slice(0, 6)
-
-  for (let i = 0; i < digits.length; i++) {
-    resetCode.value[i] = digits[i]
-  }
-
-  // Focus last filled input or first empty one
-  const nextIndex = Math.min(digits.length, 5)
-  codeInputRefs.value[nextIndex]?.focus()
-
-  // Auto-submit if pasted all 6 digits
-  if (digits.length === 6) {
-    setTimeout(() => handleCodeVerify(), 300)
-  }
-}
-
-async function handleCodeVerify() {
-  if (!isCodeComplete.value || isVerifying.value) return
-
-  isVerifying.value = true
-  codeError.value = ''
-
-  const codeString = resetCode.value.join('')
-
-  try {
-    const { verifyResetCode } = await import('@/utils/passwordReset')
-
-    const result = await verifyResetCode(resetEmail.value, codeString)
-
-    if (result.success) {
-      // Move to password step
-      resetStep.value = 'password'
-    } else {
-      codeError.value = result.error || 'Неверный код'
-      // Clear code on error
-      resetCode.value = ['', '', '', '', '', '']
-      codeInputRefs.value[0]?.focus()
-    }
-  } catch (err: any) {
-    codeError.value = err.message || 'Ошибка проверки кода'
-  } finally {
-    isVerifying.value = false
-  }
-}
-
-async function handleResendCode() {
-  if (!canResend.value || isResending.value) return
-
-  isResending.value = true
-  codeError.value = ''
-
-  try {
-    // Invalidate old codes first
-    await invalidateOldResetCodes(resetEmail.value)
-
-    // Create new password reset code
-    const result = await createPasswordResetCode(resetEmail.value)
-
-    if (result.success) {
-      // Clear code inputs and restart timer
-      resetCode.value = ['', '', '', '', '', '']
-      codeInputRefs.value[0]?.focus()
-      startResendTimer()
-    } else {
-      codeError.value = result.error || 'Ошибка создания кода'
-    }
-  } catch (err: any) {
-    codeError.value = err.message || 'Ошибка отправки кода'
-  } finally {
-    isResending.value = false
-  }
-}
-
-function validatePassword(): boolean {
-  passwordError.value = ''
-  confirmPasswordError.value = ''
-  let isValid = true
-
-  if (!newPassword.value) {
-    passwordError.value = 'Введите пароль'
-    isValid = false
-  } else if (newPassword.value.length < 8) {
-    passwordError.value = 'Минимум 8 символов'
-    isValid = false
-  } else if (!/[A-Z]/.test(newPassword.value)) {
-    passwordError.value = 'Должен содержать хотя бы одну заглавную букву'
-    isValid = false
-  } else if (!/\d/.test(newPassword.value)) {
-    passwordError.value = 'Должен содержать хотя бы одну цифру'
-    isValid = false
-  }
-
-  if (!confirmPassword.value) {
-    confirmPasswordError.value = 'Подтвердите пароль'
-    isValid = false
-  } else if (newPassword.value !== confirmPassword.value) {
-    confirmPasswordError.value = 'Пароли не совпадают'
-    isValid = false
-  }
-
-  return isValid
-}
-
-async function handlePasswordUpdate() {
-  if (!validatePassword()) return
-
-  isUpdatingPassword.value = true
-  passwordError.value = ''
-  confirmPasswordError.value = ''
-
-  try {
-    // Use the Supabase recovery session established by verifyOtp (type: 'recovery')
-    const { error } = await supabase.auth.updateUser({ password: newPassword.value })
-
-    if (error) {
-      logger.error('Password update error:', error)
-      if (error.message?.toLowerCase().includes('same')) {
-        passwordError.value = 'Новый пароль должен отличаться от текущего.'
-      } else if (error.message?.toLowerCase().includes('not authenticated') || error.message?.toLowerCase().includes('session')) {
-        passwordError.value = 'Сессия истекла. Запросите новый код восстановления.'
-        setTimeout(() => resetForgotForm(), 2000)
-      } else {
-        passwordError.value = 'Ошибка обновления пароля. Попробуйте снова.'
-      }
-      return
-    }
-
-    passwordUpdateSuccess.value = true
-    await authStore.logout()
-
-    setTimeout(() => {
-      resetForgotForm()
-    }, 2000)
-  } catch (err: any) {
-    logger.error('Unexpected error during password update:', err)
-    passwordError.value = 'Произошла ошибка. Попробуйте позже.'
-  } finally {
-    isUpdatingPassword.value = false
-  }
+  if (resendTimer) { clearInterval(resendTimer); resendTimer = null }
 }
 
 onUnmounted(() => {
-  if (resendTimer) {
-    clearInterval(resendTimer)
-    resendTimer = null
-  }
+  if (resendTimer) { clearInterval(resendTimer); resendTimer = null }
 })
 </script>
 
 <style scoped>
-.login-form {
+.form-container { width: 100%; }
+
+.auth-form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -830,9 +564,7 @@ onUnmounted(() => {
   font-weight: 500;
 }
 
-.required {
-  color: var(--fire);
-}
+.required { color: var(--fire); }
 
 .input-wrapper {
   position: relative;
@@ -861,10 +593,7 @@ onUnmounted(() => {
   transition: all 0.3s ease;
 }
 
-.form-input::placeholder {
-  color: var(--sage);
-  opacity: 0.7;
-}
+.form-input::placeholder { color: var(--sage); opacity: 0.7; }
 
 .form-input:focus {
   outline: none;
@@ -888,9 +617,7 @@ onUnmounted(() => {
   transition: color 0.3s ease;
 }
 
-.toggle-password:hover {
-  color: var(--cream);
-}
+.toggle-password:hover { color: var(--cream); }
 
 .error-text {
   font-size: 0.8rem;
@@ -910,11 +637,7 @@ onUnmounted(() => {
   font-size: 0.9rem;
 }
 
-.error-icon {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-}
+.error-icon { width: 20px; height: 20px; flex-shrink: 0; }
 
 .submit-btn {
   position: relative;
@@ -936,14 +659,9 @@ onUnmounted(() => {
   box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
 }
 
-.submit-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
+.submit-btn:active:not(:disabled) { transform: translateY(0); }
 
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btn-glow {
   position: absolute;
@@ -952,13 +670,9 @@ onUnmounted(() => {
   transform: translateX(-100%);
 }
 
-.submit-btn:hover:not(:disabled) .btn-glow {
-  animation: shimmer 0.8s ease;
-}
+.submit-btn:hover:not(:disabled) .btn-glow { animation: shimmer 0.8s ease; }
 
-@keyframes shimmer {
-  100% { transform: translateX(100%); }
-}
+@keyframes shimmer { 100% { transform: translateX(100%); } }
 
 .btn-content {
   display: flex;
@@ -969,36 +683,26 @@ onUnmounted(() => {
   z-index: 1;
 }
 
-.btn-icon {
-  width: 20px;
-  height: 20px;
-}
-
 .spinner {
   width: 20px;
   height: 20px;
   animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  100% { transform: rotate(360deg); }
-}
+@keyframes spin { 100% { transform: rotate(360deg); } }
 
-.forgot-link {
-  text-align: center;
-}
+.forgot-link { text-align: center; }
 
 .forgot-btn {
   background: none;
   border: none;
   color: var(--fire-glow);
-  text-decoration: none;
   font-size: 0.9rem;
-  transition: all 0.3s ease;
-  position: relative;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
   padding: 0;
+  position: relative;
+  transition: all 0.3s ease;
 }
 
 .forgot-btn::after {
@@ -1012,33 +716,17 @@ onUnmounted(() => {
   transition: width 0.3s ease;
 }
 
-.forgot-btn:hover::after {
-  width: 100%;
-}
+.forgot-btn:hover::after { width: 100%; }
 
-.form-container {
-  width: 100%;
-}
-
-.reset-form {
-  animation: fadeIn 0.3s ease;
-}
+/* Reset Form */
+.reset-form { animation: fadeIn 0.3s ease; }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.reset-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
+.reset-header { text-align: center; margin-bottom: 1.5rem; }
 
 .reset-header h3 {
   font-family: 'Merriweather', serif;
@@ -1047,11 +735,7 @@ onUnmounted(() => {
   margin-bottom: 0.5rem;
 }
 
-.reset-desc {
-  color: var(--sage);
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
+.reset-desc { color: var(--sage); font-size: 0.9rem; line-height: 1.5; }
 
 .success-message {
   display: flex;
@@ -1064,63 +748,19 @@ onUnmounted(() => {
   color: #86efac;
   font-size: 0.9rem;
   line-height: 1.6;
+  margin-bottom: 0.5rem;
 }
 
-.success-icon {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
+.success-icon { width: 24px; height: 24px; flex-shrink: 0; margin-top: 2px; }
+.success-title { font-weight: 600; font-size: 1.1rem; margin-bottom: 0.25rem; }
 
-.captcha-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: center;
-}
+/* Code Step */
+.code-step { display: flex; flex-direction: column; gap: 1.5rem; }
 
-.vpn-hint {
-  font-size: 0.78rem;
-  color: var(--sage);
-  opacity: 0.75;
-  text-align: center;
-}
+.code-sent-info { text-align: center; color: var(--sage); font-size: 0.95rem; line-height: 1.6; }
+.code-sent-info strong { color: var(--fire-glow); }
 
-.captcha-wrapper > div {
-  transform: scale(0.95);
-  transform-origin: center;
-}
-
-@media (max-width: 640px) {
-  .captcha-wrapper > div {
-    transform: scale(0.85);
-  }
-}
-
-/* Code Step Styles */
-.code-step {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.code-sent-info {
-  text-align: center;
-  color: var(--sage);
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.code-sent-info strong {
-  color: var(--fire-glow);
-}
-
-.code-inputs {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: center;
-}
+.code-inputs { display: flex; gap: 0.75rem; justify-content: center; }
 
 .code-input {
   width: 3rem;
@@ -1153,15 +793,8 @@ onUnmounted(() => {
   75% { transform: translateX(5px); }
 }
 
-.resend-section {
-  text-align: center;
-  min-height: 2rem;
-}
-
-.resend-text {
-  color: var(--sage);
-  font-size: 0.9rem;
-}
+.resend-section { text-align: center; min-height: 2rem; }
+.resend-text { color: var(--sage); font-size: 0.9rem; }
 
 .resend-btn-link {
   background: none;
@@ -1171,48 +804,21 @@ onUnmounted(() => {
   cursor: pointer;
   text-decoration: underline;
   margin-left: 0.25rem;
-  transition: color 0.3s ease;
   font-family: 'Inter', sans-serif;
   padding: 0;
+  transition: color 0.3s ease;
 }
 
-.resend-btn-link:hover:not(:disabled) {
-  color: var(--fire);
-}
+.resend-btn-link:hover:not(:disabled) { color: var(--fire); }
+.resend-btn-link:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.resend-btn-link:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.timer-text { color: var(--sage); font-size: 0.9rem; font-style: italic; }
 
-.timer-text {
-  color: var(--sage);
-  font-size: 0.9rem;
-  font-style: italic;
-}
+/* Password Step */
+.password-step { display: flex; flex-direction: column; gap: 1.5rem; }
 
 @media (max-width: 480px) {
-  .code-inputs {
-    gap: 0.5rem;
-  }
-
-  .code-input {
-    width: 2.5rem;
-    height: 3rem;
-    font-size: 1.25rem;
-  }
-}
-
-/* Password Step Styles */
-.password-step {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.success-title {
-  font-weight: 600;
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
+  .code-inputs { gap: 0.5rem; }
+  .code-input { width: 2.5rem; height: 3rem; font-size: 1.25rem; }
 }
 </style>
