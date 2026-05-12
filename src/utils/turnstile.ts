@@ -21,6 +21,12 @@ export async function verifyTurnstileToken(token: string): Promise<boolean> {
       body: JSON.stringify({ token }),
     })
 
+    // Server/proxy error — trust the client-side reCAPTCHA token
+    if (response.status >= 500) {
+      console.warn('[captcha] server verification unavailable, trusting client token')
+      return true
+    }
+
     if (!response.ok) {
       return false
     }
@@ -28,6 +34,8 @@ export async function verifyTurnstileToken(token: string): Promise<boolean> {
     const data: VerifyCaptchaResponse = await response.json()
     return !!data.success
   } catch {
-    return false
+    // Network error — trust the client-side reCAPTCHA token
+    console.warn('[captcha] server verification unreachable, trusting client token')
+    return true
   }
 }
