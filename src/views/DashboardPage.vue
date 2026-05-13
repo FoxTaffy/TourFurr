@@ -444,7 +444,7 @@ const authStore = useAuthStore()
 const DEFAULT_EVENT_PRICE = 9900
 
 // Fallback payment URL — used when payment_url is not set in the DB
-const PAYMENT_URL = 'https://www.tinkoff.ru/rm/r_siiTwKksNK.AxwPmVgKGC/GwrnL13713'
+const PAYMENT_URL = 'https://t.tb.ru/c2c-qr-choose-bank?requisiteNumber=+79005742596&bankCode=100000000004'
 
 // Donation / support link (T-Bank / Sberbank C2C QR)
 const SUPPORT_URL = 'https://t.tb.ru/c2c-qr-choose-bank?requisiteNumber=+79005742596&bankCode=100000000004'

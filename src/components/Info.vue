@@ -25,7 +25,7 @@
             <div class="info-value">{{ card.value }}</div>
             <div class="info-detail">{{ card.detail }}</div>
             <div v-if="card.id === 3 && approvedCount !== null" class="info-approved">
-              {{ 155 - approvedCount }} мест осталось
+              4 мест осталось
             </div>
           </div>
         </div>
@@ -93,7 +93,7 @@
       id: 3,
       icon: 'fas fa-users',
       label: 'Количество мест',
-      value: '155',
+      value: '165',
       detail: 'Участников'
     }
   ]
